@@ -1,0 +1,54 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0203_U01" (
+           IN IN_AUTHGROUP_ID       VARCHAR(10)
+         , IN IN_MENU_ID            VARCHAR(10)
+		 , IN IN_SEARCH_YN          CHAR(1)
+		 , IN IN_NEW_YN 		    CHAR(1)
+		 , IN IN_SAVE_YN 		    CHAR(1)
+		 , IN IN_DELETE_YN 	        CHAR(1)
+		 , IN IN_HELP_YN		    CHAR(1)
+	     , IN IN_UPGRADE_YN 	    CHAR(1)
+		 , IN IN_PRINT_YN     		CHAR(1)
+		 , IN IN_ADMIN_YN 	    	CHAR(1)
+         , IN IN_M_USER             VARCHAR(20)
+         , OUT OUT_CNT              VARCHAR(1)
+         , OUT OUT_MSG              VARCHAR(100)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+         DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+         DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+         DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+
+         DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                P2: BEGIN
+                      SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: 실행중 알수없는 오류로 종료되었습니다.' ; --
+                      SET OUT_CNT = '0'; --
+                      RETURN; --
+                END P2;--
+
+        SET OUT_MSG = '';--
+        SET OUT_CNT = '0'; --
+
+		UPDATE
+		 	GADMIN.EBUS_GROUPMENU_M
+		SET
+			  SEARCH_YN 	= IN_SEARCH_YN
+			, NEW_YN 		= IN_NEW_YN
+			, SAVE_YN 		= IN_SAVE_YN
+			, DELETE_YN 	= IN_DELETE_YN
+			, HELP_YN		= IN_HELP_YN
+	        , UPGRADE_YN 	= IN_UPGRADE_YN
+			, PRINT_YN 		= IN_PRINT_YN
+			, ADMIN_YN 		= IN_ADMIN_YN
+			, M_USER 	    = IN_M_USER
+			, M_DATE 	    = CURRENT DATE
+		WHERE 1=1
+		  AND AUTHGROUP_ID  = IN_AUTHGROUP_ID
+		  AND MENU_ID 		= IN_MENU_ID;--
+
+
+END MAIN 

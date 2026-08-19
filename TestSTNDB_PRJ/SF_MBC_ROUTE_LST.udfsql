@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_ROUTE_LST"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_ROUTE_LST
+생성일자	: 2021.12.17
+생성자	: 전광진
+내용	    : 노선
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_MBC_ROUTE_LST()
+*******************************************************************************/
+(
+)
+
+
+RETURNS
+    TABLE
+    (
+      ROUTE         VARCHAR(10)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+   SELECT DISTINCT ROUTE
+     FROM GADMIN.MBC_BACHATIME
+    ORDER BY ROUTE;--
+END

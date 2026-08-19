@@ -1,0 +1,10 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_TEST01" (VARNAME DATE DEFAULT CURRENT
+DATE)
+	RETURNS DATE
+	NO EXTERNAL ACTION
+F1: BEGIN ATOMIC
+	-- ######################################################################
+	-- # Returns count of all tables created by BAMSSTN and VARNAME
+	-- ######################################################################
+	RETURN VARNAME;--
+END

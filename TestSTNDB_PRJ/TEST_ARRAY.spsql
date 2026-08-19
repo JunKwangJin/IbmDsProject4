@@ -1,0 +1,27 @@
+CREATE OR REPLACE PROCEDURE gadmin.test_array (IN VARNAME VARCHAR(128),
+OUT VARCOUNT INTEGER)
+P1: BEGIN
+	-- #######################################################################
+	-- # Returns count of tables created by BAMSSTN and like VARNAME
+	-- #######################################################################
+	declare type stringArray as VARCHAR(100) array[100];--
+    declare list stringArray;--
+	declare i, imax integer;--
+	set i = 0;--
+	while(i < 20) do
+	    set i = i + 1;--
+   	    set list[i] = i;--
+	end while;--
+	set varcount = 0;--
+	set imax = cardinality(list);--
+--	set imax = 20;--
+    set i = 0;--
+	while(i < imax) do
+	    set i = i +1;--
+   	    set varcount = varcount + list[i];--
+	end while;--
+
+
+	--SELECT COUNT(*) INTO VARCOUNT FROM SYSIBM.SYSTABLES
+	--	WHERE CREATOR = 'BAMSSTN' AND NAME LIKE VARNAME;--
+END P1 

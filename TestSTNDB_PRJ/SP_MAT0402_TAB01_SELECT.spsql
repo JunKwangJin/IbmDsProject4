@@ -1,0 +1,44 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0402_TAB01_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_EWOL_MONTH VARCHAR(10) DEFAULT '';--
+
+    P1: BEGIN
+
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                SELECT A.ROUTE, COALESCE(B.FORMAT,'') AS FORMAT, COALESCE(A.CAR_NO,'') AS CAR_NO, COALESCE(TO_CHAR(B.REG_DATE,'YYYYMMDD'),'') AS YONSIK, C.SECTION_DIST, A.HOISU, A.HOISU * C.SECTION_DIST AS JUHANG, COALESCE(D.CHARGE,0) AS CHARGE,COALESCE((A.HOISU * C.SECTION_DIST) / D.CHARGE,0) AS YUNGBI, COALESCE(D.PRICE,0) AS PRICE
+                  FROM (
+                            SELECT ROUTE, CAR_NO, SUM(HOISU_A) + SUM(HOISU_B) AS HOISU
+                              FROM UNHANG02 A
+                             WHERE 1 = 1
+                               AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                            GROUP BY ROUTE, CAR_NO
+                        ) A
+                        LEFT OUTER JOIN GADMIN.BSCAR B ON (A.CAR_NO = B.CAR_NO) -- 차량기본정보
+                        LEFT OUTER JOIN GADMIN.BSUNHA3 C ON (A.ROUTE = C.ROUTE) -- 주행거리
+                        LEFT OUTER JOIN (
+                                            SELECT ROUTE, CAR_NO, SUM(CHARGE) AS CHARGE,  SUM(PRICE) AS PRICE
+                                              FROM GADMIN.UNHANG07
+                                             WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                            GROUP BY ROUTE, CAR_NO
+                                           ) D ON (A.ROUTE = D.ROUTE AND A.CAR_NO = D.CAR_NO)   -- 충전량, 충전금액
+                 WHERE 1 = 1
+                   AND C.GUBUN = '평시'  --나중에 처리
+
+             )
+        ORDER BY 1
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

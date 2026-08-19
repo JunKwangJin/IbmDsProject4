@@ -1,0 +1,36 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0102_TAB01_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE  VARCHAR(10)
+, IN IN_CASH_GB  VARCHAR(6)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    P1: BEGIN
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                 SELECT *
+                   FROM (
+                            SELECT SANGHO_CD, SANGHO, SUM(QTY) AS QTY
+                                           , COALESCE(SUM(CASE CASH_GB WHEN '외상'  THEN SUPPLY_PRICE END),0) AS PAYABLE
+                                           , COALESCE(SUM(CASE CASH_GB WHEN '현금' THEN SUPPLY_PRICE END ),0)AS CASH
+                                           , COALESCE(SUM(CASE CASH_GB WHEN '카드' THEN SUPPLY_PRICE END ),0) AS CARD
+                                           , COALESCE(SUM(SUPPLY_PRICE),0) AS TOT
+                              FROM GADMIN.JAGUMA1
+                             WHERE 1 = 1
+                               AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                               AND CASH_GB LIKE COALESCE(IN_CASH_GB,'')||'%'
+                             GROUP BY SANGHO_CD, SANGHO
+                          ) A
+                 ) A
+        ORDER BY SANGHO_CD;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

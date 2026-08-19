@@ -1,0 +1,74 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_ROUTETIME"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_ROUTETIME
+생성일자	: 2021.12.12
+생성자	: 전광진
+내용	    : 노선, 기사의 운행시간표
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_MBC_ROUTETIME(일자, 노선, 기사전화번호, 기사노선전체뮤무(1: 전체, 0: 기사만))
+*******************************************************************************/
+(
+    IN IN_BACHA_DT   VARCHAR(8)   -- 배차시간
+  , IN IN_ROUTE      VARCHAR(10)  -- 노선명
+  , IN IN_CELLPHONE  VARCHAR(11)  -- 기사전화번호
+  , IN IN_ROUTE_YN   VARCHAR(1)   -- 노선구분(기사 노선 전체 유무)
+)
+
+
+RETURNS
+    TABLE
+    (
+      DRIVE_NM      VARCHAR(20)
+    , AMPM          VARCHAR(6)
+    , ROUTE         VARCHAR(10)
+    , CAR_NO        VARCHAR(20)
+    , BACHA_TM      VARCHAR(5)
+    , BACHA_ST      VARCHAR(6)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_BACHA_DT   VARCHAR(8);-- 배차시간
+   DECLARE V_ROUTE      VARCHAR(10);-- 노선명
+   DECLARE V_CELLPHONE  VARCHAR(11);-- 기사전화번호
+   DECLARE V_ROUTE_YN   VARCHAR(1);-- 노선구분(기사 노선 전체 유무)
+
+   SET V_BACHA_DT  = COALESCE(IN_BACHA_DT,'');--
+   SET V_ROUTE     = COALESCE(IN_ROUTE,'');--
+   SET V_CELLPHONE = COALESCE(IN_CELLPHONE,'');--
+   SET V_ROUTE_YN  = COALESCE(IN_ROUTE_YN,'');--
+
+   RETURN
+   SELECT INSA_NM
+        , AMPM
+        , ROUTE
+        , RIGHT(TRIM(CAR_NO),4) AS CAR_NO
+        , BACHA_TM
+        , BACHA_ST
+     FROM GADMIN.MBC_BACHATIME
+    WHERE BACHA_DT = V_BACHA_DT
+      AND (INSA_NO, INSA_NM)
+       IN (SELECT INSA_NO, INSA_NM
+             FROM GADMIN.MBC_USERS
+            WHERE CELLPHONE LIKE (CASE WHEN V_ROUTE_YN = '1' THEN '%' ELSE V_CELLPHONE ||'%' END)
+          )
+      AND ROUTE LIKE (CASE WHEN V_ROUTE_YN = '1' THEN '%' ELSE V_ROUTE||'%' END)
+--       OR (ROUTE IN (SELECT DISTINCT ROUTE
+--                       FROM GADMIN.MBC_BACHATIME
+--                      WHERE BACHA_DT = V_BACHA_DT
+--                        AND CELLPHONE = V_CELLPHONE
+--                        AND V_CELLPHONE <> ''
+--                        AND V_ROUTE = ''
+--                        AND V_ROUTE_YN = '1'
+--                    )
+--          )
+--    ORDER BY (CASE WHEN V_CELLPHONE = CELLPHONE THEN '1'||INSA_NM ELSE INSA_NM END)  -- 조회하는 전화번호의 기사면을 제일 잎으로 나타낸다.
+    ORDER BY ROUTE
+           , (CASE AMPM WHEN '오전' THEN '1' WHEN '오후' THEN '2' ELSE '3' END)
+           , (CASE WHEN TRIM(BACHA_TM) IN ( ':','') THEN '99:99' ELSE BACHA_TM END)   -- 시간순으로 조회. 시간이 없으면 후행.
+           , INSA_NM
+    ;--
+END

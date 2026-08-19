@@ -1,0 +1,217 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0501_TAB02_PRINT"
+(
+    IN IN_FROMDATE VARCHAR(10),
+    IN IN_TODATE   VARCHAR(10),
+    IN IN_ACCCD    VARCHAR(10),
+    IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_CNT INT DEFAULT 0;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        ROW_NUM         BIGINT,
+        DATE           VARCHAR(10),
+        ACC_NO          VARCHAR(4),
+        DRCR_GB         VARCHAR(6),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        ACC_CONT        VARCHAR(300),
+        PRICE           DECIMAL(13,0),
+        MANAGE          VARCHAR(9),
+        MANAGE_CD_1     VARCHAR(9),
+        MANAGE_ITEM_1   VARCHAR(45),
+        MANAGE_CD_2     VARCHAR(9),
+        MANAGE_ITEM_2   VARCHAR(90),
+        PURCH           VARCHAR(1),
+        JEUNGBING_DOC   VARCHAR(15),
+        ROW_ID          BIGINT,
+        DR_AMT          DECIMAL(13,0),
+        CR_AMT          DECIMAL(13,0),
+        SUM_IN          DECIMAL(13,0),
+        SUM_OUT         DECIMAL(13,0),
+        SUM_DR          DECIMAL(13,0),
+        SUM_CR          DECIMAL(13,0),
+        TOT_IN          DECIMAL(13,0),
+        TOT_OUT         DECIMAL(13,0),
+        TOT_DR          DECIMAL(13,0),
+        TOT_CR          DECIMAL(13,0)
+    )  ON COMMIT PRESERVE ROWS
+      WITH REPLACE
+      NOT LOGGED;--
+
+    P1: BEGIN
+
+        SELECT COUNT(*) INTO V_CNT FROM TABLE(GADMIN.SF_FIN_LEVELUP_TO_ACC(IN_ACCCD));--
+
+        IF V_CNT < 1 THEN
+               INSERT INTO SESSION.TEMP
+                WITH ACC_LIST AS (
+                                   SELECT ROW_NUMBER() OVER(PARTITION BY DATE ORDER BY DATE, ACC_NO) AS ROWNUM,
+                                          DATE,
+                                          ACC_NO,
+                                          DRCR_GB,
+                                          ACC_CD,
+                                          ACC_NM,
+                                          ACC_CONT,
+                                          PRICE,
+                                          MANAGE,
+                                          MANAGE_CD_1,
+                                          MANAGE_ITEM_1,
+                                          MANAGE_CD_2,
+                                          MANAGE_ITEM_2,
+                                          PURCH,
+                                          JEUNGBING_DOC,
+                                          ROW_ID,
+                                          DR_AMT,
+                                          CR_AMT
+                                     FROM GADMIN.ACCOU1
+                                    WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE),
+
+                     ACC_SUM AS (
+                                  SELECT DATE,
+                                         SUM(CASE WHEN DRCR_GB = '입금' THEN CR_AMT ELSE 0 END) AS SUM_IN,
+                                         SUM(CASE WHEN DRCR_GB = '출금' THEN DR_AMT ELSE 0 END) AS SUM_OUT,
+                                         SUM(CASE WHEN DRCR_GB = '차변' THEN DR_AMT ELSE 0 END) AS SUM_DR,
+                                         SUM(CASE WHEN DRCR_GB = '대변' THEN CR_AMT ELSE 0 END) AS SUM_CR
+                                    FROM GADMIN.ACCOU1
+                                   WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                   GROUP BY DATE),
+
+                     ACC_TOT AS (
+                                  SELECT SUM(CASE WHEN DRCR_GB = '입금' THEN CR_AMT ELSE 0 END) AS TOT_IN,
+                                         SUM(CASE WHEN DRCR_GB = '출금' THEN DR_AMT ELSE 0 END) AS TOT_OUT,
+                                         SUM(CASE WHEN DRCR_GB = '차변' THEN DR_AMT ELSE 0 END) AS TOT_DR,
+                                         SUM(CASE WHEN DRCR_GB = '대변' THEN CR_AMT ELSE 0 END) AS TOT_CR
+                                    FROM GADMIN.ACCOU1
+                                   WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE)
+                 SELECT ROWNUM,
+                        VARCHAR_FORMAT(L.DATE,'YYYY-MM-DD') AS DATE,
+                        ACC_NO,
+                        DRCR_GB,
+                        ACC_CD,
+                        ACC_NM,
+                        ACC_CONT,
+                        PRICE,
+                        MANAGE,
+                        MANAGE_CD_1,
+                        MANAGE_ITEM_1,
+                        MANAGE_CD_2,
+                        MANAGE_ITEM_2,
+                        PURCH,
+                        JEUNGBING_DOC,
+                        ROW_ID,
+                        DR_AMT,
+                        CR_AMT,
+                        SUM_IN,
+                        SUM_OUT,
+                        SUM_DR,
+                        SUM_CR,
+                        TOT_IN,
+                        TOT_OUT,
+                        TOT_DR,
+                        TOT_CR
+                   FROM ACC_LIST AS L
+                   LEFT OUTER JOIN ACC_SUM AS S
+                     ON L.DATE = S.DATE
+                   LEFT OUTER JOIN ACC_TOT AS T
+                     ON 1=1
+                  WHERE L.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                    AND L.ACC_CD LIKE IN_ACCCD
+                  ORDER BY L.DATE, ACC_NO, ROWNUM
+                  ;--
+    ELSE
+                INSERT INTO SESSION.TEMP
+                WITH ACC_LIST AS (
+                                   SELECT ROW_NUMBER() OVER(PARTITION BY DATE ORDER BY DATE, ACC_NO) AS ROWNUM,
+                                          DATE,
+                                          ACC_NO,
+                                          DRCR_GB,
+                                          ACC_CD,
+                                          ACC_NM,
+                                          ACC_CONT,
+                                          PRICE,
+                                          MANAGE,
+                                          MANAGE_CD_1,
+                                          MANAGE_ITEM_1,
+                                          MANAGE_CD_2,
+                                          MANAGE_ITEM_2,
+                                          PURCH,
+                                          JEUNGBING_DOC,
+                                          ROW_ID,
+                                          DR_AMT,
+                                          CR_AMT
+                                     FROM GADMIN.ACCOU1
+                                    WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE),
+
+                     ACC_SUM AS (
+                                  SELECT DATE,
+                                         SUM(CASE WHEN DRCR_GB = '입금' THEN CR_AMT ELSE 0 END) AS SUM_IN,
+                                         SUM(CASE WHEN DRCR_GB = '출금' THEN DR_AMT ELSE 0 END) AS SUM_OUT,
+                                         SUM(CASE WHEN DRCR_GB = '차변' THEN DR_AMT ELSE 0 END) AS SUM_DR,
+                                         SUM(CASE WHEN DRCR_GB = '대변' THEN CR_AMT ELSE 0 END) AS SUM_CR
+                                    FROM GADMIN.ACCOU1
+                                   WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                   GROUP BY DATE),
+
+                     ACC_TOT AS (
+                                  SELECT SUM(CASE WHEN DRCR_GB = '입금' THEN CR_AMT ELSE 0 END) AS TOT_IN,
+                                         SUM(CASE WHEN DRCR_GB = '출금' THEN DR_AMT ELSE 0 END) AS TOT_OUT,
+                                         SUM(CASE WHEN DRCR_GB = '차변' THEN DR_AMT ELSE 0 END) AS TOT_DR,
+                                         SUM(CASE WHEN DRCR_GB = '대변' THEN CR_AMT ELSE 0 END) AS TOT_CR
+                                    FROM GADMIN.ACCOU1
+                                   WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE)
+                 SELECT ROWNUM,
+                        VARCHAR_FORMAT(L.DATE,'YYYY-MM-DD') AS DATE,
+                        ACC_NO,
+                        L.DRCR_GB,
+                        L.ACC_CD,
+                        L.ACC_NM,
+                        ACC_CONT,
+                        PRICE,
+                        MANAGE,
+                        MANAGE_CD_1,
+                        MANAGE_ITEM_1,
+                        MANAGE_CD_2,
+                        MANAGE_ITEM_2,
+                        PURCH,
+                        JEUNGBING_DOC,
+                        ROW_ID,
+                        DR_AMT,
+                        CR_AMT,
+                        SUM_IN,
+                        SUM_OUT,
+                        SUM_DR,
+                        SUM_CR,
+                        TOT_IN,
+                        TOT_OUT,
+                        TOT_DR,
+                        TOT_CR
+                   FROM ACC_LIST AS L
+                   INNER JOIN TABLE(GADMIN.SF_FIN_LEVELUP_TO_ACC(IN_ACCCD)) B ON (L.ACC_CD = B.ACC_CD)
+                   LEFT OUTER JOIN ACC_SUM AS S
+                     ON L.DATE = S.DATE
+                   LEFT OUTER JOIN ACC_TOT AS T
+                     ON 1=1
+                  WHERE L.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                  ORDER BY L.DATE, ACC_NO, ROWNUM
+                  ;--
+    END IF;--
+   END P1;--
+
+   P2: BEGIN
+
+            DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+            SELECT * FROM SESSION.TEMP
+            ;--
+
+            OPEN CURSOR_TEMP;--
+
+   END P2;--
+
+END MAIN 

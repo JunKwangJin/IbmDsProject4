@@ -1,0 +1,52 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_AM_LICENSE_D_UPDATE"(
+    IN IN_BE_INSA_NO 		VARCHAR(12),
+    IN IN_BE_LICENSE_GBCD 	VARCHAR(2),
+    IN IN_INSA_NO 		VARCHAR(12),
+    IN IN_LICENSE_GBCD 	VARCHAR(2),
+    IN IN_GYOBU_DT 		VARCHAR(8),
+    IN IN_LICENSE_NO 	VARCHAR(30),
+    IN IN_JUKSUNG_GUMSA_DT VARCHAR(8),
+    IN IN_UPDATE_ID 	VARCHAR(25),
+    IN IN_UPDATE_NM 	VARCHAR(25),
+    IN IN_UPDATE_IP 	VARCHAR(25),
+    IN IN_UPDATE_PGM 	VARCHAR(200),
+
+    OUT OUT_CNT 		INTEGER, 
+    OUT OUT_MSG 		VARCHAR(1000)  
+)
+
+ LANGUAGE SQL
+P1: BEGIN
+------------------------------------------------------------------------
+-- SQL Stored Procedure 
+------------------------------------------------------------------------
+    UPDATE 
+        GADMIN.AM_LICENSE_D
+    SET
+            (
+	    LICENSE_GBCD,
+	    GYOBU_DT,
+	    LICENSE_NO,
+	    JUKSUNG_GUMSA_DT,
+        UPDATE_DT,
+        UPDATE_ID,
+        UPDATE_NM,
+        UPDATE_IP,
+        UPDATE_PGM
+    )
+    =
+    (
+	    IN_LICENSE_GBCD,
+	    IN_GYOBU_DT,
+	    IN_LICENSE_NO,
+	    IN_JUKSUNG_GUMSA_DT,
+        CURRENT TIMESTAMP, -- UPDATE_DT
+        IN_UPDATE_ID,
+        IN_UPDATE_NM,
+        IN_UPDATE_IP,
+        IN_UPDATE_PGM
+    )
+    WHERE INSA_NO 		= IN_BE_INSA_NO
+      AND LICENSE_GBCD 	= IN_BE_LICENSE_GBCD
+    ;
+END P1 

@@ -1,0 +1,70 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_GUBDATADELETE"
+(
+      IN IN_TEMP_DAT        VARCHAR ( 5000 )
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+--  TEMP TABLE 변수
+    DECLARE V_TEMP_DAT      VARCHAR(5000)  DEFAULT '';--
+
+
+-- 일반변수
+--    DECLARE I           INTEGER;--
+
+
+    DECLARE SQLCODE         INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE        CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE      CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_CNT             INTEGER       DEFAULT 0;--
+
+    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+--    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+--    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG 사용안하고 테스트
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+--    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG 사용안하고 테스트
+
+--  저장할 데이터와같은 급여 데이터를 저장하기전레 삭제한다.
+
+    SET V_TEMP_DAT = IN_TEMP_DAT;--
+
+--  데이터를 저장한다.
+
+    SET V_SQLSTATE = '00000';--
+
+       SELECT COUNT(*) INTO V_CNT FROM GADMIN.MBC_GUBDATA
+        WHERE GUB_YYMM  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1)   -- 금여년원
+          AND JIKJONG   = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1)   -- 직종
+          AND GUB_GB    = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1)   -- 급여구분
+       ;--
+    IF V_CNT > 0 THEN
+       DELETE GADMIN.MBC_GUBDATA
+        WHERE GUB_YYMM  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1)   -- 금여년원
+          AND JIKJONG   = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1)   -- 직종
+          AND GUB_GB    = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1)   -- 급여구분
+       ;--
+    END IF; --
+
+   --SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'저장되었습니다.');-- 일단 사용안함
+   --SET (IO_INSA_NO, OUT_MSG) = (V_INSA_NO, OUT_MSG);-- 일단사용안함
+
+END MAIN 

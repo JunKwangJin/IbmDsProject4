@@ -1,0 +1,48 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_GUBGB_LST"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_GUBGB_LST
+생성일자	: 2021.12.30
+생성자	: 전광진
+내용	    : 급여구분
+수정일자	: 2022.3.5
+수정자	: 전광진
+수정내용    : 인사번호가 2개이상인 사원을 나타내기위해  급여리스트에 인사번호를 추가함
+예제
+SELECT * FROM GADMIN.SF_MBC_GUBGB_LST(전화번호)
+*******************************************************************************/
+(
+    IN IN_CELLPHONE  VARCHAR(11)  -- 전화번호
+)
+
+
+RETURNS
+    TABLE
+    (
+      GUB_YYMM         VARCHAR(7)
+    , GUB_GB           VARCHAR(25)
+    , INSA_NO          VARCHAR(10)
+
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+   WITH INSA_SEL AS (
+   SELECT COUNT(*) AS INSA_CNT
+               FROM GADMIN.MBC_USERS AS U
+              WHERE U.JAEJIK_YN='1'
+                AND U.CELLPHONE = IN_CELLPHONE
+              )
+
+   SELECT GUB_YYMM, GUB_GB, INSA_NO
+     FROM ( SELECT G.GUB_YYMM, G.GUB_GB, G.PAY, (CASE WHEN (SELECT INSA_CNT FROM INSA_SEL) > 1 THEN U.INSA_NO ELSE '' END) AS INSA_NO
+               FROM GADMIN.MBC_GUBDATA AS G
+              INNER JOIN GADMIN.MBC_USERS AS U
+                 ON U.INSA_NO = G.INSA_NO
+              WHERE U.CELLPHONE = IN_CELLPHONE
+                AND G.HANGMOK_CD = 'A01' -- 급여일자 함목코드
+           )
+    ORDER BY GUB_YYMM DESC, PAY DESC, INSA_NO
+   ;--
+END

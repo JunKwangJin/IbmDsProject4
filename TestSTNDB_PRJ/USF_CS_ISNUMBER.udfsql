@@ -1,0 +1,53 @@
+
+
+CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_ISNUMBER" 
+/*******************************************************************************
+파일명	: GADMIN.USF_CS_ISNUMBER
+생성일자	: 2025. 8.8
+생성자	: 전광진
+내용	    : 문자열이 숫자인지 문자열인지 확인하는 함수
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_COM_BSCAR_M('','','')
+*******************************************************************************/
+
+(
+input_string VARCHAR(100)
+)
+RETURNS INTEGER -- 결과: 1이면 숫자, 0이면 숫자 아님
+LANGUAGE SQL
+DETERMINISTIC
+CONTAINS SQL
+NO EXTERNAL ACTION
+BEGIN
+  DECLARE v_temp_num DECIMAL(31, 15); -- 실수를 포함한 큰 숫자도 커버 가능
+  DECLARE SQLSTATE CHAR(5) DEFAULT '00000'; -- 기본 상태는 성공
+    DECLARE LEN_UNDER 	CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER 	CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL 	CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO 	CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE 	CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+    DECLARE NOT_NUMBER 	CONDITION FOR SQLSTATE '22018';  -- TABLE이 없을떄
+
+  
+    DECLARE EXIT HANDLER FOR NOT_NUMBER RETURN 9;    
+  -- CAST 실패 시 SQLEXCEPTION (모든 SQL 오류)을 잡아서 SQLSTATE를 '99999'로 설정 (오류 상태)
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET SQLSTATE = '99999';
+
+  -- 입력 문자열의 앞뒤 공백 제거 후 CAST 시도
+  SET v_temp_num = CAST(TRIM(input_string) AS DECIMAL(31, 15));
+
+  -- CAST 시도 후 SQLSTATE 값 확인
+  IF SQLSTATE = '99999' THEN
+    RETURN 0; -- 에러가 발생했으면 숫자가 아님
+  ELSE
+    -- 공백만 있는 문자열은 숫자가 아니라고 판단하고 싶을 때 추가
+    IF TRIM(input_string) = '' THEN
+        RETURN 0;
+    ELSE
+        RETURN 1; -- 에러가 없었으면 숫자임 (공백 제외)
+    END IF;
+  END IF;
+END

@@ -1,0 +1,96 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_USER_LIST01"
+(
+    IN IN_USER_ID   VARCHAR(10 )
+  , IN IN_USER_NM   VARCHAR(100)
+)
+
+
+RETURNS
+
+      TABLE (
+            USER_GUBUN          VARCHAR(1   )   ,
+            USER_ID             VARCHAR(10  )   ,
+            USER_NM             VARCHAR(100 )   ,
+            USER_PWD            VARCHAR(4000)   ,
+            SOSOK_CD            VARCHAR(10  )   ,
+            SOSOK_NM            VARCHAR(100 )   ,
+            JIKGEUP_CD          VARCHAR(5   )   ,
+            JAEJIK_GBCD         VARCHAR(2   )   ,
+            JIKJONG_CD          VARCHAR(2   )   ,
+            HP_NO               VARCHAR(30  )   ,
+            SANGTAE_CD          VARCHAR(10  )   ,
+            SANGTAE_NM          VARCHAR(50  )
+--            EMAIL_ID            VARCHAR(100 )
+            )
+
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+            SELECT
+                      A.USER_GUBUN                  AS USER_GUBUN
+                    , A.USER_ID                     AS USER_ID
+                    , A.USER_NM                     AS USER_NM
+                    , A.USER_PW                     AS USER_PW
+                    , A.BUSEO_CD                    AS SOSOK_CD
+                    , GADMIN.SF_EBUS_BUSEO_CODE(A.BUSEO_CD,'SOSOK_NM')
+                                                    AS SOSOK_NM
+                    , A.JIKWI_CD                    AS JIKWI_CD
+                    , A.JAEJIK_GBCD                 AS JAEJIK_GBCD
+                    , A.JIKJONG_CD                  AS JIKJONG_CD
+                    , A.HP_NO                       AS HP_NO
+                    , A.SANGTAE_CD                  AS SANGTAE_CD
+                    , A.SANGTAE_NM                  AS SANGTAE_NM
+--                    , A.EMAIL_ID                    AS EMAIL_ID
+            FROM
+                                (
+                                SELECT
+                                          '2'                     AS USER_GUBUN
+                                        , M.SABUN                 AS USER_ID
+                                        , M.FULLNAME              AS USER_NM
+                                        , M.INSA_PWD              AS USER_PW
+                                        , M.SOSOK_CD              AS BUSEO_CD
+                                        , M.JIKWI_CD              AS JIKWI_CD
+                                        , M.JAEJIK_GBCD           AS JAEJIK_GBCD
+                                        , M.JIKJONG_CD            AS JIKJONG_CD
+                                        , M.CELLPHONE             AS HP_NO
+                                        , M.JAEJIK_GBCD           AS SANGTAE_CD
+                                        , GADMIN.SF_EBUS_COMMON_CD('COM92',M.JAEJIK_GBCD,'')
+                                                                  AS SANGTAE_NM
+--                                        , COALESE(EMAIL_ID,'')    AS EMAIL_ID
+                                FROM                    GADMIN.BSDRIVE    M
+                                        LEFT OUTER JOIN GADMIN.AM_JIKJONG_C B
+                                                        ON      M.JIKJONG_CD    =   B.JIKJONG_CD
+                                WHERE       M.SABUN =     CASE WHEN IN_USER_ID = '%' THEN M.SABUN
+                                                                 ELSE IN_USER_ID
+                                                            END
+                                        AND FULLNAME LIKE  IN_USER_NM || '%'
+                                UNION ALL
+                                SELECT
+                                          '3'                      AS USER_GUBUN
+                                        , OEBU_USER_ID             AS USER_ID
+                                        , OEBU_USER_NM             AS USER_NM
+                                        , OEBU_USER_PW             AS USER_PW
+                                        , SOSOK_CD                 AS SOSOK_CD
+                                        , ''                       AS JIKWI_CD
+                                        , '1'                      AS JAEJIK_GBCD
+                                        , ''                       AS JIKJONG_CD
+                                        , TEL_NO                   AS HP_NO
+                                        , '1'                      AS SANGTAE_CD
+                                        , GADMIN.SF_EBUS_COMMON_CD('COM92','1','')
+                                                                   AS SANGTAE_NM
+--                                        , EMAIL                    AS EMAIL_ID
+                                FROM    GADMIN.EBUS_OEBUUSER_M
+                                WHERE       OEBU_USER_ID    =    CASE WHEN IN_USER_ID = '%' THEN OEBU_USER_ID
+                                                                      ELSE IN_USER_ID
+                                                                 END
+                                        AND OEBU_USER_NM    LIKE IN_USER_NM || '%'
+                                        AND SAYONG_YN       =   '1'
+                                )                                   A
+                LEFT OUTER JOIN GADMIN.AM_JIKJONG_C B
+                                ON      A.JIKJONG_CD    =   B.JIKJONG_CD
+        ;--
+
+END

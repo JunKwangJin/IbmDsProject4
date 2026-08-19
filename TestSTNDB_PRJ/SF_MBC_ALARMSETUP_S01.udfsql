@@ -1,0 +1,37 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_ALARMSETUP_S01"
+/*******************************************************************************
+파일명	: "GADMIN"."SF_MBC_ALARMSETUP_S01"
+생성일자	: 2022.4.12
+생성자	: 전광진
+내용	    : ALARM 여부 와 알람 진동 모드 정보조회.
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM "GADMIN"."SF_MBC_ALARMSETUP_S01"(사용자 ID)
+*******************************************************************************/
+(
+    IN IN_USERID  VARCHAR(15)   -- 사용자 ID
+)
+RETURNS
+    TABLE
+    (
+      USERID        VARCHAR(15)
+    , GET_ALARM_YN	VARCHAR(1)
+    , VIBMODE_YN  	VARCHAR(1)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_USERID          VARCHAR(15);-- 사용자 ID
+
+   SET V_USERID       = COALESCE(IN_USERID,'');--
+
+   RETURN
+  SELECT  USERID
+        , GET_ALARM_YN
+        , VIBMODE_YN
+     FROM GADMIN.MBC_DEV_PUSHKEY
+    WHERE USERID  = V_USERID
+    ;--
+END

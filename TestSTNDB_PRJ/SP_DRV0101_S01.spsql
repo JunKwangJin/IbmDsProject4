@@ -1,0 +1,227 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0101_S01"
+(
+      IN  IN_USER_ID   VARCHAR(12)
+    , IN  IN_MENU_ID   VARCHAR(10)
+    , IN  IN_SSID      VARCHAR(70)
+    , IN  IN_OFFICE_CD VARCHAR(5)
+    , IN  IN_ROUTE_CD  VARCHAR(3)
+    , OUT OUT_CNT      VARCHAR(10)
+    , OUT OUT_MSG      VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0101_S01
+생성일자	: 2020.07.03
+생성자	: 전광진
+내용	    : 고정쉬프트 입력용 조회 입니다.
+USAGE   : GADMIN.SP_DRV0101_S01(USER ID, 영업소코드, 노선코드, 기사사번, 차량번호코드)
+수정일자	: 2021.04.21
+수정자	: 전광진
+수정내용	: 데이터 오류 메세지 추가(배차 중복, 같은 시간대 기사 중복)
+INPUT	: IN_USER_ID        1.사용자 ID
+	    : IN_OFFICE_CD      2.영업소코드
+        : IN_ROUTE_CD       3.노선코드
+	    : IN_PYEON_GB	    4.코드명
+	    : IN_WEEK_GB	    5.평일구분
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = CASE SQLSTATE WHEN   '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                        ELSE              SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = CASE SQLSTATE WHEN   '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                        ELSE              SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+        WITH
+         AMF AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                      , ONETIME_CD
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='1'
+                    AND ROUTE_CD LIKE '%'||COALESCE(IN_ROUTE_CD,'')||'%'
+                    AND AMPM_GB =
+                               (SELECT MAX(CD)
+                                  FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'L','','','','','','')))
+                ),
+         PMF AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                      , ONETIME_CD
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='1'
+                    AND ROUTE_CD LIKE '%'||COALESCE(IN_ROUTE_CD,'')||'%'
+                    AND AMPM_GB =
+                               (SELECT MAX(CD)
+                                  FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'R','','','','','','')))
+                ),
+         AMD AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='2'
+                    AND ROUTE_CD LIKE '%'||COALESCE(IN_ROUTE_CD,'')||'%'
+                    AND AMPM_GB = (SELECT MAX(CD) FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'L','','','','','','')))
+                ),
+         PMD AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='2'
+                    AND ROUTE_CD LIKE '%'||COALESCE(IN_ROUTE_CD,'')||'%'
+                    AND AMPM_GB = (SELECT MAX(CD)
+                                     FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'R','','','','','','')))
+                )
+        SELECT
+             '' AS CK,
+             TRIM(IN_USER_ID)||TRIM(IN_MENU_ID)||VARCHAR_FORMAT(CURRENT TIMESTAMP,'YYYYMMDDHH24MISSNNNNNN') AS SSID,
+             COALESCE(MM.ROUTE_CD,'') AS ROUTE_CD,
+             COALESCE(MM.SUNBUN,'') AS SUNBUN,
+             COALESCE(MM.ROUTE_CD,'') AS OLD_ROUTE_CD,
+             COALESCE(MM.SUNBUN,'') AS OLD_SUNBUN,
+             COALESCE(MM.CAR_CD,'') AS CAR_CD,
+             COALESCE(MM.HOLY_CD,'') AS HOLY_CD,
+             COALESCE(MM.SHIFT_CD,'') AS SHIFT_CD,
+             COALESCE(MM.YEBI_YN,'') AS YEBI_YN,
+             COALESCE(AMF.SABUN,'') AS SABUN_A,
+             COALESCE(AMF.FULLNAME,'') AS NM_A,
+             COALESCE(AMF.ONETIME_CD,'') AS ONE_TIME_CD_A,
+             COALESCE(PMF.SABUN,'') AS SABUN_B,
+             COALESCE(PMF.FULLNAME,'') AS NM_B,
+             COALESCE(PMF.ONETIME_CD,'') AS ONE_TIME_CD_B,
+             COALESCE(AMD.SABUN,'') AS SABUN_C,
+             COALESCE(AMD.FULLNAME,'') AS NM_C,
+             COALESCE(PMD.SABUN,'') AS SABUN_D,
+             COALESCE(PMD.FULLNAME,'') AS NM_D,
+             COALESCE(MM.YEBI_HOLY_CD,'') AS YEBI_HOLY_CD,
+             COALESCE(MM.YEBI_SHIFT_CD,'') AS YEBI_SHIFT_CD,
+             COALESCE(MM.ROTATE,'') AS ROTATE,
+             ''  AS ERR_MSG
+
+        FROM GADMIN.BSUNHA1_M AS MM
+             LEFT OUTER JOIN AMF ON MM.ROUTE_CD = AMF.ROUTE_CD AND MM.SUNBUN=AMF.SUNBUN
+             LEFT OUTER JOIN PMF ON MM.ROUTE_CD = PMF.ROUTE_CD AND MM.SUNBUN=PMF.SUNBUN
+             LEFT OUTER JOIN AMD ON MM.ROUTE_CD = AMD.ROUTE_CD AND MM.SUNBUN=AMD.SUNBUN
+             LEFT OUTER JOIN PMD ON MM.ROUTE_CD = PMD.ROUTE_CD AND MM.SUNBUN=PMD.SUNBUN
+        WHERE MM.ROUTE_CD LIKE '%'||COALESCE(IN_ROUTE_CD,'')||'%'
+             ORDER BY MM.ROUTE_CD, MM.SUNBUN;	--
+        OPEN CURSOR_DRV;--
+   END P1;--
+
+    P2: BEGIN
+        DECLARE V_CAR_CD VARCHAR(5) DEFAULT '';--
+        SET OUT_MSG = '';--
+          FOR BUD AS
+             SELECT AMPM_GB
+                  , FIX_GB
+                  , SABUN
+                  , COUNT(SABUN) AS SABUN_CNT
+                  , MAX(SUNBUN) AS SUNBUN
+               FROM GADMIN.BSUNHA1_D AS D
+              WHERE TRIM(COALESCE(SABUN,'')) != ''
+                AND ROUTE_CD = IN_ROUTE_CD
+              GROUP BY AMPM_GB
+                     , FIX_GB
+                     , SABUN
+             HAVING COUNT(SABUN) > 1
+         DO
+
+            -- 차량정보
+            SELECT CAR_CD
+              INTO V_CAR_CD
+              FROM GADMIN.BSUNHA1_M
+             WHERE ROUTE_CD = IN_ROUTE_CD
+               AND SUNBUN = BUD.SUNBUN;--
+
+--           SET OUT_MSG = CHAR(LENGTH(OUT_MSG));--
+
+           IF LENGTH(OUT_MSG) < 8000 THEN
+              SET OUT_CNT = '{ERR}'; --
+              SET OUT_MSG = OUT_MSG
+                || CHR(13)
+                || GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'') --노선
+                ||'노선, '
+                ||GADMIN.SF_EBUS_COMMON_CD('DRV15',V_CAR_CD,'')     -- 차량번호
+                ||', '
+                || GADMIN.SF_INS_GETINSA_NM(BUD.SABUN)              -- 기사명
+                ||'  데이터 중복입니다.'
+              ;--
+           END IF; --
+
+         END FOR;--
+
+
+          FOR DRV AS
+             SELECT U.SABUN, U.SUNBUN
+               FROM GADMIN.BSUNHA1_D AS U
+              INNER JOIN GADMIN.BSDRIVE AS D
+                      ON U.SABUN = D.SABUN
+              WHERE ENTER_DATE > CURRENT DATE OR RETIRE_DATE < CURRENT DATE
+          DO
+            -- 차량정보
+
+            SELECT CAR_CD
+              INTO V_CAR_CD
+              FROM GADMIN.BSUNHA1_M
+             WHERE ROUTE_CD = IN_ROUTE_CD
+               AND SUNBUN = DRV.SUNBUN;--
+
+           IF LENGTH(OUT_MSG) < 8000 THEN
+              SET OUT_CNT = '{ERR}'; --
+              SET OUT_MSG = OUT_MSG
+                || CHR(13)
+                || GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'') --노선
+                ||'노선, '
+                ||GADMIN.SF_EBUS_COMMON_CD('DRV15',V_CAR_CD,'')     -- 차량번호
+                || ', '
+                || GADMIN.SF_INS_GETINSA_NM(DRV.SABUN)              -- 기사명
+                ||'  입사일 OR 퇴사일을 확인 하세요.'
+              ;--
+           END IF; --
+
+          END FOR;--
+
+
+   END P2;--
+END MAIN 

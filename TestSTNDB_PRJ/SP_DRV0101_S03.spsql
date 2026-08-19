@@ -1,0 +1,253 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0101_S03"
+(
+      IN  IN_USER_ID   		VARCHAR(12)
+    , IN  IN_MENU_ID   		VARCHAR(10)
+    , IN  IN_SSID      		VARCHAR(70)
+    , IN  IN_CHURI_YYYY     VARCHAR(4)
+    , IN  IN_CHURI_MM       VARCHAR(2)
+    , IN  IN_OFFICE_CD 		VARCHAR(5)
+    , IN  IN_ROUTE_CD  		VARCHAR(3)
+    , IN  IN_HOLYALT_GB		VARCHAR(1)
+    , OUT OUT_CNT      		VARCHAR(10)
+    , OUT OUT_MSG      		VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0101_S03
+생성일자	: 2020.04.26
+생성자	: 전광진
+내용	    : 1. 고정쉬프트에서 휴무데이터를 급여 반영하기위해 년월데이터로 저장하기위해 가져옵니다.
+          2. 휴무변경구분이 "1"이면 노선에대한 버스의 휴무일을 변경합니다.
+                       휴무 변경은 현재요일에서 다음요일로 변경(예: 월->화, 쉬프트는 변경된 전요릴로 변경)됩니다.
+USAGE   : GADMIN.SP_DRV0101_S03(USER ID, MENU ID, SSID, 영업소CD, 노선CD, 휴무변경GB)
+수정일자	:
+수정자	:
+수정내용	:
+INPUT	: IN_USER_ID        1. 사용자 ID
+        : IN_MENU_ID		2. MENU ID
+        : IN_SSID           3. 세션ID
+        : IN_CHURI_YYYY     4. 등록년도
+        : IN_CHURI_MM       5. 등록 월
+	    : IN_OFFICE_CD      6. 영업소코드
+        : IN_ROUTE_CD       7. 노선코드
+	    : IN_HOLYALT_GB	    8. 휴무변경
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_CHURI_YYMM		VARCHAR(6)	DEFAULT '';--
+    DECLARE V_CNT               INT DEFAULT 0;--
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET (OUT_CNT, OUT_MSG) = ('{ERR}', SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET (OUT_CNT, OUT_MSG) = ('{ERR}', CASE SQLSTATE WHEN   '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                                           ELSE                SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END); --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET (OUT_CNT,OUT_MSG) = ('{ERR}', CASE SQLSTATE  WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                                            WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                                            WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                                            WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                                            ELSE              SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END);--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+    -- 년도 와 월을 하나로 합침
+    SET V_CHURI_YYMM = COALESCE(IN_CHURI_YYYY,'')||COALESCE(IN_CHURI_MM,'');--
+
+    P1: BEGIN
+
+         --DATA SELECT
+        SELECT COUNT(*)
+          INTO V_CNT
+          FROM GADMIN.BSUNHA11_M
+         WHERE CHURI_YYMM = V_CHURI_YYMM
+           AND GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD2') = IN_OFFICE_CD
+        ;--
+
+        IF V_CNT > 0 THEN
+           SET (OUT_CNT, OUT_MSG) = ('{ERR}',IN_CHURI_YYYY||'년 '||IN_CHURI_MM||'월 휴무처리는 이미 완료되었습니다..!!!' );--
+           RETURN;--
+        END IF;--
+    END P1;--
+    P2: BEGIN
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+        WITH
+         AMF AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                      , ONETIME_CD
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='1'
+                    AND AMPM_GB =
+                               (SELECT MAX(CD)
+                                  FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'L','','','','','','')))
+                ),
+         PMF AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                      , ONETIME_CD
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='1'
+                    AND AMPM_GB =
+                               (SELECT MAX(CD)
+                                  FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'R','','','','','','')))
+                ),
+         AMD AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='2'
+                    AND AMPM_GB = (SELECT MAX(CD) FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'L','','','','','','')))
+                ),
+         PMD AS (SELECT ROUTE_CD
+                      , SUNBUN
+                      , FIX_GB
+                      , AMPM_GB
+                      , SABUN
+                      , GADMIN.SF_INS_GETINSA_NM(SABUN) AS FULLNAME
+                   FROM GADMIN.BSUNHA1_D
+                  WHERE FIX_GB='2'
+                    AND AMPM_GB = (SELECT MAX(CD)
+                                     FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD3'),'R','','','','','','')))
+                )
+        SELECT
+             '' AS CK,
+             TRIM(IN_USER_ID)||TRIM(IN_MENU_ID)||VARCHAR_FORMAT(CURRENT TIMESTAMP,'YYYYMMDDHH24MISSNNNNNN') AS SSID,
+
+             IN_CHURI_YYYY AS CHURI_YYYY,
+             IN_CHURI_MM AS CHURI_MM,
+             COALESCE(MM.ROUTE_CD,'') 	AS ROUTE_CD,
+             COALESCE(MM.SUNBUN,'') 	AS SUNBUN,
+             COALESCE(MM.ROUTE_CD,'') AS OLD_ROUTE_CD,
+             COALESCE(MM.SUNBUN,'') AS OLD_SUNBUN,
+             COALESCE(MM.CAR_CD,'') AS CAR_CD,
+             COALESCE(MM.HOLY_CD,'') AS HOLY_CD,
+             COALESCE(MM.SHIFT_CD,'') AS SHIFT_CD,
+             COALESCE(MM.YEBI_YN,'') AS YEBI_YN,
+             COALESCE(AMF.SABUN,'') AS SABUN_A,
+             COALESCE(AMF.FULLNAME,'') AS NM_A,
+             COALESCE(AMF.ONETIME_CD,'') AS ONE_TIME_CD_A,
+             COALESCE(PMF.SABUN,'') AS SABUN_B,
+             COALESCE(PMF.FULLNAME,'') AS NM_B,
+             COALESCE(PMF.ONETIME_CD,'') AS ONE_TIME_CD_B,
+             COALESCE(AMD.SABUN,'') AS SABUN_C,
+             COALESCE(AMD.FULLNAME,'') AS NM_C,
+             COALESCE(PMD.SABUN,'') AS SABUN_D,
+             COALESCE(PMD.FULLNAME,'') AS NM_D,
+             COALESCE(MM.YEBI_HOLY_CD,'') AS YEBI_HOLY_CD,
+             COALESCE(MM.YEBI_SHIFT_CD,'') AS YEBI_SHIFT_CD,
+             COALESCE(MM.ROTATE,'') AS ROTATE,
+             ''  AS ERR_MSG
+
+        FROM GADMIN.BSUNHA1_M AS MM
+             LEFT OUTER JOIN AMF ON MM.ROUTE_CD = AMF.ROUTE_CD AND MM.SUNBUN=AMF.SUNBUN
+             LEFT OUTER JOIN PMF ON MM.ROUTE_CD = PMF.ROUTE_CD AND MM.SUNBUN=PMF.SUNBUN
+             LEFT OUTER JOIN AMD ON MM.ROUTE_CD = AMD.ROUTE_CD AND MM.SUNBUN=AMD.SUNBUN
+             LEFT OUTER JOIN PMD ON MM.ROUTE_CD = PMD.ROUTE_CD AND MM.SUNBUN=PMD.SUNBUN
+        WHERE MM.ROUTE_CD IN (SELECT CD FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV06','',IN_OFFICE_CD,'','','','','','','','')))
+             ORDER BY MM.ROUTE_CD, MM.SUNBUN;	--
+        OPEN CURSOR_DRV;--
+   END P2;--
+
+    P3: BEGIN
+        DECLARE V_ALT_HOLY_CD        VARCHAR(1) DEFAULT'';--
+        DECLARE V_ALT_SHIFT_CD       VARCHAR(1) DEFAULT '';--
+        DECLARE V_ALT_YEBI_HOLY_CD   VARCHAR(1) DEFAULT '';--
+        DECLARE V_ALT_YEBI_SHIFT_CD  VARCHAR(1) DEFAULT '';--
+
+        IF IN_HOLYALT_GB = '1' THEN
+            FOR MM AS
+                SELECT ROUTE_CD
+                     , HOLY_CD
+                     , SHIFT_CD
+                     , YEBI_HOLY_CD
+                     , YEBI_SHIFT_CD
+                     , SUNBUN
+                  FROM GADMIN.BSUNHA1_M
+                 WHERE GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'CD2') = IN_OFFICE_CD
+             DO
+                 --
+                 -- HOLY_CD 문자영을 INT함수이용 저수로 변환
+                 -- 월(2)->화(3), 화(3)->수(4), 수(4)->목(5), 목(5)->금(6), 금(6)->토(7), 토(7)->일(1), 일(1)->월(2) 변환
+                 -- 요일은 정수로 들어있으므로 일(1),월(2),화(3),수(4),목(5),금(6),토(7) 되므로
+                 -- 휴일 변경은 원래 요일에서 다음 요일로되는것이므로 +1을 해준다.(EX  수(4)-> 목(5) ->EX 수요일(4)+1
+                 -- 만일 토용일(7)을 변경하면 일요일이되는데 7+1 하므로 8이된다. 일요일되므로 8은 1과 같으므로 일요일이된다. 나머지 함수를 사용하여 7호 나누면 된다
+                 -- MOD값은 0,1,2,3,4,5,6이므로 1->0, 2->1, 3->2, 4->3, 5->4, 6->5, 7-> 6 이므로 HOLY_CD의 정수갑 -1하면된다.-> MOD((INT(수요일(4))+1)-1,7)
+                 -- -1 한 값을 MOD함수를 사용하면 나온 값은 0,1,2,3,4,5,6, 이므로 1,2,3,4,5,6,7로 변환해야 하므로 1을 더한다.MOD((INT(수요일(4))+1)-1,7)+1
+                 --
+
+                 SET V_ALT_HOLY_CD         = COALESCE(MM.HOLY_CD,''); --
+                 SET V_ALT_SHIFT_CD        = COALESCE(MM.SHIFT_CD,''); --
+                 SET V_ALT_YEBI_HOLY_CD    = COALESCE(MM.YEBI_HOLY_CD,''); --
+                 SET V_ALT_YEBI_SHIFT_CD   = COALESCE(MM.YEBI_SHIFT_CD,''); --
+
+                 SET V_ALT_HOLY_CD         = CASE WHEN V_ALT_HOLY_CD      = ''
+                                                  THEN ''
+                                                  ELSE TRIM(VARCHAR_FORMAT(MOD((INT(V_ALT_HOLY_CD)+1     )-1,7)+1,'0')) END;      --
+                 SET V_ALT_SHIFT_CD        = CASE WHEN V_ALT_SHIFT_CD      = ''
+                                                  THEN ''
+                                                  ELSE TRIM(VARCHAR_FORMAT(MOD((INT(V_ALT_HOLY_CD)-1     )-1,7)+1,'0')) END;    --
+                 SET V_ALT_YEBI_HOLY_CD    = CASE WHEN V_ALT_YEBI_HOLY_CD = ''
+                                                  THEN ''
+                                                  ELSE TRIM(VARCHAR_FORMAT(MOD((INT(V_ALT_YEBI_HOLY_CD)+1)-1,7)+1,'0')) END; --
+                 SET V_ALT_YEBI_SHIFT_CD   = CASE WHEN V_ALT_YEBI_SHIFT_CD = ''
+                                                  THEN ''
+                                                  ELSE TRIM(VARCHAR_FORMAT(MOD((INT(V_ALT_YEBI_HOLY_CD)-1)-1,7)+1,'0')) END;--
+
+                 UPDATE BSUNHA1_M
+                    SET HOLY_CD       = V_ALT_HOLY_CD
+                      , SHIFT_CD      = V_ALT_SHIFT_CD
+                      , YEBI_HOLY_CD  = V_ALT_YEBI_HOLY_CD
+                      , YEBI_SHIFT_CD = V_ALT_YEBI_SHIFT_CD
+                  WHERE ROUTE_CD = MM.ROUTE_CD
+                    AND SUNBUN   = MM.SUNBUN;--
+
+                 FOR BD AS
+                     SELECT ROUTE_CD, SUNBUN, FIX_GB, SABUN
+                       FROM GADMIN.BSUNHA1_D
+                      WHERE MM.ROUTE_CD = ROUTE_CD
+                        AND MM.SUNBUN   = SUNBUN
+                        AND COALESCE(SABUN,'') <> ''
+                  DO
+                    UPDATE GADMIN.BSDRIVE
+                       SET HOLY_CD = (CASE BD.FIX_GB WHEN '1'
+                                                      THEN V_ALT_HOLY_CD
+                                                      WHEN '2'
+                                                      THEN V_ALT_YEBI_HOLY_CD
+                                                      ELSE '' END)
+                         , SHIFT_CD = (CASE BD.FIX_GB WHEN '1'
+                                                      THEN V_ALT_SHIFT_CD
+                                                      WHEN '2'
+                                                      THEN V_ALT_YEBI_SHIFT_CD
+                                                      ELSE '' END)
+                    WHERE SABUN = BD.SABUN;--
+                 END FOR;--
+            END FOR;--
+        END IF;--
+   END P3;--
+END MAIN 

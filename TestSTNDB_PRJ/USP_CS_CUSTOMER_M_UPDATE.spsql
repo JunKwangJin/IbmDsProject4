@@ -1,0 +1,88 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_CUSTOMER_M_UPDATE"(
+    IN IN_CUSTOMER_ID VARCHAR(9),
+    IN IN_CUSTOMER_NM VARCHAR(45),
+    IN IN_BIZ_NO VARCHAR(15),
+    IN IN_CEO_NM VARCHAR(30),
+    IN IN_JUMIN_NO VARCHAR(19),
+    IN IN_BIZ_FORMAT VARCHAR(30),
+    IN IN_BIZ_KIND VARCHAR(30),
+    IN IN_TEL_NO VARCHAR(30),
+    IN IN_FAX_NO VARCHAR(30),
+    IN IN_POST_CD VARCHAR(9),
+    IN IN_BIZ_ADD1 VARCHAR(225),
+    IN IN_BIZ_ADD2 VARCHAR(75),
+    IN IN_PURSAL_GBCD VARCHAR(6),
+    IN IN_EMAIL VARCHAR(45),
+    IN IN_USE_YN VARCHAR(1),
+    IN IN_INITIAL_DT DATE,
+    IN IN_USAGE_SOSOK_CD VARCHAR(6),
+    IN IN_DC_RATE DECIMAL(5,2),
+    IN IN_UPDATE_ID VARCHAR(25),
+    IN IN_UPDATE_IP VARCHAR(25),
+    IN IN_UPDATE_PGM VARCHAR(200),
+    IN IN_UPDATE_NM VARCHAR(25),
+
+    OUT OUT_CNT INTEGER, 
+    OUT OUT_MSG VARCHAR(1000)  
+)
+
+ LANGUAGE SQL
+P1: BEGIN
+------------------------------------------------------------------------
+-- SQL Stored Procedure 
+------------------------------------------------------------------------
+    UPDATE 
+        GADMIN.CS_CUSTOMER_M
+    SET
+            (
+        CUSTOMER_NM,
+        BIZ_NO,
+        CEO_NM,
+        JUMIN_NO,
+        BIZ_FORMAT,
+        BIZ_KIND,
+        TEL_NO,
+        FAX_NO,
+        POST_CD,
+        BIZ_ADD1,
+        BIZ_ADD2,
+        PURSAL_GBCD,
+        EMAIL,
+        USE_YN,
+        INITIAL_DT,
+        USAGE_SOSOK_CD,
+        DC_RATE,
+        UPDATE_ID,
+        UPDATE_DT,
+        UPDATE_IP,
+        UPDATE_PGM,
+        UPDATE_NM
+    )
+    =
+    (
+        IN_CUSTOMER_NM,
+        IN_BIZ_NO,
+        IN_CEO_NM,
+        IN_JUMIN_NO,
+        IN_BIZ_FORMAT,
+        IN_BIZ_KIND,
+        IN_TEL_NO,
+        IN_FAX_NO,
+        IN_POST_CD,
+        IN_BIZ_ADD1,
+        IN_BIZ_ADD2,
+        IN_PURSAL_GBCD,
+        IN_EMAIL,
+        IN_USE_YN,
+        IN_INITIAL_DT,
+        IN_USAGE_SOSOK_CD,
+        IN_DC_RATE,
+        IN_UPDATE_ID,
+        CURRENT TIMESTAMP, -- UPDATE_DT
+        IN_UPDATE_IP,
+        IN_UPDATE_PGM,
+        IN_UPDATE_NM
+    )
+    WHERE CUSTOMER_ID = IN_CUSTOMER_ID
+    ;
+END P1 

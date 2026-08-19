@@ -1,0 +1,66 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_TAB01_PRINT_AAA"
+(
+    IN IN_FROMDATE VARCHAR(10), -- yyyymmdd 형식
+    IN IN_TODATE   VARCHAR(10),
+    IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_CNT INT DEFAULT 0;--
+    DECLARE V_CNT_MAX INT DEFAULT 0;--
+    DECLARE V_ROW INT DEFAULT 0;--
+    DECLARE V_DATE VARCHAR(10) DEFAULT '';--
+    P1: BEGIN
+         --DATA SELECT
+        DECLARE P_QUERY_STRING VARCHAR(10000);--
+        DECLARE CURSOR_ACC CURSOR WITH RETURN TO CLIENT FOR S1;--
+
+        SELECT COUNT(*),MAX(DATE) INTO V_CNT, V_DATE
+         FROM GADMIN.ACCOU1
+        WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+          AND DRCR_GB IN ('차변','대변');--
+
+        IF (V_CNT <= 11) THEN SET V_CNT_MAX = V_CNT - 11;--
+        ELSEIF (V_CNT > 11) THEN SET V_CNT_MAX = (CEILING((REAL(V_CNT) - 11) / 12 ) * 12 + 11)
+        ;--
+        END IF;--
+        SET P_QUERY_STRING =
+        'SELECT * FROM (
+         SELECT ROWNUMBER() OVER() AS ROWNUM,
+                DATE,
+                ACC_NO,
+                DRCR_GB,
+                ACC_CD,
+                ACC_NM,
+                ACC_CONT,
+                PRICE,
+                MANAGE_CD_1,
+                MANAGE_ITEM_1,
+                MANAGE_CD_2,
+                MANAGE_ITEM_2,
+                JEUNGBING_DOC,
+                ROW_ID,
+                DR_AMT,
+                CR_AMT
+         FROM GADMIN.ACCOU1
+        WHERE DATE BETWEEN '''||IN_FROMDATE||''' AND '''||IN_TODATE||'''
+          AND DRCR_GB IN (''차변'',''대변'')';--
+        SET V_ROW = V_CNT + 1;--
+        WHILE (V_ROW <= V_CNT_MAX) DO
+             SET P_QUERY_STRING = P_QUERY_STRING ||CHR(13)||'UNION ALL
+             SELECT '''||V_ROW||''', '''||V_DATE||''',  '' '',  '' '',  '' '',  '' '',  '' '',  0,  '' '',  '' '',  '' '',  '' '',  '' '',  0,  0,  0 FROM SYSIBM.SYSDUMMY1';--
+             SET V_ROW = V_ROW + 1;--
+        END WHILE;--
+
+        SET P_QUERY_STRING = P_QUERY_STRING ||CHR(13)||') ORDER BY DATE, (CASE WHEN ACC_NO = '''' THEN ''999'' ELSE ACC_NO END), ROWNUM';--
+
+
+	    PREPARE S1 FROM P_QUERY_STRING;	 --
+    	OPEN CURSOR_ACC;--
+   END P1;--
+END MAIN 

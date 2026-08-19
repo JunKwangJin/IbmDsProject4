@@ -1,0 +1,83 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_COM_OFFICE_DDLB"
+/*******************************************************************************
+파일명	: GADMIN.VW_DRV_OFFICE_DDLB
+생성일자	: 2021.04.15
+생성자	: 전광진
+내용	: 영업소 ddlb
+수정일자	: 2021.10.11
+수정자	: 전광진
+수정내용    : 전체권한이 주어질경우 전체석택권한지정
+예제
+SELECT * FROM GADMIN.VW_COM_OFFICE_DDLB WHERE MENU_ID = 'DRV0101' AND USER_ID='admin'
+MENU_ID와 USER_ID를 제어 하뎌 사용자별로 권한에 따른 영업소를 선택적으로 나타낸다.
+*******************************************************************************/
+(
+    IN IN_USER_ID   VARCHAR(12)  --사용자ID
+  , IN IN_MENU_ID   VARCHAR(10)  --메뉴ID
+)
+
+
+RETURNS
+    TABLE
+    (
+      DATA          VARCHAR(10)
+    , LABEL         VARCHAR(100)
+    , SOSOK_CK      VARCHAR(1)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+   WITH GH_TB AS
+                 (
+                SELECT
+                   DISTINCT EM.SOSOK_CD AS DATA
+                           , SS.SOSOK_NM AS LABEL
+                           , SS.SORT     AS SORT
+                           , GM.MENU_ID  AS MENU_ID
+                           , GH.USER_ID  AS USER_ID
+                           , GH.SOSOK_CD AS GHSOSOK_CD
+                           , CASE WHEN EM.SOSOK_CD = COALESCE(AM_INSA.SOSOK_CD,'') THEN 1 ELSE '0' END AS SOSOK_CK
+                  FROM
+                     GADMIN.EBUS_GROUPMENU_M GM
+                  INNER JOIN
+                     GADMIN.EBUS_EOPMUGH_M GH
+                     ON GM.AUTHGROUP_ID = GH.AUTHGROUP_ID
+                  INNER JOIN
+                     (SELECT *
+                        FROM GADMIN.EBUS_EOPMUSOSOK_M EM
+                       WHERE SOSOK_LVL=2) EM
+                     ON GH.SOSOK_CD = (CASE WHEN GH.SOSOK_CD = '00000'
+                                                 THEN GH.SOSOK_CD
+                                             ELSE EM.SOSOK_CD
+                                       END)
+                  INNER JOIN
+                    GADMIN.EBUS_SOSOK_M SS
+                     ON SS.SOSOK_CD = EM.SOSOK_CD
+                  LEFT OUTER JOIN
+                    (SELECT COALESCE(BS.SABUN, OE.OEBU_USER_ID ,'') AS INSA_NO, COALESCE(BS.SOSOK_CD, OE.SOSOK_CD ,'') AS SOSOK_CD
+                       FROM GADMIN.EBUS_OEBUUSER_M AS OE
+                       FULL OUTER JOIN GADMIN.BSDRIVE AS BS
+                         ON OE.OEBU_USER_ID = BS.SABUN) AM_INSA
+                    ON GH.USER_ID = AM_INSA.INSA_NO
+                WHERE
+                       GM.MENU_ID = IN_MENU_ID
+                  AND  GH.USER_ID = IN_USER_ID
+                UNION ALL
+                VALUES('','',0,'','','',0)
+              )
+
+   SELECT DATA, LABEL, SOSOK_CK
+     FROM
+       (
+        SELECT *
+          FROM GH_TB
+         WHERE '00000' IN (SELECT GHSOSOK_CD
+                              FROM GH_TB)
+            OR DATA <> ''
+        ORDER BY SORT, DATA
+      )
+    ;--
+
+END

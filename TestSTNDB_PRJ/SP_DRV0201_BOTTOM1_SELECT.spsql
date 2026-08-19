@@ -1,0 +1,53 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0201_BOTTOM1_SELECT"
+(
+    IN_DT DATE, IN_AMPM VARCHAR(2), IN_ROUTE VARCHAR(15)
+)
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+	-- #######################################################################
+	-- # 작성자 : 전광진
+	-- # 작성일 : 2020.07.01
+	-- # 설명 : 버스 배차에 오류가 있는 버스 번호를 보여 줍니다.
+	-- #      GADMIN.SP_DRV0201_BOTTOM1_SELECT(날짜, 오전오후구분(10,20), 노선)
+	-- #######################################################################
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+--    DECLARE V_CAR_LST VARCHAR(100) DEFAULT '';--
+--    DECLARE V_CAR_TYPE_CD VARCHAR(100) DEFAULT '';--
+--    DECLARE V_REG_DATE DATE;--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+--                    OUT_RESULT_CD  := '1';--
+--                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.구매상세내역 지급일자 업데이트 과정 중 오류가 발생했습니다. ' ; --
+--                    ROLLBACK;--
+--                    RETURN;--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRVO1 CURSOR WITH RETURN FOR
+		    SELECT CASE WHEN COUNT(*) > 0 THEN
+		                MAX(GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM,'CD1_NM'))
+		                ||'운행 오류 : '
+		                ||count(*)||'대'||CHR(13)
+		           ELSE '' END
+		        ||LISTAGG(CAR_NO||GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM,'CD2'), ', ')
+		           WITHIN GROUP
+		           (ORDER BY SUNBUN)
+		           AS CAR_LIST
+              FROM UNBACHA_D
+             WHERE BACHA_DT = IN_DT
+               AND ROUTE = IN_ROUTE
+               AND GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM,'CD1')=IN_AMPM
+               AND NVL(DRIVE_ST,'00')<>'10';--
+
+	    OPEN CURSOR_DRVO1;--
+   END P1;--
+END MAIN 

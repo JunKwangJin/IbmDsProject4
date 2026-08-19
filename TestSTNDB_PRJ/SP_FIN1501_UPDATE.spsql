@@ -1,0 +1,480 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1501_UPDATE" 
+(
+	IN IN_FROMDATE VARCHAR(10)
+  , IN IN_TODATE VARCHAR(10)
+  , IN IN_GISU VARCHAR(3)
+  , IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE V_USER_ID           VARCHAR(25)    DEFAULT '';--
+    DECLARE V_WORKSTATION       VARCHAR(200)    DEFAULT '';--
+    DECLARE V_APPLICATIONINFOMATION  VARCHAR(200)    DEFAULT '';--
+
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+    DECLARE   V_GISU              VARCHAR(10) DEFAULT '';--
+    DECLARE   V_CNT               INT DEFAULT 0;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        YEAR           VARCHAR(3)    DEFAULT '',
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        DRCR_GB         VARCHAR(6)    DEFAULT '',
+        MANAGE_ITEM     VARCHAR(6)    DEFAULT '',
+        DR_00           DECIMAL(15,0) DEFAULT 0,
+        CR_00           DECIMAL(15,0) DEFAULT 0,
+        DR_01           DECIMAL(15,0) DEFAULT 0,
+        CR_01           DECIMAL(15,0) DEFAULT 0,
+        DR_02           DECIMAL(15,0) DEFAULT 0,
+        CR_02           DECIMAL(15,0) DEFAULT 0,
+        DR_03           DECIMAL(15,0) DEFAULT 0,
+        CR_03           DECIMAL(15,0) DEFAULT 0,
+        DR_04           DECIMAL(15,0) DEFAULT 0,
+        CR_04           DECIMAL(15,0) DEFAULT 0,
+        DR_05           DECIMAL(15,0) DEFAULT 0,
+        CR_05           DECIMAL(15,0) DEFAULT 0,
+        DR_06           DECIMAL(15,0) DEFAULT 0,
+        CR_06           DECIMAL(15,0) DEFAULT 0,
+        DR_07           DECIMAL(15,0) DEFAULT 0,
+        CR_07           DECIMAL(15,0) DEFAULT 0,
+        DR_08           DECIMAL(15,0) DEFAULT 0,
+        CR_08           DECIMAL(15,0) DEFAULT 0,
+        DR_09           DECIMAL(15,0) DEFAULT 0,
+        CR_09           DECIMAL(15,0) DEFAULT 0,
+        DR_10           DECIMAL(15,0) DEFAULT 0,
+        CR_10           DECIMAL(15,0) DEFAULT 0,
+        DR_11           DECIMAL(15,0) DEFAULT 0,
+        CR_11           DECIMAL(15,0) DEFAULT 0,
+        DR_12           DECIMAL(15,0) DEFAULT 0,
+        CR_12           DECIMAL(15,0) DEFAULT 0,
+        DR_JANAEK       DECIMAL(15,0) DEFAULT 0,
+        CR_JANAEK       DECIMAL(15,0) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TRADEKEY_TEMP
+    (
+        YEAR           VARCHAR(3)    DEFAULT '',
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        MANAGE_1        VARCHAR(6)    DEFAULT '',
+        ITEM_1          VARCHAR(75)   DEFAULT '',
+        MANAGE_2        VARCHAR(9)    DEFAULT '',
+        ITEM_2          VARCHAR(90)   DEFAULT '',
+        DRCR_GB         VARCHAR(6)    DEFAULT '',
+        DR_00           DECIMAL(15,0) DEFAULT 0,
+        CR_00           DECIMAL(15,0) DEFAULT 0,
+        DR_01           DECIMAL(15,0) DEFAULT 0,
+        CR_01           DECIMAL(15,0) DEFAULT 0,
+        DR_02           DECIMAL(15,0) DEFAULT 0,
+        CR_02           DECIMAL(15,0) DEFAULT 0,
+        DR_03           DECIMAL(15,0) DEFAULT 0,
+        CR_03           DECIMAL(15,0) DEFAULT 0,
+        DR_04           DECIMAL(15,0) DEFAULT 0,
+        CR_04           DECIMAL(15,0) DEFAULT 0,
+        DR_05           DECIMAL(15,0) DEFAULT 0,
+        CR_05           DECIMAL(15,0) DEFAULT 0,
+        DR_06           DECIMAL(15,0) DEFAULT 0,
+        CR_06           DECIMAL(15,0) DEFAULT 0,
+        DR_07           DECIMAL(15,0) DEFAULT 0,
+        CR_07           DECIMAL(15,0) DEFAULT 0,
+        DR_08           DECIMAL(15,0) DEFAULT 0,
+        CR_08           DECIMAL(15,0) DEFAULT 0,
+        DR_09           DECIMAL(15,0) DEFAULT 0,
+        CR_09           DECIMAL(15,0) DEFAULT 0,
+        DR_10           DECIMAL(15,0) DEFAULT 0,
+        CR_10           DECIMAL(15,0) DEFAULT 0,
+        DR_11           DECIMAL(15,0) DEFAULT 0,
+        CR_11           DECIMAL(15,0) DEFAULT 0,
+        DR_12           DECIMAL(15,0) DEFAULT 0,
+        CR_12           DECIMAL(15,0) DEFAULT 0,
+        DR_JANAEK       DECIMAL(15,0) DEFAULT 0,
+        CR_JANAEK       DECIMAL(15,0) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+P1: BEGIN
+
+	SET V_USER_ID = CURRENT CLIENT_USERID;--
+    SET V_WORKSTATION = CURRENT CLIENT_WRKSTNNAME;--
+    SET V_APPLICATIONINFOMATION = CURRENT CLIENT_APPLNAME;--
+    
+    SELECT COUNT(*) INTO V_CNT
+      FROM GADMIN.HAPJAN
+     WHERE YEAR = IN_GISU;--
+
+    IF V_CNT > 0 THEN
+        --기존 합잔 데이터 백업 : 전기이월 데이터 활용을 위해 저장함
+        INSERT INTO SESSION.TEMP
+               ( YEAR, ACC_CD, ACC_NM, DRCR_GB, MANAGE_ITEM,DR_00,CR_00,DR_01,CR_01,DR_02,CR_02,DR_03,CR_03,DR_04,CR_04,DR_05,CR_05,DR_06,CR_06,DR_07,CR_07,DR_08,CR_08,DR_09,CR_09,DR_10,CR_10,DR_11,CR_11,DR_12,CR_12,DR_JANAEK,CR_JANAEK )
+        SELECT          YEAR,ACC_CD,ACC_NM,DRCR_GB,MANAGE_ITEM,DR_00,CR_00,DR_01,CR_01,DR_02,CR_02,DR_03,CR_03,DR_04,CR_04,DR_05,CR_05,DR_06,CR_06,DR_07,CR_07,DR_08,CR_08,DR_09,CR_09,DR_10,CR_10,DR_11,CR_11,DR_12,CR_12,DR_JANAEK,CR_JANAEK
+          FROM GADMIN.HAPJAN
+         WHERE YEAR = IN_GISU;--
+
+         DELETE GADMIN.HAPJAN
+         WHERE YEAR = IN_GISU;--
+    END IF;--
+
+    --합잔 재계산
+    INSERT INTO GADMIN.HAPJAN (YEAR, ACC_CD, ACC_NM, DRCR_GB, MANAGE_ITEM, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07, DR_08, CR_08, DR_09, CR_09, DR_10, CR_10, DR_11, CR_11, DR_12, CR_12, DR_JANAEK, CR_JANAEK, C_USER, C_DATE )
+    SELECT IN_GISU, A.ACC_CD, A.ACC_NM, B.DRCR_GB, ''
+            , 0 AS DR_00, 0 AS CR_00
+            , SUM(DR_01) AS DR_01, SUM(CR_01) AS CR_01
+            , SUM(DR_02) AS DR_02, SUM(CR_02) AS CR_02
+            , SUM(DR_03) AS DR_03, SUM(CR_03) AS CR_03
+            , SUM(DR_04) AS DR_04, SUM(CR_04) AS CR_04
+            , SUM(DR_05) AS DR_05, SUM(CR_05) AS CR_05
+            , SUM(DR_06) AS DR_06, SUM(CR_06) AS CR_06
+            , SUM(DR_07) AS DR_07, SUM(CR_07) AS CR_07
+            , SUM(DR_08) AS DR_08, SUM(CR_08) AS CR_08
+            , SUM(DR_09) AS DR_09, SUM(CR_09) AS CR_09
+            , SUM(DR_10) AS DR_10, SUM(CR_10) AS CR_10
+            , SUM(DR_11) AS DR_11, SUM(CR_11) AS CR_11
+            , SUM(DR_12) AS DR_12, SUM(CR_12) AS CR_12
+            ,0,0
+            , V_USER_ID
+            , CURRENT TIMESTAMP
+       FROM (
+                SELECT A.ACC_CD
+                      , A.ACC_NM
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_01
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_01
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_02
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_02
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_03
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_03
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_04
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_04
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_05
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_05
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_06
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_06
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_07
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_07
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_08
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_08
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_09
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_09
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_10
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_10
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_11
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_11
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_12
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_12
+
+                  FROM GADMIN.BSACC2 A
+                        LEFT OUTER JOIN (SELECT * FROM GADMIN.ACCOU1 WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE) B ON (A.ACC_CD = B.ACC_CD)
+                 WHERE 1 = 1
+                GROUP BY A.ACC_CD, A.ACC_NM, SUBSTRING(DATE,6,2)
+                UNION ALL
+                SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_01
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_01
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_02
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_02
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_03
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_03
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_04
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_04
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_05
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_05
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_06
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_06
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_07
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_07
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_08
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_08
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_09
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_09
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_10
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_10
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_11
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_11
+
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_12
+                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_12
+                  FROM GADMIN.ACCOU1 A
+                 WHERE 1 = 1
+                    AND DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+               GROUP BY SUBSTRING(DATE,6,2)
+              ) A LEFT OUTER JOIN GADMIN.BSACC2 B ON ( A.ACC_CD = B.ACC_CD )
+    GROUP BY A.ACC_CD, A.ACC_NM, B.DRCR_GB;--
+
+--이월정보 넣기
+    IF V_CNT > 0 THEN
+        --전기 이월 금액 넣기
+--        UPDATE GADMIN.HAPJAN A
+--           SET A.DR_00 = B.DR_00,
+--               A.CR_00 = B.CR_00,
+--               A.M_USER = V_USER_ID,
+--               A.M_DATE = CURRENT TIMESTAMP
+--          FROM SESSION.TEMP B
+--         WHERE 1 = 1
+--           AND A.ACC_CD = B.ACC_CD
+--           AND A.YEAR = B.YEAR;--
+
+-- IDE와 DB 모두 에러/경고 없이 완벽하게 소화하는 문법
+        MERGE INTO GADMIN.HAPJAN A
+        USING SESSION.TEMP B
+           ON (A.ACC_CD = B.ACC_CD AND A.YEAR = B.YEAR)
+         WHEN MATCHED THEN
+              UPDATE SET A.DR_00 = B.DR_00,
+                         A.CR_00 = B.CR_00,
+                         A.M_USER = V_USER_ID,
+                         A.M_DATE = CURRENT TIMESTAMP;
+         
+     END IF;--
+
+-- 계정 마감 작업
+    SELECT COUNT(*) INTO V_CNT
+      FROM GADMIN.TRADEKYE
+     WHERE YEAR = IN_GISU;--
+
+    IF V_CNT > 0 THEN
+        --TRADEKYE 백업 : 전기 이월 데이터 백업
+        INSERT INTO SESSION.TRADEKEY_TEMP (YEAR, ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07
+                        , DR_08, CR_08, DR_09, CR_09, DR_10, CR_10, DR_11, CR_11, DR_12, CR_12, DR_JANAEK, CR_JANAEK)
+        SELECT YEAR, ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07
+                        , DR_08, CR_08, DR_09, CR_09, DR_10, CR_10, DR_11, CR_11, DR_12, CR_12, DR_JANAEK, CR_JANAEK
+          FROM GADMIN.TRADEKYE
+         WHERE YEAR = IN_GISU;--
+
+         DELETE GADMIN.TRADEKYE
+         WHERE YEAR = IN_GISU;--
+    END IF;--
+
+    INSERT INTO GADMIN.TRADEKYE(YEAR, ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07
+                        , DR_08, CR_08, DR_09, CR_09, DR_10, CR_10, DR_11, CR_11, DR_12, CR_12, DR_JANAEK, CR_JANAEK, C_USER, C_DATE)
+    SELECT IN_GISU, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, B.DRCR_GB
+                          , DR_00, CR_00
+                          , DR_01, CR_01
+                          , DR_02, CR_02
+                          , DR_03, CR_03
+                          , DR_04, CR_04
+                          , DR_05, CR_05
+                          , DR_06, CR_06
+                          , DR_07, CR_07
+                          , DR_08, CR_08
+                          , DR_09, CR_09
+                          , DR_10, CR_10
+                          , DR_11, CR_11
+                          , DR_12, CR_12
+                          , 0 , 0
+                          , V_USER_ID
+                          , CURRENT TIMESTAMP
+      FROM (
+        SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, C.MANAGE_ITEM_1,  A.MANAGE_CD_2, C.MANAGE_ITEM_2
+                , SUM(DR_00) AS DR_00, SUM(CR_00) AS CR_00
+                , SUM(DR_01) AS DR_01, SUM(CR_01) AS CR_01
+                , SUM(DR_02) AS DR_02, SUM(CR_02) AS CR_02
+                , SUM(DR_03) AS DR_03, SUM(CR_03) AS CR_03
+                , SUM(DR_04) AS DR_04, SUM(CR_04) AS CR_04
+                , SUM(DR_05) AS DR_05, SUM(CR_05) AS CR_05
+                , SUM(DR_06) AS DR_06, SUM(CR_06) AS CR_06
+                , SUM(DR_07) AS DR_07, SUM(CR_07) AS CR_07
+                , SUM(DR_08) AS DR_08, SUM(CR_08) AS CR_08
+                , SUM(DR_09) AS DR_09, SUM(CR_09) AS CR_09
+                , SUM(DR_10) AS DR_10, SUM(CR_10) AS CR_10
+                , SUM(DR_11) AS DR_11, SUM(CR_11) AS CR_11
+                , SUM(DR_12) AS DR_12, SUM(CR_12) AS CR_12
+           FROM (
+                    SELECT ACC_CD, ACC_NM, MANAGE_1 AS MANAGE_CD_1, ITEM_1 AS MANAGE_ITEM_1, MANAGE_2 AS MANAGE_CD_2, ITEM_2 AS MANAGE_ITEM_2
+                          , DR_00, CR_00
+                          , 0 AS DR_01, 0 AS CR_01
+                          , 0 AS DR_02, 0 AS CR_02
+                          , 0 AS DR_03, 0 AS CR_03
+                          , 0 AS DR_04, 0 AS CR_04
+                          , 0 AS DR_05, 0 AS CR_05
+                          , 0 AS DR_06, 0 AS CR_06
+                          , 0 AS DR_07, 0 AS CR_07
+                          , 0 AS DR_08, 0 AS CR_08
+                          , 0 AS DR_09, 0 AS CR_09
+                          , 0 AS DR_10, 0 AS CR_10
+                          , 0 AS DR_11, 0 AS CR_11
+                          , 0 AS DR_12, 0 AS CR_12
+                      FROM GADMIN.TRADEKYE
+                     WHERE 1 = 1
+                       AND YEAR = IN_GISU
+                    UNION ALL
+                    SELECT ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1,  MANAGE_CD_2, MANAGE_ITEM_2
+                          , DR_00, CR_00
+                          , DR_01, CR_01
+                          , DR_02, CR_02
+                          , DR_03, CR_03
+                          , DR_04, CR_04
+                          , DR_05, CR_05
+                          , DR_06, CR_06
+                          , DR_07, CR_07
+                          , DR_08, CR_08
+                          , DR_09, CR_09
+                          , DR_10, CR_10
+                          , DR_11, CR_11
+                          , DR_12, CR_12
+                      FROM (
+                                SELECT ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1,  MANAGE_CD_2, MANAGE_ITEM_2
+                                      , 0 AS DR_00, 0 AS CR_00
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_01
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_01
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_02
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_02
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_03
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_03
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_04
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_04
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_05
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_05
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_06
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_06
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_07
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_07
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_08
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_08
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_09
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_09
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_10
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_10
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_11
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_11
+
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(DR_AMT,0)) END,0) DR_12
+                                      , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(CR_AMT,0)) END,0) CR_12
+
+                                  FROM GADMIN.ACCOU1 A
+                                 WHERE 1 = 1
+                                   AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                GROUP BY ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1,  MANAGE_CD_2, MANAGE_ITEM_2, SUBSTRING(DATE,6,2)
+                                UNION ALL
+                                SELECT ACC_CD, ACC_NM, MANAGE_1 AS MANAGE_CD_1, ITEM_1 AS MANAGE_ITEM_1,  MANAGE_2 AS MANAGE_CD_2, ITEM_2 AS MANAGE_ITEM_2,
+                                        DR_00,
+                                        CR_00,
+                                        0 AS DR_01,
+                                        0 AS CR_01,
+                                        0 AS DR_02,
+                                        0 AS CR_02,
+                                        0 AS DR_03,
+                                        0 AS CR_03,
+                                        0 AS DR_04,
+                                        0 AS CR_04,
+                                        0 AS DR_05,
+                                        0 AS CR_05,
+                                        0 AS DR_06,
+                                        0 AS CR_06,
+                                        0 AS DR_07,
+                                        0 AS CR_07,
+                                        0 AS DR_08,
+                                        0 AS CR_08,
+                                        0 AS DR_09,
+                                        0 AS CR_09,
+                                        0 AS DR_10,
+                                        0 AS CR_10,
+                                        0 AS DR_11,
+                                        0 AS CR_11,
+                                        0 AS DR_12,
+                                        0 AS CR_12
+                                FROM SESSION.TRADEKEY_TEMP
+                                WHERE 1 =1
+                                  AND NOT ( DR_00 = 0 AND CR_00 = 0)
+                              ) A
+                          WHERE 1 = 1
+                            AND COALESCE(A.MANAGE_CD_1,'') != ''
+                            AND COALESCE(A.MANAGE_CD_2,'') != ''
+                     ) A,
+                       (
+                            SELECT MANAGE_CD AS MANAGE_CD_1, MANAGE_ITEM AS MANAGE_ITEM_1, DETAIL_CD AS MANAGE_CD_2, DETAIL_ITEM AS MANAGE_ITEM_2 FROM GADMIN.BSACC8
+                            UNION ALL
+                            SELECT '300' AS MANAGE_CD_1, '매입처' AS MANAGE_ITEM_1, SANGHO_CD AS MANAGE_CD_2, SANGHO AS MANAGE_ITEM_2 FROM GADMIN.BSTRADE
+                            UNION ALL
+                            SELECT '400' AS MANAGE_CD_1, '매출처' AS MANAGE_ITEM_1, SANGHO_CD AS MANAGE_CD_2, SANGHO AS MANAGE_ITEM_2 FROM GADMIN.BSTRADE
+                       ) C
+                   WHERE 1 = 1
+                     AND A.MANAGE_CD_1 = C.MANAGE_CD_1
+                     AND A.MANAGE_CD_2 = C.MANAGE_CD_2
+                     AND A.ACC_CD < '4000000'
+                    GROUP BY A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, C.MANAGE_ITEM_1,  A.MANAGE_CD_2, C.MANAGE_ITEM_2
+        ) A   LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
+        ORDER BY A.ACC_CD;--
+
+--이월정보 넣기
+    /*
+    IF V_CNT > 0 THEN
+
+
+        -- 전기이월 넣기
+        UPDATE  GADMIN.TRADEKYE A
+            SET A.DR_00 = B.DR_00, A.CR_00 = B.CR_00
+          FROM  SESSION.TRADEKEY_TEMP B
+         WHERE 1 = 1
+            AND A.ACC_CD = B.ACC_CD
+            AND A.ACC_NM = B.ACC_NM
+            AND A.MANAGE_1 = B.MANAGE_1
+            --AND A.ITEM_1 = B.ITEM_1
+            AND A.MANAGE_2 = B.MANAGE_2
+            --AND A.ITEM_2 = B.ITEM_2
+            AND A.YEAR = B.YEAR;--
+
+     END IF;--
+     */
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT *
+      FROM GADMIN.HAPJAN
+    WHERE 1 = 1
+      AND YEAR = IN_GISU
+    ORDER BY ACC_CD;--
+
+    OPEN CURSOR_TEMP;--
+
+--    DECLARE CURSOR_TEMP1 CURSOR WITH RETURN FOR
+--    SELECT *
+--      FROM TRADEKYE
+--    WHERE 1 = 1
+--      AND YEAR = IN_GISU
+--    ORDER BY ACC_CD;--
+--
+--    OPEN CURSOR_TEMP1;--
+
+END P2;--
+END MAIN 

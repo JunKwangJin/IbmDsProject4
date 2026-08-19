@@ -1,0 +1,442 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0102_U01"
+(
+      IN IN_USER_ID          VARCHAR(12)
+    , IN IN_ROUTE_CD         VARCHAR(3)
+    , IN IN_PYEON_GB         VARCHAR(2)
+    , IN IN_WEEK_GB          VARCHAR(2)
+    , IN IN_AM_SEQ           VARCHAR(3) -- INTEGER
+    , IN IN_AM_AMPM_GB       VARCHAR(2)
+    , IN IN_SUNBUN           VARCHAR(4)
+    , IN IN_AM_START_TM      VARCHAR(6)
+    , IN IN_AM_INTERVAL      VARCHAR(6)
+    , IN IN_AM_HOISU         VARCHAR(5) -- DECIMAL(4,1)
+    , IN IN_AM_SHIFT_WEEK_YN VARCHAR(1)
+    , IN IN_AM_SHIFT_SAT_YN  VARCHAR(1)
+    , IN IN_AM_SHIFT_SUN_YN  VARCHAR(1)
+    , IN IN_AM_TIME_01       VARCHAR(6)
+    , IN IN_AM_TIME_02       VARCHAR(6)
+    , IN IN_AM_TIME_03       VARCHAR(6)
+    , IN IN_AM_TIME_04       VARCHAR(6)
+    , IN IN_AM_TIME_05       VARCHAR(6)
+    , IN IN_AM_TIME_06       VARCHAR(6)
+    , IN IN_AM_TIME_07       VARCHAR(6)
+    , IN IN_PM_SEQ           VARCHAR(3) -- INTEGER
+    , IN IN_PM_AMPM_GB       VARCHAR(2)
+    , IN IN_PM_START_TM      VARCHAR(6)
+    , IN IN_PM_INTERVAL      VARCHAR(6)
+    , IN IN_PM_HOISU         VARCHAR(5) -- DECIMAL(4,1)
+    , IN IN_PM_SHIFT_WEEK_YN VARCHAR(1)
+    , IN IN_PM_SHIFT_SAT_YN  VARCHAR(1)
+    , IN IN_PM_SHIFT_SUN_YN  VARCHAR(1)
+    , IN IN_PM_TIME_01       VARCHAR(6)
+    , IN IN_PM_TIME_02       VARCHAR(6)
+    , IN IN_PM_TIME_03       VARCHAR(6)
+    , IN IN_PM_TIME_04       VARCHAR(6)
+    , IN IN_PM_TIME_05       VARCHAR(6)
+    , IN IN_PM_TIME_06       VARCHAR(6)
+    , IN IN_PM_TIME_07       VARCHAR(6)
+    , OUT OUT_CNT            VARCHAR(4)
+    , OUT OUT_MSG            VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0102_U01
+생성일자	: 2021.03.25
+생성자	: 전광진
+내용	: 배차시간표 저장
+수정일자	:
+수정자	:
+수정내용
+INPUT	: IN_USER_ID    1. 사용자ID
+    IN_ROUTE_CD         2. 노선,
+    IN_PYEON_GB         3. 편성,
+    IN_WEEK_GB          4. 평일구분,
+    IN_AM_SEQ           5. 순차키,
+    IN_AM_AMPM_GB       6. 오전오후야간구분,
+    IN_SUNBUN           7. 순번,
+    IN_AM_START_TM      8. 출발시간,
+    IN_AM_INTERVAL      9. 시간간격,
+    IN_AM_HOISU         10. 회수,
+    IN_AM_SHIFT_WEEK_YN 11. 오전평일쉬프트여부,
+    IN_AM_SHIFT_SAT_YN  12. 오전토요쉬프트여부.
+    IN_AM_SHIFT_SUN_YN  13. 오전일요쉬프트여부
+    IN_AM_TIME_01       14. 시간01,
+    IN_AM_TIME_02       15. 시간02,
+    IN_AM_TIME_03       16. 시간03,
+    IN_AM_TIME_04       17. 시간04,
+    IN_AM_TIME_05       18. 시간05,
+    IN_AM_TIME_06       19. 시간06,
+    IN_AM_TIME_07       20. 시간07,
+
+    IN_AM_SEQ           21. 순차키,
+    IN_PM_AMPM_GB       22. 오전오후야간구분,
+    IN_PM_START_TM      23. 출발시간,
+    IN_PM_INTERVAL      24. 시간간격,
+    IN_PM_HOISU         25. 회수,
+    IN_PM_SHIFT_WEEK_YN 26. 오전평일쉬프트여부,
+    IN_PM_SHIFT_SAT_YN  27. 오전토요쉬프트여부.
+    IN_PM_SHIFT_SUN_YN  28. 오전일요쉬프트여부.
+    IN_PM_TIME_01       29. 시간01,
+    IN_PM_TIME_02       30. 시간02,
+    IN_PM_TIME_03       31. 시간03,
+    IN_PM_TIME_04       32. 시간04,
+    IN_PM_TIME_05       33. 시간05,
+    IN_PM_TIME_06       34. 시간06,
+    IN_PM_TIME_07       35. 시간07,
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_SEQ  INTEGER    DEFAULT 0;--
+    DECLARE V_AM   VARCHAR(2) DEFAULT '';--
+    DECLARE V_PM   VARCHAR(2) DEFAULT '';--
+    DECLARE V_CHK  VARCHAR(1) DEFAULT '';--
+    DECLARE V_CNT  INTEGER    DEFAULT 0;--
+    DECLARE V_SAVE INTEGER    DEFAULT 0;--
+
+    DECLARE V_IN_AM_SEQ INTEGER;--
+    DECLARE V_IN_AM_HOISU DECIMAL(4,1);--
+    DECLARE V_IN_PM_SEQ INTEGER;--
+    DECLARE V_IN_PM_HOISU DECIMAL(4,1);--
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0; --
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000'; --
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']' || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: 변수의 길이가 너무 작습니다..'
+                                                                            ELSE              'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = OUT_MSG ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.'
+                                   END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+    SET V_SAVE = 0; --
+
+
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    -- Parameter 값이 Null이 아닌 ''로 인수 될경우 널 값으로 처리
+    IF IN_AM_SEQ              = '' THEN SET IN_AM_SEQ           = NULL; END IF;--
+    IF IN_AM_AMPM_GB          = '' THEN SET IN_AM_AMPM_GB       = NULL; END IF;--
+    IF IN_AM_START_TM         = '' THEN SET IN_AM_START_TM      = NULL; END IF;--
+    IF IN_AM_HOISU            = '' THEN SET IN_AM_HOISU         = NULL; END IF;--
+    IF IN_AM_SHIFT_WEEK_YN    = '' THEN SET IN_AM_SHIFT_WEEK_YN = NULL; END IF;--
+    IF IN_AM_SHIFT_SAT_YN     = '' THEN SET IN_AM_SHIFT_SAT_YN  = NULL; END IF;--
+    IF IN_AM_SHIFT_SUN_YN     = '' THEN SET IN_AM_SHIFT_SUN_YN  = NULL; END IF;--
+    IF IN_AM_TIME_01          = '' THEN SET IN_AM_TIME_01       = NULL; END IF;--
+    IF IN_AM_TIME_02          = '' THEN SET IN_AM_TIME_02       = NULL; END IF;--
+    IF IN_AM_TIME_03          = '' THEN SET IN_AM_TIME_03       = NULL; END IF;--
+    IF IN_AM_TIME_04          = '' THEN SET IN_AM_TIME_04       = NULL; END IF;--
+    IF IN_AM_TIME_05          = '' THEN SET IN_AM_TIME_05       = NULL; END IF;--
+    IF IN_AM_TIME_06          = '' THEN SET IN_AM_TIME_06       = NULL; END IF;--
+    IF IN_AM_TIME_07          = '' THEN SET IN_AM_TIME_07       = NULL; END IF;--
+    IF IN_PM_SEQ              = '' THEN SET IN_PM_SEQ           = NULL; END IF;--
+    IF IN_PM_AMPM_GB          = '' THEN SET IN_PM_AMPM_GB       = NULL; END IF;--
+    IF IN_PM_START_TM         = '' THEN SET IN_PM_START_TM      = NULL; END IF;--
+    IF IN_PM_HOISU            = '' THEN SET IN_PM_HOISU         = NULL; END IF;--
+    IF IN_PM_SHIFT_WEEK_YN    = '' THEN SET IN_PM_SHIFT_WEEK_YN = NULL; END IF;--
+    IF IN_PM_SHIFT_SAT_YN     = '' THEN SET IN_PM_SHIFT_SAT_YN  = NULL; END IF;--
+    IF IN_PM_SHIFT_SUN_YN     = '' THEN SET IN_PM_SHIFT_SUN_YN  = NULL; END IF;--
+    IF IN_PM_TIME_01          = '' THEN SET IN_PM_TIME_01       = NULL; END IF;--
+    IF IN_PM_TIME_02          = '' THEN SET IN_PM_TIME_02       = NULL; END IF;--
+    IF IN_PM_TIME_03          = '' THEN SET IN_PM_TIME_03       = NULL; END IF;--
+    IF IN_PM_TIME_04          = '' THEN SET IN_PM_TIME_04       = NULL; END IF;--
+    IF IN_PM_TIME_05          = '' THEN SET IN_PM_TIME_05       = NULL; END IF;--
+    IF IN_PM_TIME_06          = '' THEN SET IN_PM_TIME_06       = NULL; END IF;--
+    IF IN_PM_TIME_07          = '' THEN SET IN_PM_TIME_07       = NULL; END IF;--
+
+	 --DATA	insert
+
+   -- varchar로 넘겨받은 숫자를 integer, decimal 변환
+   -- 오전 SEQ
+   IF IN_AM_SEQ IS NULL THEN
+      SET V_IN_AM_SEQ = NULL;--
+    ELSE
+      SET V_IN_AM_SEQ = INT(IN_AM_SEQ);--
+   END IF;--
+   -- 오전 회수
+   IF IN_AM_HOISU IS NULL THEN
+      SET V_IN_AM_HOISU = NULL;--
+    ELSE
+      SET V_IN_AM_HOISU = DECIMAL(IN_AM_HOISU,4,1);--
+   END IF;--
+   -- 오후 SEQ
+   IF IN_PM_SEQ IS NULL THEN
+      SET V_IN_PM_SEQ = NULL;--
+    ELSE
+      SET V_IN_PM_SEQ = INT(IN_PM_SEQ);--
+   END IF;--
+   -- 오후 회수
+   IF IN_PM_HOISU IS NULL THEN
+      SET V_IN_PM_HOISU = NULL;--
+    ELSE
+      SET V_IN_PM_HOISU = DECIMAL(IN_PM_HOISU,4,1);--
+   END IF;--
+
+   -- 화면 좌우의 오전 오후의 값을 미리 가져온다
+   SELECT MAX(CD) INTO V_AM
+     FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'L','','','','','',''));  -- IN_AMPM_GB [DRV06 : 노선(CD3:주야노선구분), DRV07 : 주야심야 구분]
+   SELECT MAX(CD) INTO V_PM
+     FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'R','','','','','',''));--
+
+   --순차키의 값을 생성한다.
+   SET V_SEQ = 0;--
+   IF COALESCE(IN_AM_SEQ, IN_PM_SEQ) IS NULL THEN
+      SET V_CHK = 'Y';--
+    ELSE
+      IF IN_AM_SEQ IS NULL OR IN_PM_SEQ IS NULL THEN
+         SET V_CHK = '';--
+         SELECT CASE WHEN COUNT(SEQ) IS NULL THEN 'Y' ELSE NULL END INTO V_CHK
+           FROM GADMIN.BSUNHA2_M
+          WHERE ROUTE_CD = IN_ROUTE_CD
+            AND PYEON_GB = IN_PYEON_GB
+            AND WEEK_GB  = IN_WEEK_GB
+            AND AMPM_GB  = CASE WHEN V_IN_AM_SEQ IS NULL THEN V_AM ELSE V_PM END
+            AND SEQ      = COALESCE(V_IN_AM_SEQ, V_IN_PM_SEQ);--
+      END IF;--
+   END IF;--
+   -- 좌우 값이 없거나 좌 또는 우측 중 없는 쪽의 값을 같게 할수 없을때
+   --        1       1
+   --        2       2
+   --        3       없음
+   --        추가    3
+   --        추가   추가
+   IF V_CHK = 'Y' THEN
+      SET V_SEQ = 0;--
+      SELECT COALESCE(MAX(SEQ),0) + 1 INTO V_SEQ
+        FROM GADMIN.BSUNHA2_M
+       WHERE ROUTE_CD = IN_ROUTE_CD
+         AND PYEON_GB = IN_PYEON_GB
+         AND WEEK_GB  = IN_WEEK_GB;--
+    ELSE
+      SET V_SEQ =  (COALESCE(V_IN_AM_SEQ,V_IN_PM_SEQ));--
+   END IF;--
+
+   -- 데이터 저장 처리
+   -- 왼쪽(오전)데이터 처리
+   IF V_IN_AM_SEQ IS NULL THEN
+      --입력된값이 NULL 인경우
+      IF COALESCE(IN_AM_START_TM, IN_AM_HOISU, IN_AM_SHIFT_WEEK_YN, IN_AM_SHIFT_SAT_YN, IN_AM_SHIFT_SUN_YN, IN_AM_TIME_01, IN_AM_TIME_02, IN_AM_TIME_03, IN_AM_TIME_04, IN_AM_TIME_05, IN_AM_TIME_06, IN_AM_TIME_07) IS NULL THEN
+       ELSE
+----------SET OUT_MSG = CHR(13)||'[IN_ROUTE_CD='||IN_ROUTE_CD||'][IN_PYEON_GB='|| IN_PYEON_GB|| '][IN_WEEK_GB='|| IN_WEEK_GB|| '][V_SEQ='||  V_SEQ|| '][V_AM='|| V_AM||']';--
+         SELECT
+                COUNT(*) INTO V_CNT
+           FROM GADMIN.BSUNHA2_M
+          WHERE ROUTE_CD   = IN_ROUTE_CD
+            AND PYEON_GB   = IN_PYEON_GB
+            AND WEEK_GB    = IN_WEEK_GB
+            AND AMPM_GB    = V_AM
+            AND SUNBUN     = IN_SUNBUN
+          ;--
+         -- 추가 입력된 데이터 었으면 INSERT
+         IF  V_CNT > 0 THEN
+             SET OUT_MSG = OUT_MSG||CHR(13)||'데이터가 이미 존재 합니다.'||CHR(13)||'[순번 : '||IN_SUNBUN||']';--
+         ELSE
+            INSERT INTO GADMIN.BSUNHA2_M VALUES
+                   ( IN_ROUTE_CD
+                   , IN_PYEON_GB
+                   , IN_WEEK_GB
+                   , V_SEQ
+                   , V_AM
+                   , IN_SUNBUN
+                   , IN_AM_START_TM
+                   , IN_AM_INTERVAL
+                   , V_IN_AM_HOISU
+                   , COALESCE(IN_AM_SHIFT_WEEK_YN,'0')
+                   , COALESCE(IN_AM_SHIFT_SAT_YN,'0')
+                   , COALESCE(IN_AM_SHIFT_SUN_YN,'0')
+                   , IN_AM_TIME_01
+                   , IN_AM_TIME_02
+                   , IN_AM_TIME_03
+                   , IN_AM_TIME_04
+                   , IN_AM_TIME_05
+                   , IN_AM_TIME_06
+                   , IN_AM_TIME_07
+                   , CURRENT TIMESTAMP
+                   , IN_USER_ID
+                   , NULL
+                   , NULL);--
+             SET V_SAVE = V_SAVE + 1; --
+         END IF;--
+       END IF;  --
+    ELSE
+       -- 데이터가 변경되었늩지 비교 검사
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA2_M
+        WHERE ROUTE_CD   = IN_ROUTE_CD
+          AND PYEON_GB   = IN_PYEON_GB
+          AND WEEK_GB    = IN_WEEK_GB
+          AND AMPM_GB    = IN_AM_AMPM_GB
+          AND SEQ        = V_IN_AM_SEQ
+          AND (   COALESCE(SUNBUN,'')         <> COALESCE(IN_SUNBUN,'')
+               OR COALESCE(START_TM,'')       <> COALESCE(IN_AM_START_TM,'')
+               OR COALESCE(INTERVAL,'')       <> COALESCE(IN_AM_INTERVAL,'')
+               OR COALESCE(HOISU,0)           <> COALESCE(V_IN_AM_HOISU,0)
+               OR COALESCE(SHIFT_WEEK_YN,'0') <> COALESCE(IN_AM_SHIFT_WEEK_YN,'0')
+               OR COALESCE(SHIFT_SAT_YN,'0')  <> COALESCE(IN_AM_SHIFT_SAT_YN,'0')
+               OR COALESCE(SHIFT_SUN_YN,'0')  <> COALESCE(IN_AM_SHIFT_SUN_YN,'0')
+               OR COALESCE(TIME_01,'')        <> COALESCE(IN_AM_TIME_01,'')
+               OR COALESCE(TIME_02,'')        <> COALESCE(IN_AM_TIME_02,'')
+               OR COALESCE(TIME_03,'')        <> COALESCE(IN_AM_TIME_03,'')
+               OR COALESCE(TIME_04,'')        <> COALESCE(IN_AM_TIME_04,'')
+               OR COALESCE(TIME_05,'')        <> COALESCE(IN_AM_TIME_05,'')
+               OR COALESCE(TIME_06,'')        <> COALESCE(IN_AM_TIME_06,'')
+               OR COALESCE(TIME_07,'')        <> COALESCE(IN_AM_TIME_07,''))
+        ;--
+       -- 입력된 데이터 가 변경되었으면 UPDATE
+       IF  V_CNT > 0 THEN
+          UPDATE GADMIN.BSUNHA2_M
+              SET SUNBUN          = IN_SUNBUN
+                , START_TM        = IN_AM_START_TM
+                , INTERVAL       = IN_AM_INTERVAL
+                , HOISU           = V_IN_AM_HOISU
+                , SHIFT_WEEK_YN   = COALESCE(IN_AM_SHIFT_WEEK_YN,'0')
+                , SHIFT_SAT_YN    = COALESCE(IN_AM_SHIFT_SAT_YN,'0')
+                , SHIFT_SUN_YN    = COALESCE(IN_AM_SHIFT_SUN_YN,'0')
+                , TIME_01         = IN_AM_TIME_01
+                , TIME_02         = IN_AM_TIME_02
+                , TIME_03         = IN_AM_TIME_03
+                , TIME_04         = IN_AM_TIME_04
+                , TIME_05         = IN_AM_TIME_05
+                , TIME_06         = IN_AM_TIME_06
+                , TIME_07         = IN_AM_TIME_07
+                , M_DATE          = CURRENT TIMESTAMP
+                , M_USER          = IN_USER_ID
+          WHERE ROUTE_CD   = IN_ROUTE_CD
+            AND PYEON_GB   = IN_PYEON_GB
+            AND WEEK_GB    = IN_WEEK_GB
+            AND AMPM_GB    = IN_AM_AMPM_GB
+            AND SEQ        = V_IN_AM_SEQ
+            ;--
+          SET V_SAVE = V_SAVE + 10; --
+       END IF;    --
+   END IF;--
+
+   -- 오른쪽(오후)데이터 처리
+   IF V_IN_PM_SEQ IS NULL THEN
+     IF COALESCE(IN_PM_START_TM, IN_PM_INTERVAL, IN_PM_HOISU, IN_PM_SHIFT_WEEK_YN, IN_PM_SHIFT_SAT_YN, IN_PM_SHIFT_SUN_YN, IN_PM_TIME_01, IN_PM_TIME_02, IN_PM_TIME_03, IN_PM_TIME_04, IN_PM_TIME_05, IN_PM_TIME_06, IN_PM_TIME_07) IS NULL THEN --입력된값이 NULL 인경우
+      ELSE
+         SELECT
+                COUNT(*) INTO V_CNT
+           FROM GADMIN.BSUNHA2_M
+          WHERE ROUTE_CD   = IN_ROUTE_CD
+            AND PYEON_GB   = IN_PYEON_GB
+            AND WEEK_GB    = IN_WEEK_GB
+            AND AMPM_GB    = V_PM
+            AND SUNBUN     = IN_SUNBUN
+          ;--
+         -- 추가 입력된 데이터 었으면 INSERT
+         IF  V_CNT > 0 THEN
+             SET OUT_MSG = OUT_MSG||CHR(13)||'데이터가 이미 존재 합니다.'||CHR(13)||'[순번 : '||IN_SUNBUN||']';--
+         ELSE
+            INSERT INTO GADMIN.BSUNHA2_M VALUES
+                  ( IN_ROUTE_CD
+                  , IN_PYEON_GB
+                  , IN_WEEK_GB
+                  , V_SEQ
+                  , V_PM
+                  , IN_SUNBUN
+                  , IN_PM_START_TM
+                  , IN_PM_INTERVAL
+                  , IN_PM_HOISU
+                  , COALESCE(IN_PM_SHIFT_WEEK_YN,'0')
+                  , COALESCE(IN_PM_SHIFT_SAT_YN,'0')
+                  , COALESCE(IN_PM_SHIFT_SUN_YN,'0')
+                  , IN_PM_TIME_01
+                  , IN_PM_TIME_02
+                  , IN_PM_TIME_03
+                  , IN_PM_TIME_04
+                  , IN_PM_TIME_05
+                  , IN_PM_TIME_06
+                  , IN_PM_TIME_07
+                  , CURRENT TIMESTAMP
+                  , IN_USER_ID
+                  , NULL
+                  , NULL
+                  );--
+             SET V_SAVE = V_SAVE + 100;--
+         END IF;--
+     END IF;--
+    ELSE
+
+       -- 데이터가 변경되었늩지 검사
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA2_M
+        WHERE ROUTE_CD   = IN_ROUTE_CD
+          AND PYEON_GB   = IN_PYEON_GB
+          AND WEEK_GB    = IN_WEEK_GB
+          AND AMPM_GB    = IN_PM_AMPM_GB
+          AND SEQ        = V_IN_AM_SEQ
+          AND (COALESCE(SUNBUN,'')            <> COALESCE(IN_SUNBUN,'')
+               OR COALESCE(START_TM,'')       <> COALESCE(IN_PM_START_TM,'')
+               OR COALESCE(INTERVAL,'')       <> COALESCE(IN_PM_INTERVAL,'')
+               OR COALESCE(HOISU,0)           <> COALESCE(V_IN_PM_HOISU,0)
+               OR COALESCE(SHIFT_WEEK_YN,'0') <> COALESCE(IN_PM_SHIFT_WEEK_YN,'0')
+               OR COALESCE(SHIFT_SAT_YN,'0')  <> COALESCE(IN_PM_SHIFT_SAT_YN,'0')
+               OR COALESCE(SHIFT_SUN_YN,'0')  <> COALESCE(IN_PM_SHIFT_SUN_YN,'0')
+               OR COALESCE(TIME_01,'')        <> COALESCE(IN_PM_TIME_01,'')
+               OR COALESCE(TIME_02,'')        <> COALESCE(IN_PM_TIME_02,'')
+               OR COALESCE(TIME_03,'')        <> COALESCE(IN_PM_TIME_03,'')
+               OR COALESCE(TIME_04,'')        <> COALESCE(IN_PM_TIME_04,'')
+               OR COALESCE(TIME_05,'')        <> COALESCE(IN_PM_TIME_05,'')
+               OR COALESCE(TIME_06,'')        <> COALESCE(IN_PM_TIME_06,'')
+               OR COALESCE(TIME_07,'')        <> COALESCE(IN_PM_TIME_07,''))
+        ;--
+
+       -- 입력된 데이터와 이미 저장되어있는 데이터가 변경되었늩지 비교
+       IF V_CNT > 0        THEN
+           UPDATE GADMIN.BSUNHA2_M
+               SET SUNBUN          = IN_SUNBUN
+                 , START_TM        = IN_PM_START_TM
+                 , INTERVAL        = IN_PM_INTERVAL
+                 , HOISU           = V_IN_PM_HOISU
+                 , SHIFT_WEEK_YN   = COALESCE(IN_PM_SHIFT_WEEK_YN,'0')
+                 , SHIFT_SAT_YN    = COALESCE(IN_PM_SHIFT_SAT_YN,'0')
+                 , SHIFT_SUN_YN    = COALESCE(IN_PM_SHIFT_SUN_YN,'0')
+                 , TIME_01         = IN_PM_TIME_01
+                 , TIME_02         = IN_PM_TIME_02
+                 , TIME_03         = IN_PM_TIME_03
+                 , TIME_04         = IN_PM_TIME_04
+                 , TIME_05         = IN_PM_TIME_05
+                 , TIME_06         = IN_PM_TIME_06
+                 , TIME_07         = IN_PM_TIME_07
+                 , M_DATE          = CURRENT TIMESTAMP
+                 , M_USER          = IN_USER_ID
+           WHERE ROUTE_CD   = IN_ROUTE_CD
+             AND PYEON_GB   = IN_PYEON_GB
+             AND WEEK_GB    = IN_WEEK_GB
+             AND AMPM_GB    = IN_PM_AMPM_GB
+             AND SEQ        = V_IN_PM_SEQ
+             ;       --
+          SET V_SAVE = V_SAVE + 1000; --
+       END IF;             --
+   END IF;--
+
+
+
+   IF V_SAVE > 0 THEN SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'저장되었습니다.'||VARCHAR_FORMAT(V_SAVE,'0000'));  ELSE SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'저장된 데이터가 없습니다.'||VARCHAR_FORMAT(V_SAVE,'0000')) ; END IF; --
+
+END MAIN 

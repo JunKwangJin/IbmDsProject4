@@ -1,0 +1,116 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0301_TAB03_SELECT"
+( IN IN_DATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    P1: BEGIN
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                    SELECT A.CLASS
+                          , COALESCE(SUM(B.AMT),0)  AS B_AMT   -- 엔진
+                          , COALESCE(SUM(C.AMT),0)  AS C_AMT   -- 샤시
+                          , COALESCE(SUM(D.AMT),0)  AS D_AMT   -- 전장
+                          , COALESCE(SUM(E.AMT),0)  AS E_AMT   -- 차체
+                          , COALESCE(SUM(F.AMT),0)  AS F_AMT   -- 타이어
+                          , COALESCE(SUM(G.AMT),0)  AS G_AMT   -- 사고
+                          , COALESCE(SUM(H.AMT),0)  AS H_AMT   -- 기타
+                          , COALESCE(SUM(B.AMT),0) + COALESCE(SUM(C.AMT),0) + COALESCE(SUM(D.AMT),0) +
+                            COALESCE(SUM(E.AMT),0) + COALESCE(SUM(F.AMT),0) + COALESCE(SUM(G.AMT),0) +
+                            COALESCE(SUM(H.AMT),0) AS TOT_AMT
+                          , COALESCE(SUM(I.AMT),0) AS CUM_AMT
+                      FROM ( SELECT CLASS FROM GADMIN.BSJAJA A GROUP BY CLASS ) A
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.JAJAE_GB = '엔진'
+                                                GROUP BY B.CLASS
+                                               ) B ON (A.CLASS = B.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.JAJAE_GB = '샤시'
+                                                GROUP BY B.CLASS
+                                               ) C ON (A.CLASS = C.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.JAJAE_GB = '전장'
+                                                GROUP BY B.CLASS
+                                               ) D ON (A.CLASS = D.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.JAJAE_GB = '차체'
+                                                GROUP BY B.CLASS
+                                              ) E ON (A.CLASS = E.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.CLASS = '타이어'
+                                                GROUP BY B.CLASS
+                                               ) F ON (A.CLASS = F.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.JAJAE_GB = '사고'
+                                                GROUP BY B.CLASS
+                                               ) G ON (A.CLASS = G.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE = IN_DATE
+                                                   AND B.JAJAE_GB NOT IN ('엔진','샤시','전장','차체','타이어','사고')
+                                                   AND B.CLASS != '타이어'
+                                                GROUP BY B.CLASS
+                                              ) H ON (A.CLASS = H.CLASS)
+                            LEFT OUTER JOIN (
+                                               SELECT B.CLASS
+                                                      , SUM(PRICE) AS AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE 1 = 1
+                                                   AND A.DATE BETWEEN  SUBSTRING(IN_DATE,1,7)||'-01' AND IN_DATE
+                                                GROUP BY B.CLASS
+                                               )I ON (A.CLASS = I.CLASS)
+                    GROUP BY A.CLASS
+                ) A
+        ORDER BY 1
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

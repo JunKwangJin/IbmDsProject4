@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_LOG_U01"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_BBS_LOG_U01
+생성일자	: 2022.02.23
+생성자	: 전광진
+내용	    : CRUD 저장하는 로그
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_MBC_BBS_LOG_U01(TimeID, PGM_ID, LOG_SEQ, DATA)
+*******************************************************************************/
+(
+      IN_LOG_TIMEID  IN      VARCHAR
+   ,  IN_PGM_NM      IN      VARCHAR
+   ,  IN_LOG_SEQ     IN      VARCHAR
+   ,  IN_LOG_DATA    IN      VARCHAR
+)
+RETURN VARCHAR
+IS
+
+    V_STRING    VARCHAR(100);--
+BEGIN
+
+    V_STRING    :=   '' ;--
+   INSERT INTO GADMIN.MBC_LOGDATA01(LOG_TIMEID, PGM_NM, LOG_SEQ, LOG_DATA) VALUES
+          (IN_LOG_TIMEID, IN_PGM_NM, IN_LOG_SEQ, IN_LOG_DATA);--
+    RETURN V_STRING  ;--
+
+END

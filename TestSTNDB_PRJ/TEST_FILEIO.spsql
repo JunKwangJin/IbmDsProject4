@@ -1,0 +1,32 @@
+CREATE OR REPLACE PROCEDURE GADMIN.TEST_FILEIO
+(
+      IN IN_TIMEID           VARCHAR(20)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+
+BEGIN
+  DECLARE    v_empfile       UTL_FILE.FILE_TYPE;--
+  DECLARE    v_dirAlias      VARCHAR(50) DEFAULT 'C:\TEMP\TEMP\';--
+  DECLARE    v_filename      VARCHAR(20) DEFAULT 'empfile.csv';--
+  DECLARE    v_empline       VARCHAR(200);--
+  DECLARE    v_count         INTEGER DEFAULT 0;--
+  DECLARE SQLCODE INTEGER DEFAULT 0;--
+  DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+  DECLARE SQLSTATE1 CHAR(5) DEFAULT '00000';--
+  DECLARE CONTINUE HANDLER FOR SQLSTATE '02000'SET SQLSTATE1 = SQLSTATE;--
+
+  SET v_empfile = UTL_FILE.FOPEN(v_dirAlias,v_filename,'r');--
+
+  loop1: LOOP
+    CALL UTL_FILE.GET_LINE(v_empfile, v_empline);--
+    IF SQLSTATE1 = '02000' THEN -- NO DATA FOUND
+      LEAVE loop1;--
+    END IF;--
+    CALL DBMS_OUTPUT.PUT_LINE(v_empline);--
+    SET v_count = v_count + 1;--
+  END LOOP;--
+  CALL DBMS_OUTPUT.PUT_LINE('End of file ' || v_filename || ' - ' || v_count
+        || ' records retrieved');--
+  CALL UTL_FILE.FCLOSE(v_empfile);--
+END 

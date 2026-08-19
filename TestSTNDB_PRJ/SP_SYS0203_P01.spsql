@@ -1,0 +1,109 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0203_P01"
+(
+           IN IN_ROW_TYPE           VARCHAR(1)
+         , IN IN_AUTHGROUP_ID       VARCHAR(50)
+         , IN IN_MENU_ID            VARCHAR(50)
+         , IN IN_C_USER             VARCHAR(20)
+         , OUT OUT_CNT              VARCHAR(2)
+         , OUT OUT_MSG              VARCHAR(100)
+)
+
+--DECLARE V_CNT   INT  DEFAULT 0 ;--
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+         DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+         DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+         DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+
+         DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                E1: BEGIN
+                      SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: 실행중 알수없는 오류로 종료되었습니다.' ; --
+                      SET OUT_CNT = '-1'; --
+                      RETURN; --
+                END E1;--
+
+        SET OUT_MSG = '';--
+        SET OUT_CNT = ''; --
+
+        IF IN_ROW_TYPE = '2' THEN
+
+        P1: BEGIN
+
+             DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                    E2: BEGIN
+                         SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: 자료 저장 시 오류가 발생하였습니다.' ; --
+                         SET OUT_CNT = '-1'; --
+                         ROLLBACK ; --
+                         RETURN ;--
+                    END E2;--
+
+            DELETE FROM GADMIN.EBUS_GROUPMENU_M
+             WHERE MENU_ID = IN_MENU_ID
+               AND AUTHGROUP_ID = IN_AUTHGROUP_ID;--
+
+            INSERT INTO GADMIN.EBUS_GROUPMENU_M(
+                  AUTHGROUP_ID
+                , MENU_ID
+                , NEW_YN
+                , SEARCH_YN
+                , SAVE_YN
+                , DELETE_YN
+                , HELP_YN
+                , UPGRADE_YN
+                , C_USER
+                , C_DATE
+             )
+            SELECT
+                     IN_AUTHGROUP_ID
+                    ,MENU_ID
+                    ,NEW_YN
+                    ,SEARCH_YN
+                    ,SAVE_YN
+                    ,DELETE_YN
+                    ,HELP_YN
+                    ,UPGRADE_YN
+                    ,IN_C_USER
+                    ,CURRENT DATE
+                FROM GADMIN.EBUS_MENU_M A
+                WHERE 1=1
+                  AND MENU_ID NOT IN (SELECT MENU_ID FROM GADMIN.EBUS_GROUPMENU_M
+                                       WHERE AUTHGROUP_ID = IN_AUTHGROUP_ID)
+             START WITH MENU_ID = IN_MENU_ID
+             CONNECT BY PRIOR A.UP_MENU_ID =  A.MENU_ID;--
+
+
+
+--        EXCEPTION
+--
+--            WHEN OTHERS    THEN
+--                OUT_MSG := SQLERRM || CHR(13) || 'ERR01: 자료 저장 시 오류가 발생하였습니다.' ; --
+--                OUT_CNT := '0'; --
+--                ROLLBACK ; --
+--                RETURN ; --
+--
+       END P1 ;--
+
+
+        SET OUT_MSG = '저장되었습니다.' ; --
+        SET OUT_CNT = '1';--
+
+
+    ELSEIF IN_ROW_TYPE = '3' THEN
+
+
+            DELETE FROM GADMIN.EBUS_GROUPMENU_M
+            WHERE MENU_ID = IN_MENU_ID
+              AND AUTHGROUP_ID = IN_AUTHGROUP_ID;--
+
+            SET OUT_MSG = '삭제되었습니다.' ; --
+            SET OUT_CNT = '1';--
+
+    END IF;--
+
+
+
+
+END MAIN 

@@ -1,0 +1,77 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0102_S03"
+(
+    IN_OFFICE_CD VARCHAR(5), IN_ROUTE_CD VARCHAR(3), IN_PYEON_GB VARCHAR(2), IN_WEEK_GB VARCHAR(2)
+)
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+	-- #######################################################################
+	-- # 작성자 : 전광진
+	-- # 작성일 : 2020.07.06
+	-- # 설명 : 운행시간표 출력 입니다.
+	-- #      GADMIN.SP_DRV0102_S03(영업소, 노선, 편성구분, 평일구분)
+	-- #######################################################################
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+--    DECLARE V_CAR_LST VARCHAR(100) DEFAULT '';--
+--    DECLARE V_CAR_TYPE_CD VARCHAR(100) DEFAULT '';--
+--    DECLARE V_REG_DATE DATE;--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+--                    OUT_RESULT_CD  := '1';--
+--                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.구매상세내역 지급일자 업데이트 과정 중 오류가 발생했습니다. ' ; --
+--                    ROLLBACK;--
+--                    RETURN;--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+
+        WITH
+         AM AS
+           (SELECT GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'SORT') AS SORT_1
+                  , GADMIN.SF_EBUS_COMMON_CD('DRV04',PYEON_GB,'SORT') AS SORT_2
+                  , GADMIN.SF_EBUS_COMMON_CD('DRV05',WEEK_GB,'SORT') AS SORT_3
+                  , BSUNHA2_M.* FROM GADMIN.BSUNHA2_M	WHERE GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='L'),
+         PM AS
+           (SELECT GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'SORT') AS SORT_1
+                  , GADMIN.SF_EBUS_COMMON_CD('DRV04',PYEON_GB,'SORT') AS SORT_2
+                  , GADMIN.SF_EBUS_COMMON_CD('DRV05',WEEK_GB,'SORT') AS SORT_3
+                  , BSUNHA2_M.* FROM GADMIN.BSUNHA2_M	WHERE GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='R')
+         SELECT GADMIN.SF_EBUS_COMMON_CD('DRV06',NVL(AM.ROUTE_CD, PM.ROUTE_CD),'') AS ROUTE
+              , GADMIN.SF_EBUS_COMMON_CD('DRV04',NVL(AM.PYEON_GB, PM.PYEON_GB),'') AS PYEON_GB
+              , GADMIN.SF_EBUS_COMMON_CD('DRV05',NVL(AM.WEEK_GB, PM.WEEK_GB),'') AS WEEK_GB
+              , NVL(AM.SUNBUN, PM.SUNBUN) AS SUNBUN
+              , REGEXP_REPLACE(AM.TIME_01,'(^.{2})','\1:')	AS TIME_01
+              , REGEXP_REPLACE(AM.TIME_02,'(^.{2})','\1:')	AS TIME_02
+              , REGEXP_REPLACE(AM.TIME_03,'(^.{2})','\1:')	AS TIME_03
+              , REGEXP_REPLACE(AM.TIME_04,'(^.{2})','\1:')	AS TIME_04
+              , REGEXP_REPLACE(AM.TIME_05,'(^.{2})','\1:')	AS TIME_05
+              , REGEXP_REPLACE(AM.TIME_06,'(^.{2})','\1:')	AS TIME_06
+              , REGEXP_REPLACE(AM.TIME_07,'(^.{2})','\1:')	AS TIME_07
+              , REGEXP_REPLACE(PM.TIME_01,'(^.{2})','\1:')	AS TIME_08
+              , REGEXP_REPLACE(PM.TIME_02,'(^.{2})','\1:')	AS TIME_09
+              , REGEXP_REPLACE(PM.TIME_03,'(^.{2})','\1:')	AS TIME_10
+              , REGEXP_REPLACE(PM.TIME_04,'(^.{2})','\1:')	AS TIME_11
+         FROM AM
+         FULL OUTER JOIN PM
+           ON AM.ROUTE_CD = PM.ROUTE_CD
+          AND AM.PYEON_GB = PM.PYEON_GB
+          AND AM.WEEK_GB = PM.WEEK_GB
+          AND AM.SUNBUN = PM.SUNBUN
+        WHERE NVL(AM.ROUTE_CD, PM.ROUTE_CD) LIKE IN_ROUTE_CD||'%'
+          AND NVL(AM.PYEON_GB, PM.PYEON_GB) LIKE IN_PYEON_GB||'%'
+          AND NVL(AM.WEEK_GB, PM.WEEK_GB) LIKE IN_WEEK_GB||'%'
+         ORDER BY COALESCE(AM.SORT_1, PM.SORT_1)
+                 , COALESCE(AM.SORT_2, PM.SORT_2)
+                 , COALESCE(AM.SORT_3, PM.SORT_3);	--
+        OPEN CURSOR_DRV;--
+   END P1;--
+END MAIN 

@@ -1,0 +1,98 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1101_TAB01_SELECT_OLD"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+    DECLARE   TOT_JS_DR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   TOT_BJ_CR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   TOT_SON_DR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   TOT_SON_CR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   JAN_JS_DR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   JAN_BJ_CR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   JAN_SON_DR               DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   JAN_SON_CR               DECIMAL(20,5) DEFAULT 0.0;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DR_JAN_AMT      DECIMAL(20,5) DEFAULT 0,
+        DR_AMT          DECIMAL(20,5) DEFAULT 0,
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CR_AMT		    DECIMAL(20,5) DEFAULT 0,
+        CR_JAN_AMT      DECIMAL(20,5) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+        WITH HAP_ACC AS (
+            SELECT CASE B.DRCR_GB WHEN '차변'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '대변'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '차감' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+               FROM (
+                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --일반계정 집계
+                                  FROM (
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
+                                               FROM GADMIN.ACCOU1
+                                              WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                             UNION ALL
+                                             SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+                                               FROM GADMIN.ACCOU1
+                                              WHERE DRCR_GB IN ('입금','출금')
+                                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                             UNION ALL
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --전기이월 포함
+                                               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+                                        ) A, GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                        GROUP BY A.ACC_CD
+                    ) A RIGHT OUTER JOIN GADMIN.BSACC2 B ON A.ACC_CD = B.ACC_CD
+
+        )
+        SELECT 0 AS DR_JAN_AMT,
+                (SELECT coalesce(SUM(sign * DR_AMT),0)
+                  FROM HAP_ACC
+                 START WITH acc_cd = main.acc_cd
+               CONNECT BY PRIOR acc_cd = LEVELUP_CD
+               ) as DR_AMT
+             , ACC_CD, ACC_NM
+             , (SELECT coalesce(SUM(sign * CR_AMT),0)
+                  FROM HAP_ACC
+                 START WITH acc_cd = main.acc_cd
+               CONNECT BY PRIOR acc_cd = LEVELUP_CD
+               ) as CR_AMT,
+               0 AS CR_JAN_AMT
+          FROM HAP_ACC main
+         START WITH coalesce(LEVELUP_CD,'')=''
+        CONNECT BY PRIOR acc_cd = LEVELUP_CD order by acc_cd
+        ;--
+
+
+END P1;--
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT CASE DRCR_GB WHEN '차변' THEN coalesce(DR_AMT - CR_AMT,0) END AS DR_JAN_AMT, DR_AMT, ACC_CD, ACC_NM, CR_AMT, CASE DRCR_GB WHEN '대변' THEN coalesce(CR_AMT - DR_AMT,0) END AS CR_JAN_AMT
+      FROM (
+                        SELECT A.*, B.CHULRYEOK_CD, B.DRCR_GB
+                          FROM SESSION.TEMP A, GADMIN.BSACC2 B
+                        WHERE 1 = 1
+                          AND A.ACC_CD = B.ACC_CD
+                          AND B.ACC_CD != '7300909'
+                        UNION ALL
+                        SELECT A.*, '9000000', ''
+                          FROM SESSION.TEMP A
+                         WHERE A.ACC_CD = '9000000'
+                     )
+    WHERE 1 = 1
+      AND NOT ( DR_AMT = 0 AND CR_AMT = 0 )
+    ORDER BY CHULRYEOK_CD
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

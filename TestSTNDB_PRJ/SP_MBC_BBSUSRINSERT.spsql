@@ -1,0 +1,114 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_BBSUSRINSERT"
+--/*******************************************************************************
+--파일명	: GADMIN.SP_MBC_BBSUPDATE
+--생성일자	: 2021.12.19
+--생성자	: 전광진
+--내용    	: 모바일용 BBS UPDATE
+--수정일자	: 2022.02.13
+--수정자	: 전광진
+--수정일자	: 2022.03.16
+--수정자	: 전광진
+--수정내용    : 사번으로 등록할수 있도록 변경
+--        : 사번을 Primary Key로 지정
+--        : table에 APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME 정보를 저장함
+--수정일자	: 2022.05.06
+--수정자	: 전광진
+--수정내용    : DB 정보 Table(MBCDB.GADMIN.DBUSERS)의 코드 정보를 GADMIN.EBUS_COMMON_C의 UP_CD = 'COM98' AND CD='10' 의 컬럼 BIGO에서 가져옴
+--        : 사번을 Primary Key로 지정
+--        : table에 APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME 정보를 저장함
+--Compile : 2022.5.6
+--수정일자	: 2024.03.18
+--수정자	: 전광진
+--수정내용    : DB 정보 Table(MBCDB.GADMIN.DBUSERS)의 코드 정보를 GADMIN.EBUS_COMMON_C의 UP_CD = 'COM98' AND CD='10' 의 컬럼 BIGO에서 가져옴
+--        : 사번을 Primary Key로 지정
+--        : table에 APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME 정보를 저장함
+--Compile : 2022.5.6
+--    INPUT IN IN_BBSID       1. BBSID KEY
+--          IN IN_CELLPHONE   2. 휴대폰 번호
+--          IN IN_INSA_NO     3. 사번
+--OUTPUT  : OUT_CNT	          A.처리COUNT
+--        : OUT_MSG           B.처리결과메시지
+--*******************************************************************************/
+(
+   IN IN_BBSID             VARCHAR(14),
+   IN IN_CELLPHONE         VARCHAR(11),
+   IN IN_INSA_NO           VARCHAR(10),
+   OUT OUT_CNT             VARCHAR(4),
+   OUT OUT_MSG             VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+	DECLARE V_APPLICATION_ID
+	                      VARCHAR(50);--
+	DECLARE V_APPLICATION_NAME
+	                      VARCHAR(250);--
+	DECLARE V_CLIENT_HOSTNAME
+	                      VARCHAR(250);--
+--    DECLARE V_SEQ     VARCHAR(4)    DEFAULT '';--
+--    DECLARE V_BBSID   VARCHAR(14);--
+--    DECLARE V_SAVE    INTEGER    DEFAULT 0;--
+    DECLARE V_KEY_MSG VARCHAR(100) DEFAULT '';--
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER     CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER      CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL      CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO       CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE      CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+    
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME을 가져온다
+    SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
+    SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
+            = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
+                 FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2))
+                WHERE APPLICATION_ID = V_APPLICATION_ID);--
+    
+-- DATA 삽입
+    SET V_KEY_MSG = IN_BBSID;
+INSERT INTO GADMIN.MBC_BBSUSERS(
+            BBSID
+          , CELLPHONE
+          , INSA_NO
+          , APPLICATION_ID
+          , APPLICATION_NAME
+          , CLIENT_HOSTNAME
+          , C_DATE
+
+          )
+   VALUES (
+            IN_BBSID
+          , IN_CELLPHONE
+          , IN_INSA_NO
+          , V_APPLICATION_ID
+          , V_APPLICATION_NAME
+          , V_CLIENT_HOSTNAME
+          , CURRENT TIMESTAMP
+          )
+          ;--
+SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'수신자 추가되었습니다.');--
+RETURN 1;
+END MAIN 

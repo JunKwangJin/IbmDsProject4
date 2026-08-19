@@ -1,0 +1,50 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_EBUS_USERMENUSOSOK"
+(
+    IN IN_USER_ID  VARCHAR(20) --
+,   IN IN_MENU_ID  VARCHAR(10) --
+,   IN IN_SOSOK_TYPE VARCHAR(1)  -- 1 郴家加, 2 瘤沥家加 殿
+)
+
+RETURNS
+
+      TABLE (
+            SOSOK_CD            VARCHAR(5   )   ,
+            SOSOK_NM            VARCHAR(30  )   ,
+            ABBR_NM             VARCHAR(30 )
+            )
+
+  LANGUAGE SQL
+
+BEGIN ATOMIC
+
+
+   RETURN
+		SELECT SOSOK_CD
+		     , SOSOK_NM
+		     , ABBR_NM
+		  FROM (
+		        SELECT DISTINCT S.SOSOK_CD
+                     , S.SOSOK_NM
+                     , S.ABBR_NM
+                     , S.SORT
+                FROM GADMIN.EBUS_GROUPMENU_M GM
+               INNER JOIN (SELECT GU.AUTHGROUP_ID
+                                   , GU.USER_ID
+                                   , GU.SOSOK_CD
+                               FROM GADMIN.EBUS_GROUPUSER_M AS GU
+                              UNION ALL
+                             SELECT GH.AUTHGROUP_ID
+                                   , GH.USER_ID
+                                   , GH.SOSOK_CD
+                               FROM GADMIN.EBUS_EOPMUGH_M AS GH) AS GUH
+                  ON GM.AUTHGROUP_ID=GUH.AUTHGROUP_ID
+                INNER JOIN GADMIN.EBUS_EOPMUSOSOK_M  AS ES ON GUH.SOSOK_CD=ES.SOSOK_CD OR GUH.SOSOK_CD = '00000'
+                INNER JOIN GADMIN.EBUS_SOSOK_M  AS S ON S.SOSOK_CD=ES.SOSOK_CD
+                WHERE GUH.USER_ID = IN_USER_ID
+                  AND ES.SOSOK_LVL IN ('1','2')
+                  AND GM.MENU_ID LIKE IN_MENU_ID||'%'
+                        )
+             ORDER BY SORT--
+;--
+
+END

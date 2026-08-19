@@ -1,0 +1,84 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_USER_LIST"
+(
+--    IN IN_SYSGB     VARCHAR2(1  ) ,
+    IN IN_USER_ID   VARCHAR(10 )
+)
+
+
+RETURNS
+
+      TABLE (
+            USER_GUBUN          VARCHAR(1   )   ,
+            USER_ID             VARCHAR(10  )   ,
+            USER_NM             VARCHAR(100 )   ,
+            USER_PWD            VARCHAR(4000)   ,
+            --JUMIN_NO            VARCHAR(20  )   ,
+            SOSOK_CD            VARCHAR(10  )   ,
+            JAEJIK_GBCD         VARCHAR(2   )   ,
+            JIKJONG_CD          VARCHAR(2   )   ,
+            JIKWI_CD            VARCHAR(5   )   ,
+            HP_NO               VARCHAR(30  )   ,
+            EMAIL               VARCHAR(100 )   ,
+            SINBUN_CD           VARCHAR(100 )
+            )
+
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+        SELECT
+                  A.USER_GUBUN           AS USER_GUBUN
+                , A.USER_ID              AS USER_ID
+                , A.USER_NM              AS USER_NM
+                , A.USER_PW              AS USER_PW
+                --, A.USER_REGNO           AS USER_REGNO
+                , A.BUSEO_CD             AS BUSEO_CD
+                , A.JAEJIK_GBCD          AS JAEJIK_GBCD
+                , A.JIKJONG_CD           AS JIKJONG_CD
+                , A.JIKWI_CD             AS JIKWI_CD
+                , A.HP_NO                AS HP_NO
+                , A.EMAIL                AS EMAIL
+                , A.SINBUN_CD            AS SINBUN_CD
+        FROM    (
+                SELECT
+                          '1'                     AS USER_GUBUN
+                        , M.SABUN               AS USER_ID
+                        , M.FULLNAME               AS USER_NM
+                        , M.INSA_PWD              AS USER_PW
+                        --, M.JUMIN_NO              AS USER_REGNO
+                        , M.SOSOK_CD              AS BUSEO_CD
+                        , CASE WHEN NVL(RETIRE_DATE, CURRENT DATE) >= CURRENT DATE THEN 1 ELSE 3 END            AS JAEJIK_GBCD
+                        , M.JIKJONG_CD            AS JIKJONG_CD
+                        , M.JIKWI_CD              AS JIKWI_CD
+                        , GADMIN.SF_EBUS_COMMON_CD('INS17', JIKJONG_CD,'CD1')          AS SINBUN_CD
+                        , M.CELLPHONE             AS HP_NO
+                        , ''                      AS EMAIL
+                FROM                  GADMIN.BSDRIVE    M
+
+                WHERE       M.SABUN     =   IN_USER_ID
+                UNION ALL
+                SELECT
+                          '9'                      AS USER_GUBUN
+                        , OEBU_USER_ID             AS USER_ID
+                        , OEBU_USER_NM             AS USER_NM
+                        , OEBU_USER_PW             AS USER_PW
+                        --, NULL                     AS USER_REGNO
+                        , ''                       AS BUSEO_CD
+                        , '1'                      AS JAEJIK_GBCD
+                        , ''                       AS JIKJONG_CD
+                        , ''                       AS JIKWI_CD
+                        , '2'                      AS SINBUN_CD
+                        , HP_NO                    AS HP_NO
+                        , EMAIL                    AS EMAIL
+                FROM    GADMIN.EBUS_OEBUUSER_M
+
+                WHERE       OEBU_USER_ID    =   IN_USER_ID
+                        AND SAYONG_YN       =   '1'
+                )                                   A
+                LEFT OUTER JOIN (select * from GADMIN.EBUS_COMMON_C where UP_CD = 'INS17') B
+                                ON      A.JIKJONG_CD    =   B.CD
+        ;--
+
+END

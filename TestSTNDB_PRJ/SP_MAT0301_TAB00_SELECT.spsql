@@ -1,0 +1,274 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0301_TAB00_SELECT"
+( IN IN_DATE VARCHAR(10)
+, IN IN_EWOL_FROMDATE  VARCHAR(10)
+, IN IN_EWOL_TODATE  VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    P1: BEGIN
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                 SELECT CHANGGO
+                       , SUM(EWOL_QTY) AS EWOL_QTY
+                       , SUM(EWOL_AMT) AS EWOL_AMT
+                       , SUM(GU_QTY) AS GU_QTY
+                       , SUM(GU_AMT) AS GU_AMT
+                       , SUM(CHUL_QTY) AS CHUL_QTY
+                       , SUM(CHUL_AMT) AS CHUL_AMT
+                       , SUM(EDONG_QTY) AS EDONG_QTY
+                       , SUM(EDONG_AMT) AS EDONG_AMT
+                       , SUM(EWOL_QTY) + SUM(GU_QTY) - SUM(CHUL_QTY) - SUM(EDONG_QTY) AS JAE_QTY
+                       , SUM(EWOL_AMT) + SUM(GU_AMT) - SUM(CHUL_AMT) - SUM(EDONG_AMT) AS JAE_AMT
+                   FROM (
+                             SELECT CHANGGO
+                                   , EWOL_QTY + GU_QTY - CHUL_QTY - EDONG_QTY AS EWOL_QTY
+                                   , EWOL_AMT + GU_AMT - CHUL_AMT - EDONG_AMT AS EWOL_AMT
+                                    , 0 AS GU_QTY
+                                    , 0 AS GU_AMT
+                                    , 0 AS CHUL_QTY
+                                    , 0 AS CHUL_AMT
+                                    , 0 AS EDONG_QTY
+                                    , 0 AS EDONG_AMT
+                               FROM (
+                                        SELECT CHANGGO, SUM(EWOL_QTY) AS EWOL_QTY, SUM(EWOL_AMT) AS EWOL_AMT, SUM(GU_QTY) AS GU_QTY, SUM(GU_AMT) AS GU_AMT, SUM(CHUL_QTY) AS CHUL_QTY, SUM(CHUL_AMT) AS CHUL_AMT, SUM(EDONG_QTY) AS EDONG_QTY, SUM(EDONG_AMT) AS EDONG_AMT
+                                          FROM (
+                                                         SELECT CHANGGO
+                                                               , SUM(EWOL_01) AS EWOL_QTY
+                                                               , SUM(UNIT_PRICE_01) AS EWOL_AMT
+                                                               , 0 AS GU_QTY
+                                                               , 0 AS GU_AMT
+                                                               , 0 AS CHUL_QTY
+                                                               , 0 AS CHUL_AMT
+                                                               , 0 AS EDONG_QTY
+                                                               , 0 AS EDONG_AMT
+                                                           FROM GADMIN.JAGUJAGO -- 재고 이월
+                                                         WHERE YEAR = SUBSTRING(IN_DATE,1,4)
+                                                         GROUP BY CHANGGO
+                                                        UNION ALL
+                                                        SELECT CHANGGO
+                                                                , 0 AS EWOL_QTY
+                                                                , 0 AS EWOL_PRICE
+                                                                , SUM(CASE GUBUN WHEN '반품'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+                                                                , SUM(CASE GUBUN WHEN '반품'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+                                                                , 0 AS CHUL_QTY
+                                                                , 0 AS CHUL_AMT
+                                                                , 0 AS EDONG_QTY
+                                                                , 0 AS EDONG_AMT
+                                                        FROM GADMIN.JAGUMA1
+                                                        WHERE 1 = 1
+                                                         AND DATE BETWEEN IN_EWOL_FROMDATE AND IN_EWOL_TODATE
+                                                        GROUP BY CHANGGO
+                                                        UNION ALL
+                                                        SELECT CHANGGO
+                                                                , 0 AS EWOL_QTY
+                                                                , 0 AS EWOL_PRICE
+                                                                , 0 AS GU_QTY
+                                                                , 0 AS GU_AMT
+                                                                , SUM(CASE GUBUN WHEN '취소' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+                                                                , SUM(CASE GUBUN WHEN '취소' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+                                                                , 0 AS EDONG_QTY
+                                                                , 0 AS EDONG_AMT
+                                                          FROM GADMIN.JACHUL1
+                                                        WHERE 1 = 1
+                                                         AND DATE BETWEEN IN_EWOL_FROMDATE AND IN_EWOL_TODATE
+                                                        GROUP BY CHANGGO
+                                                        UNION ALL
+                                                        SELECT CHANGGO
+                                                                , 0 AS EWOL_QTY
+                                                                , 0 AS EWOL_PRICE
+                                                                , 0 AS GU_QTY
+                                                                , 0 AS GU_AMT
+                                                                , 0 AS CHUL_QTY
+                                                                , 0 AS CHUL_AMT
+                                                                , 0 AS EDONG_QTY -- 업무를 몰라서 일단 0로 셋팅
+                                                                , 0 AS EDONG_AMT
+                                                          FROM GADMIN.JACHUL2
+                                                        WHERE 1 = 1
+                                                         AND DATE BETWEEN IN_EWOL_FROMDATE AND IN_EWOL_TODATE
+                                                        GROUP BY CHANGGO
+                                                ) A
+                                        GROUP BY CHANGGO
+                                    ) A
+                            UNION ALL
+                            SELECT CHANGGO
+                                    , 0 AS EWOL_QTY
+                                    , 0 AS EWOL_PRICE
+                                    , SUM(CASE GUBUN WHEN '반품'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+                                    , SUM(CASE GUBUN WHEN '반품'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+                                    , 0 AS CHUL_QTY
+                                    , 0 AS CHUL_AMT
+                                    , 0 AS EDONG_QTY
+                                    , 0 AS EDONG_AMT
+                            FROM GADMIN.JAGUMA1
+                            WHERE 1 = 1
+                             AND DATE = IN_DATE
+                            GROUP BY CHANGGO
+                            UNION ALL
+                            SELECT CHANGGO
+                                    , 0 AS EWOL_QTY
+                                    , 0 AS EWOL_PRICE
+                                    , 0 AS GU_QTY
+                                    , 0 AS GU_AMT
+                                    , SUM(CASE GUBUN WHEN '취소' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+                                    , SUM(CASE GUBUN WHEN '취소' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+                                    , 0 AS EDONG_QTY
+                                    , 0 AS EDONG_AMT
+                              FROM GADMIN.JACHUL1
+                            WHERE 1 = 1
+                             AND DATE = IN_DATE
+                            GROUP BY CHANGGO
+                            UNION ALL
+                            SELECT CHANGGO
+                                    , 0 AS EWOL_QTY
+                                    , 0 AS EWOL_PRICE
+                                    , 0 AS GU_QTY
+                                    , 0 AS GU_AMT
+                                    , 0 AS CHUL_QTY
+                                    , 0 AS CHUL_AMT
+                                    , 0 AS EDONG_QTY -- 업무를 몰라서 일단 0로 셋팅
+                                    , 0 AS EDONG_AMT
+                              FROM GADMIN.JACHUL2
+                            WHERE 1 = 1
+                             AND DATE = IN_DATE
+                            GROUP BY CHANGGO
+                        ) A
+                GROUP BY CHANGGO
+--                UNION ALL
+--                SELECT '합계' AS CHANGGO
+--                       , SUM(EWOL_QTY) AS EWOL_QTY
+--                       , SUM(EWOL_AMT) AS EWOL_AMT
+--                       , SUM(GU_QTY) AS GU_QTY
+--                       , SUM(GU_AMT) AS GU_AMT
+--                       , SUM(CHUL_QTY) AS CHUL_QTY
+--                       , SUM(CHUL_AMT) AS CHUL_AMT
+--                       , SUM(EDONG_QTY) AS EDONG_QTY
+--                       , SUM(EDONG_AMT) AS EDONG_AMT
+--                       , SUM(EWOL_QTY) + SUM(GU_QTY) - SUM(CHUL_QTY) - SUM(EDONG_QTY) AS JAE_QTY
+--                       , SUM(EWOL_AMT) + SUM(GU_AMT) - SUM(CHUL_AMT) - SUM(EDONG_AMT) AS JAE_AMT
+--                   FROM (
+--                             SELECT CHANGGO
+--                                   , EWOL_QTY + GU_QTY - CHUL_QTY - EDONG_QTY AS EWOL_QTY
+--                                   , EWOL_AMT + GU_AMT - CHUL_AMT - EDONG_AMT AS EWOL_AMT
+--                                    , 0 AS GU_QTY
+--                                    , 0 AS GU_AMT
+--                                    , 0 AS CHUL_QTY
+--                                    , 0 AS CHUL_AMT
+--                                    , 0 AS EDONG_QTY
+--                                    , 0 AS EDONG_AMT
+--                               FROM (
+--                                        SELECT CHANGGO, SUM(EWOL_QTY) AS EWOL_QTY, SUM(EWOL_AMT) AS EWOL_AMT, SUM(GU_QTY) AS GU_QTY, SUM(GU_AMT) AS GU_AMT, SUM(CHUL_QTY) AS CHUL_QTY, SUM(CHUL_AMT) AS CHUL_AMT, SUM(EDONG_QTY) AS EDONG_QTY, SUM(EDONG_AMT) AS EDONG_AMT
+--                                          FROM (
+--                                                         SELECT CHANGGO
+--                                                               , SUM(EWOL_01) AS EWOL_QTY
+--                                                               , SUM(UNIT_PRICE_01) AS EWOL_AMT
+--                                                               , 0 AS GU_QTY
+--                                                               , 0 AS GU_AMT
+--                                                               , 0 AS CHUL_QTY
+--                                                               , 0 AS CHUL_AMT
+--                                                               , 0 AS EDONG_QTY
+--                                                               , 0 AS EDONG_AMT
+--                                                           FROM GADMIN.JAGUJAGO -- 재고 이월
+--                                                         WHERE YEAR = SUBSTRING(IN_DATE,1,4)
+--                                                         GROUP BY CHANGGO
+--                                                        UNION ALL
+--                                                        SELECT CHANGGO
+--                                                                , 0 AS EWOL_QTY
+--                                                                , 0 AS EWOL_PRICE
+--                                                                , SUM(CASE GUBUN WHEN '반품'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+--                                                                , SUM(CASE GUBUN WHEN '반품'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+--                                                                , 0 AS CHUL_QTY
+--                                                                , 0 AS CHUL_AMT
+--                                                                , 0 AS EDONG_QTY
+--                                                                , 0 AS EDONG_AMT
+--                                                        FROM GADMIN.JAGUMA1
+--                                                        WHERE 1 = 1
+--                                                         AND DATE BETWEEN IN_EWOL_FROMDATE AND IN_EWOL_TODATE
+--                                                        GROUP BY CHANGGO
+--                                                        UNION ALL
+--                                                        SELECT CHANGGO
+--                                                                , 0 AS EWOL_QTY
+--                                                                , 0 AS EWOL_PRICE
+--                                                                , 0 AS GU_QTY
+--                                                                , 0 AS GU_AMT
+--                                                                , SUM(CASE GUBUN WHEN '취소' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+--                                                                , SUM(CASE GUBUN WHEN '취소' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+--                                                                , 0 AS EDONG_QTY
+--                                                                , 0 AS EDONG_AMT
+--                                                          FROM GADMIN.JACHUL1
+--                                                        WHERE 1 = 1
+--                                                         AND DATE BETWEEN IN_EWOL_FROMDATE AND IN_EWOL_TODATE
+--                                                        GROUP BY CHANGGO
+--                                                        UNION ALL
+--                                                        SELECT CHANGGO
+--                                                                , 0 AS EWOL_QTY
+--                                                                , 0 AS EWOL_PRICE
+--                                                                , 0 AS GU_QTY
+--                                                                , 0 AS GU_AMT
+--                                                                , 0 AS CHUL_QTY
+--                                                                , 0 AS CHUL_AMT
+--                                                                , 0 AS EDONG_QTY -- 업무를 몰라서 일단 0로 셋팅
+--                                                                , 0 AS EDONG_AMT
+--                                                          FROM GADMIN.JACHUL2
+--                                                        WHERE 1 = 1
+--                                                         AND DATE BETWEEN IN_EWOL_FROMDATE AND IN_EWOL_TODATE
+--                                                        GROUP BY CHANGGO
+--                                                ) A
+--                                        GROUP BY CHANGGO
+--                                    ) A
+--                            UNION ALL
+--                            SELECT CHANGGO
+--                                    , 0 AS EWOL_QTY
+--                                    , 0 AS EWOL_PRICE
+--                                    , SUM(CASE GUBUN WHEN '반품'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+--                                    , SUM(CASE GUBUN WHEN '반품'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+--                                    , 0 AS CHUL_QTY
+--                                    , 0 AS CHUL_AMT
+--                                    , 0 AS EDONG_QTY
+--                                    , 0 AS EDONG_AMT
+--                            FROM GADMIN.JAGUMA1
+--                            WHERE 1 = 1
+--                             AND DATE = IN_DATE
+--                            GROUP BY CHANGGO
+--                            UNION ALL
+--                            SELECT CHANGGO
+--                                    , 0 AS EWOL_QTY
+--                                    , 0 AS EWOL_PRICE
+--                                    , 0 AS GU_QTY
+--                                    , 0 AS GU_AMT
+--                                    , SUM(CASE GUBUN WHEN '취소' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+--                                    , SUM(CASE GUBUN WHEN '취소' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+--                                   , 0 AS EDONG_QTY
+--                                    , 0 AS EDONG_AMT
+--                              FROM GADMIN.JACHUL1
+--                            WHERE 1 = 1
+--                             AND DATE = IN_DATE
+--                            GROUP BY CHANGGO
+--                            UNION ALL
+--                            SELECT CHANGGO
+--                                    , 0 AS EWOL_QTY
+--                                    , 0 AS EWOL_PRICE
+--                                    , 0 AS GU_QTY
+--                                    , 0 AS GU_AMT
+--                                    , 0 AS CHUL_QTY
+--                                    , 0 AS CHUL_AMT
+--                                    , 0 AS EDONG_QTY -- 업무를 몰라서 일단 0로 셋팅
+--                                    , 0 AS EDONG_AMT
+--                              FROM GADMIN.JACHUL2
+--                            WHERE 1 = 1
+--                             AND DATE = IN_DATE
+--                            GROUP BY CHANGGO
+--                        ) A
+                )
+        ORDER BY 1
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

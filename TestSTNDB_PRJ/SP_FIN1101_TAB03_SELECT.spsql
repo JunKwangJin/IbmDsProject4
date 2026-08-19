@@ -1,0 +1,179 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1101_TAB03_SELECT"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_PRE_FROMDATE VARCHAR(10), IN IN_PRE_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        ACC_CD          VARCHAR(20)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CU_AMT		    DECIMAL(20,5) DEFAULT 0,
+        CU_TOT          DECIMAL(20,5) DEFAULT 0,
+        BE_AMT          DECIMAL(20,5) DEFAULT 0,
+        BE_TOT          DECIMAL(20,5) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+                    WITH JAE_ACC AS (
+                        SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '차변'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '대변'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '차감' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+                           FROM (
+                                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --일반계정 집계
+                                              FROM (
+                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
+                                                           FROM GADMIN.ACCOU1
+                                                          WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                         UNION ALL
+                                                         SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+                                                           FROM GADMIN.ACCOU1
+                                                          WHERE DRCR_GB IN ('입금','출금')
+                                                            AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                         UNION ALL
+                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --전기이월 포함
+                                                           FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+                                                         UNION ALL
+                                                         SELECT '3300909' AS ACC_CD, '((당기순이익))' AS ACC_NM, 0 AS DR_AMT, S.CU_TOT AS CR_AMT
+                                                           FROM GADMIN.EBUS_FIN_INCOME S
+                                                          WHERE S.ACC_CD = '7300909'
+                                                    ) A, GADMIN.BSACC2 B
+                                     WHERE 1 = 1
+                                       AND A.ACC_CD = B.ACC_CD
+                                    GROUP BY A.ACC_CD
+                                ) A RIGHT OUTER JOIN GADMIN.BSACC2 B ON A.ACC_CD = B.ACC_CD
+
+                    ),
+                    JAE_ACC2 AS (
+                        SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '차변'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '대변'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '차감' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+                           FROM (
+                                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --일반계정 집계
+                                              FROM (
+                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
+                                                           FROM GADMIN.ACCOU1
+                                                          WHERE DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                                                         UNION ALL
+                                                         SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+                                                           FROM GADMIN.ACCOU1
+                                                          WHERE DRCR_GB IN ('입금','출금')
+                                                            AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                                                         UNION ALL
+                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --전기이월 포함
+                                                           FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE))
+                                                         UNION ALL
+                                                         SELECT '3300909' AS ACC_CD, '((당기순이익))' AS ACC_NM, 0 AS DR_AMT, S.BE_TOT AS CR_AMT
+                                                           FROM GADMIN.EBUS_FIN_INCOME S
+                                                          WHERE S.ACC_CD = '7300909'
+                                                    ) A, GADMIN.BSACC2 B
+                                     WHERE 1 = 1
+                                       AND A.ACC_CD = B.ACC_CD
+                                    GROUP BY A.ACC_CD
+                                ) A RIGHT OUTER JOIN GADMIN.BSACC2 B ON A.ACC_CD = B.ACC_CD
+
+                    )
+                    SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT
+                       FROM (
+                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM
+                                   , coalesce(CASE WHEN DAECHA_CHECK = 'L' THEN  coalesce(SUM(A.CU_AMT),0) END, 0) AS CU_AMT,  coalesce(CASE WHEN DAECHA_CHECK = 'R' THEN  coalesce(SUM(A.CU_AMT),0) END, 0) AS CU_TOT
+                                   , coalesce(CASE WHEN DAECHA_CHECK = 'L' THEN  coalesce(SUM(A.BE_AMT),0) END, 0) AS BE_AMT, coalesce(CASE WHEN DAECHA_CHECK = 'R' THEN  coalesce(SUM(A.BE_AMT),0) END, 0) AS BE_TOT
+                               FROM (
+                            SELECT ACC_CD, ACC_NM,
+                                   CASE WHEN DRCR_GB IN ('차변','출금') THEN
+                                         (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                              FROM JAE_ACC
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           ) -
+                                        (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                              FROM JAE_ACC
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           )
+                                    ELSE
+                                        (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                              FROM JAE_ACC
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           ) -
+                                         (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                              FROM JAE_ACC
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           )
+                                    END AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                              FROM JAE_ACC main
+                             START WITH coalesce(LEVELUP_CD,'')=''
+                            CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                            UNION ALL
+                            SELECT ACC_CD, ACC_NM
+                                    , 0 AS CU_AMT, 0 AS CU_TOT,
+                                   CASE WHEN DRCR_GB IN ('차변','출금') THEN
+                                         (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                              FROM JAE_ACC2
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           ) -
+                                        (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                              FROM JAE_ACC2
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           )
+                                    ELSE
+                                        (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                              FROM JAE_ACC2
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           ) -
+                                         (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                              FROM JAE_ACC2
+                                             START WITH acc_cd = main.acc_cd
+                                           CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                           )
+                                    END AS BE_AMT, 0 AS BE_TOT
+                              FROM JAE_ACC2 main
+                             START WITH coalesce(LEVELUP_CD,'')=''
+                            CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                            ) A LEFT OUTER JOIN  GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
+                     WHERE 1 = 1
+                       AND B.ACC_GB IN ('자산','부채','자본')
+                       AND B.DAECHA_CHECK != 'N'
+                    GROUP BY A.ACC_CD, B.DRCR_GB, B.DAECHA_CHECK
+                    )
+           WHERE 1 = 1
+             AND CU_AMT + CU_TOT + BE_AMT + BE_TOT != 0
+        ;--
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT ACC_CD, ACC_NM, CASE WHEN ACC_GB = '자산' THEN ( CASE WHEN DRCR_GB = '차변' THEN CU_AMT ELSE CU_AMT * -1 END)
+                                ELSE (CASE WHEN ACC_GB = '부채' OR  ACC_GB = '자본' THEN ( CASE WHEN DRCR_GB = '대변' THEN CU_AMT ELSE CU_AMT * -1 END) ELSE CU_AMT END)
+                             END AS CU_AMT, CU_TOT,
+                              CASE WHEN ACC_GB = '자산' THEN ( CASE WHEN DRCR_GB = '차변' THEN BE_AMT ELSE BE_AMT * -1 END)
+                                ELSE (CASE WHEN ACC_GB = '부채' OR  ACC_GB = '자본' THEN ( CASE WHEN DRCR_GB = '대변' THEN BE_AMT ELSE BE_AMT * -1 END) ELSE BE_AMT END)
+                             END AS BE_AMT, BE_TOT,
+            (CU_AMT + CU_TOT) - (BE_AMT + BE_TOT) AS UPDOWN_AMT,
+            TRUNC( CASE BE_AMT + BE_TOT WHEN 0 THEN NULL
+                                 ELSE ((CU_AMT + CU_TOT) - (BE_AMT + BE_TOT)) / (BE_AMT + BE_TOT) * 100
+            END, 2) AS UPDOWN_RATE
+      FROM (
+                        SELECT A.*, B.CHULRYEOK_CD, B.ACC_GB, B.DRCR_GB
+                           FROM SESSION.TEMP A, GADMIN.BSACC2 B
+                        WHERE 1 = 1
+                          AND A.ACC_CD = B.ACC_CD
+                          AND B.DAECHA_CHECK != 'N'
+
+                     )
+    WHERE NOT (CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)
+    ORDER BY CHULRYEOK_CD
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

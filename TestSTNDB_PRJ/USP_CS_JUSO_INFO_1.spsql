@@ -1,0 +1,165 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_JUSO_INFO"  (
+    IN p_keyword VARCHAR(255),
+    IN p_page_size INT DEFAULT 10,  -- 한 페이지에 가져올 주소 개수 (기본 10개, 최대 1000)
+    IN p_current_page INT DEFAULT 1, -- 가져올 페이지 번호 (기본 1페이지)
+    OUT o_total_page INT,   -- 총페이지수를 넘겨줌
+    OUT o_error_code VARCHAR(10),   -- 에러 코드 OUT 파라미터
+    OUT o_error_msg VARCHAR(500)    -- 에러 메시지 OUT 파라미터
+)
+/*******************************************************************************
+파일명	: GADMIN.USP_CS_JUSO_INFO
+생성일자	: 2025.08.11
+생성자	: 전광진
+내용	    : 주소를 키워드로 입력하여 우편번호를 juso.go.kr에서 가져오는 프로시져
+USAGE   : GADMIN.USP_CS_JUSO_INFO(주소 키워드, 한화면에 들어갈 페이지수(기본10개), 선택한 페이지번호, 총페이지수, 에러코드, 에러메세지)
+수정일자	: 2025.08.12
+수정자	: 전광진
+수정내용	: 한페이지에 들어갈 갯수와 페이지수 관계없이  키워드와 맞고 페이지 수가 오류가 나지 않는 범위내에서 모두 가져오는것으로 수정
+INPUT	: p_keyword VARCHAR(255),
+        : p_page_size INT DEFAULT 10,  -- 한 페이지에 가져올 주소 개수 (기본 10개, 최대 1000)
+        : p_current_page INT DEFAULT 1, -- 가져올 페이지 번호 (기본 1페이지)
+OUTPUT	: o_total_page INT,   -- 총페이지수를 넘겨줌
+        : o_error_code VARCHAR(10),   -- 에러 코드 OUT 파라미터
+        : o_error_msg VARCHAR(500)    -- 에러 메시지 OUT 파라미터
+*******************************************************************************/
+LANGUAGE SQL
+DYNAMIC RESULT SETS 1
+--READS SQL DATA
+--NO EXTERNAL ACTION
+P1: BEGIN
+
+    DECLARE SQLCODE  			INTEGER  	DEFAULT 0;--
+    DECLARE SQLSTATE 			CHAR(5) 	DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE 			CHAR(5) 	DEFAULT '00000';--
+
+    -- 여기에 너의 juso.go.kr API 인증키를 넣어줘!
+    DECLARE v_api_key VARCHAR(50) DEFAULT 'U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDM=';
+    DECLARE v_keyword VARCHAR(255);
+    DECLARE v_encoded_keyword VARCHAR(512);
+    DECLARE v_api_url VARCHAR(1000);
+    DECLARE v_http_response CLOB; -- HTTP 응답은 CLOB으로 받아서 XMLPARSER로 XML로 변환
+    DECLARE v_xml_response XML;   -- CLOB을 XML로 파싱한 결과
+    -- DECLARE v_error_code VARCHAR(10); -- OUT 파라미터로 대체
+    -- DECLARE v_error_msg VARCHAR(500); -- OUT 파라미터로 대체
+    DECLARE v_total_count INT;
+    DECLARE v_total_page INT;
+    DECLARE v_page_size_internal INT;
+    DECLARE v_page_count INT;
+    DECLARE v_current_page_internal INT;
+    DECLARE v_validation_code INTEGER;
+    DECLARE v_validation_message VARCHAR(500);
+
+DECLARE cursor1 CURSOR WITH RETURN for
+    SELECT
+        T.roadAddr AS Juso,
+        T.zipNo AS JusoPostCd
+    FROM XMLTABLE('$X/results/juso' PASSING v_xml_response AS "X"
+        COLUMNS
+            roadAddr VARCHAR(500) PATH 'roadAddr',
+            zipNo VARCHAR(10) PATH 'zipNo'
+    ) AS T;
+
+
+    --DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    --DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+    --DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+
+
+    -- 초기 에러 상태를 성공으로 설정
+    SET o_error_code = '0';
+    SET o_error_msg = '성공';
+
+    SET v_page_size_internal = p_page_size;
+    SET v_current_page_internal = p_current_page;
+
+    -- p_page_size가 유효한 범위(1~100)를 벗어나면 조정 (juso.go.kr은 최대 100)
+    SET v_page_size_internal = CASE
+                                  WHEN v_page_size_internal < 1 THEN 1
+                                  WHEN v_page_size_internal > 200 THEN 200 -- API 최대 countPerPage 100
+                                  ELSE v_page_size_internal
+                              END;
+
+    -- p_current_page가 1보다 작으면 1로 조정
+    SET v_current_page_internal = CASE
+                                    WHEN v_current_page_internal < 1 THEN 1
+                                    ELSE v_current_page_internal
+                                  END;
+
+    -- 0. 검색키워드 접합성 검사
+
+    -- 0.1. 사용자 입력값 유효성 검사 프로시저 호출
+    CALL GADMIN.USP_CS_VALIDATE_JUSO_KEYWORD(p_keyword, v_validation_code, v_validation_message);
+
+    -- 0.2. 유효성 검사 결과에 따른 분기 처리
+--    IF v_validation_code = -1 THEN -- 오류가 발생했다면
+    IF v_validation_code <> -1 THEN -- 오류나 경고  발생했다면
+        SET o_error_code = 'W999';
+        SET o_error_msg = v_validation_message; -- 사용자에게 오류 메시지 전달
+        -- 더 이상 검색 진행하지 않고 종료
+        RETURN;
+    --ELSEIF v_validation_code = 1 THEN -- 경고가 발생했다면
+    --    -- 경고 메시지를 사용자에게 보여주고 (e.g., alert 창)
+    --    -- 그래도 검색은 진행하도록 하거나, 사용자에게 다시 입력받도록 선택권 부여
+    --    -- 여기서는 경고 메시지를 결과에 포함하고 검색은 진행하는 예시
+    --    SET o_search_result = v_validation_message || ' 검색을 시도합니다.';
+    --    -- 이어서 검색 로직 수행...
+    --    -- CALL ACTUAL_ADDRESS_SEARCH_PROC(p_user_input_address, ...);
+    --ELSE -- v_validation_code = 0 (OK)
+    --    -- 아무 문제 없으니 정상적으로 검색 로직 수행
+    --    SET o_search_result = '입력된 주소로 검색을 시작합니다...';
+    --    -- CALL ACTUAL_ADDRESS_SEARCH_PROC(p_user_input_address, ...);
+    END IF;
+    
+
+    -- 1. 검색 키워드를 URL 인코딩
+    SET v_encoded_keyword = DB2XML.URLENCODE(p_keyword, 'UTF-8');
+
+    -- 2. juso.go.kr API URL 구성 (페이지네이션 추가)
+    SET v_api_url = CAST('https://business.juso.go.kr/addrlink/addrLinkApi.do' ||
+                    '?confmKey=' || v_api_key ||
+                    '&currentPage=' || DB2XML.URLENCODE(CHAR(v_current_page_internal), '') ||
+                    '&countPerPage=' || DB2XML.URLENCODE(CHAR(v_page_size_internal), '') ||
+                    '&keyword=' || v_encoded_keyword ||
+                    '&resultType=xml' AS VARCHAR(1000)); -- 충분히 길게 설정
+
+    -- 3. HTTP GET 요청 보내기 (응답은 CLOB으로 받음)
+    SET v_http_response = DB2XML.HTTPGETCLOB(v_api_url, XMLPARSE(DOCUMENT '<httpHeader/>'));
+
+    -- 4. CLOB 응답을 XML로 파싱
+    IF CAST(v_http_response AS VARCHAR(10000)) IS NOT NULL AND LENGTH(TRIM(CAST(v_http_response AS VARCHAR(10000)))) > 0 THEN
+        SET v_xml_response = XMLPARSE(DOCUMENT v_http_response);
+    ELSE
+        -- 응답이 NULL이거나 비어있는 경우 에러 처리
+        SET o_error_code = 'DB_ERR01';
+        SET o_error_msg = 'API 응답이 비어있거나 네트워크 문제로 응답을 받지 못했습니다.';
+        -- 에러 발생 시 프로시저 종료 (더 이상 진행할 필요 없음)
+        RETURN;
+    END IF;
+
+    -- 5. XML 응답에서 공통 정보(errorCode, totalCount) 추출
+    SET o_error_code = XMLCAST(XMLQUERY('$X/results/common/errorCode/text()' PASSING v_xml_response AS "X") AS VARCHAR(10));
+    SET o_error_msg = XMLCAST(XMLQUERY('$X/results/common/errorMessage/text()' PASSING v_xml_response AS "X") AS VARCHAR(500));
+    SET v_total_count = XMLCAST(XMLQUERY('$X/results/common/totalCount/text()' PASSING v_xml_response AS "X") AS INTEGER);
+    SET v_total_page = CEIL(CAST(v_total_count AS DECIMAL(10, 5)) / CAST(v_page_size_internal AS DECIMAL(10, 5)));  -- 분자분모가 모두 DECIMAL오 소수점이 있는 tYPE로 변환해야 한다
+    SET o_total_page = v_total_page;
+--    SET o_total_page = v_total_page;
+    IF v_total_page > 20 THEN 
+    	SET o_error_code = 'E0006';
+    END IF;
+    -- API 에러 코드가 '0'이 아니면 에러 메시지 설정
+    IF o_error_code <> '0' THEN
+        SET o_error_msg = CASE
+                            WHEN o_error_code = '-999' THEN '우편번호가 정상조회 되지 않습니다.(관리자에게 문의 하세요)'
+                            WHEN o_error_code = 'E0006' THEN '주소를 상세히 입력해 주시기 바랍니다.' -- Specific juso.go.kr error [【2】](about:blank)
+                            ELSE REPLACE(o_error_msg,'검색어','주소') -- 일반적인 메시지 변경
+                          END;
+        -- 에러 발생 시 프로시저 종료 (SELECT 문 실행 안 함)
+        RETURN;
+    END IF;
+
+    -- 성공적으로 주소 정보를 받아왔을 때만 SELECT 문 실행
+    -- 프로시저는 RESULT SET을 직접 RETURN하지 않고 SELECT 문을 통해 내보냄
+	OPEN cursor1;
+END P1 

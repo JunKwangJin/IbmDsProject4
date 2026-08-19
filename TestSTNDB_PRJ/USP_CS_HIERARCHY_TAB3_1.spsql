@@ -1,0 +1,316 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB3"
+(
+    IN P_TAB_NAME VARCHAR(128),     -- 테이블 이름 (예: gadmin.cs_common_c)
+    IN P_PK_COL VARCHAR(128),       -- 고유 키 컬럼 (자식, 예: CD)
+    IN P_FK_COL VARCHAR(128),       -- 외래 키 컬럼 (부모, 예: UP_CD)
+    IN P_TEXT_COL VARCHAR(128),     -- 표시할 텍스트 컬럼 (예: CD_NM)
+    IN P_TEXT_COL2 VARCHAR(128),     -- 표시할 텍스트 컬럼 (예: CD_NM)
+    IN P_TEXT_COL3 VARCHAR(128),     -- 표시할 텍스트 컬럼 (예: CD_NM)
+    IN P_START_VAL VARCHAR(255)     -- 시작 부모 값 (최상위 부모의 UP_CD, 예: 'A')
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: "GADMIN"."USP_CS_HIERARCHY_TAB" 
+생성일자	: 2025.10.8
+완료일자	: 2025.10.12
+생성자	: 전광진
+내용    	: 불특정 테이블의 계층 구조를 Global Temp Table에 생성
+사용예	:
+    CALL GADMIN.USP_BUILD_HIERARCHY(
+        'GADMIN.CS_COMMON_C', 'CD', 'UP_CD', 'CD_NM', 'A', ?, ?
+    );
+    SELECT * FROM SESSION.GTT_HIERARCHY ORDER BY PATH;
+*******************************************************************************/
+DYNAMIC RESULT SETS 1
+LANGUAGE SQL
+
+BEGIN
+    DECLARE V_SQL_STATEMENT VARCHAR(8000);
+
+    DECLARE V_SQLCODE INT DEFAULT 0;
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';
+    DECLARE V_CNT INT DEFAULT 0;
+    DECLARE V_ERROR_MSG VARCHAR(1000);
+    DECLARE V_SQLSTATUS CHAR(5) DEFAULT '00000';
+
+    DECLARE SQLCODE INT DEFAULT 0;
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';
+    DECLARE ROW_COUNT INT DEFAULT 0;
+    DECLARE DB2_RETURN_STATUS CHAR(5) DEFAULT '00000';
+
+    DECLARE C_RESULT CURSOR WITH RETURN TO CALLER FOR S1;
+
+
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SET V_SQLCODE = SQLCODE;
+        SET V_SQLSTATE = SQLSTATE;
+        SET V_CNT = ROW_COUNT;
+        SET V_SQLSTATUS = DB2_RETURN_STATUS;
+        GET DIAGNOSTICS EXCEPTION 1
+            V_ERROR_MSG = MESSAGE_TEXT;
+        
+        SET OUT_CNT = -1;
+    --     SET OUT_MSG = 'ERROR [' || V_SQLSTATE || '/' || 
+    --                   CAST(V_SQLCODE AS VARCHAR(10)) || ']: ' || 
+    --                   COALESCE(V_ERROR_MSG, 'Unknown error');
+    END;
+    
+    DECLARE CONTINUE HANDLER FOR SQLWARNING
+    BEGIN
+        SET V_SQLCODE = SQLCODE;
+        SET V_SQLSTATE = SQLSTATE;
+        SET V_CNT = ROW_COUNT;
+        SET V_SQLSTATUS = DB2_RETURN_STATUS;
+        GET DIAGNOSTICS EXCEPTION 1
+            V_ERROR_MSG = MESSAGE_TEXT;
+        
+    --     SET OUT_MSG = 'WARNING [' || V_SQLSTATE || ']: ' || 
+    --                   COALESCE(V_ERROR_MSG, 'Unknown warning');
+    END;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+    BEGIN
+        SET OUT_CNT = 0;
+        SET OUT_MSG = 'WARNING: No data found for the given criteria';
+    END;
+
+    -- 동적 SQL 생성
+    SET V_SQL_STATEMENT = 
+    -- LEVEL0 CTE 추가    
+        'WITH LEVEL0 AS (' ||
+        'SELECT ' ||
+        '0 AS ROWNO, ' ||
+        'CAST((CASE T.' || P_PK_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_FK_COL || ' ELSE '''' END ) AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST((CASE T.' || P_PK_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_PK_COL || ' ELSE T.' || P_FK_COL || ' END ) AS VARCHAR(255)) AS CD, ';
+    IF COALESCE(P_TEXT_COL,'') <> '' THEN
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT || 
+        'CAST((CASE T.' || P_TEXT_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_TEXT_COL || ' ELSE '''' END ) AS VARCHAR(500)) AS CD_NM, ';
+    END IF;
+    IF COALESCE(P_TEXT_COL2,'') <> '' THEN
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        'CAST((CASE T.' || P_TEXT_COL2 || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_TEXT_COL2 || ' ELSE '''' END ) AS VARCHAR(500)) AS CD2, ';
+    END IF;
+    IF COALESCE(P_TEXT_COL3,'') <> '' THEN
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        'CAST((CASE T.' || P_TEXT_COL3 || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_TEXT_COL3 || ' ELSE '''' END ) AS VARCHAR(500)) AS CD3, ';
+    END IF;
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        '1 AS LEVEL, ' ||
+        'CAST((CASE T.' || P_FK_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_FK_COL || ' ELSE '''' END )AS VARCHAR(1000)) AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' AS T ' || 
+        'WHERE ''' || P_START_VAL || ''' IN ( T.' || P_PK_COL || ', ' || ' T.' || P_FK_COL || ') ' ||
+        'ORDER BY T.' || P_FK_COL || ' DESC FETCH FIRST 1 ROW ONLY )';
+
+
+    SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+    -- LEVEL1 CTE 추가    
+        ', LEVEL1 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ';
+    IF COALESCE(P_TEXT_COL,'') <> '' THEN
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT || 
+        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ';
+    END IF;
+    IF COALESCE(P_TEXT_COL2,'') <> '' THEN
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ';
+    END IF;
+    IF COALESCE(P_TEXT_COL3,'') <> '' THEN
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ';
+    END IF;
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        '1 AS LEVEL, ' ||
+        'L_PREV.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN ' || 'LEVEL0' || ' L_PREV ON C.' || P_FK_COL || ' = L_PREV.CD ' ||
+        'WHERE C.' || P_FK_COL || ' = ''' || P_START_VAL || ''')';
+
+
+
+    -- 여기부터 반복문 시작 (WHILE 루프로 대체)
+    BEGIN
+        DECLARE V_LEVEL_PREV_NAME VARCHAR(100) DEFAULT 'LEVEL1';
+        DECLARE V_LEVEL_CURRENT_NAME VARCHAR(100);
+        DECLARE I_LVL INT DEFAULT 2; -- 루프 카운터, 2부터 시작 (P_MAX_LEVEL은 5로 고정한다고 가정)
+        DECLARE P_MAX_LEVEL INT DEFAULT 5; -- 일단 5로 고정해볼게요! (프로시저 파라미터가 아니라 여기서 직접 선언/사용)
+    
+    
+        WHILE I_LVL <= P_MAX_LEVEL DO -- P_MAX_LEVEL (여기서는 5)까지 반복
+            SET V_LEVEL_CURRENT_NAME = 'LEVEL' || I_LVL;
+    
+            -- 다음 레벨 CTE 추가 시작!
+            SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+                ', ' || V_LEVEL_CURRENT_NAME || ' AS (' ||
+                'SELECT ' ||
+                'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+                'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+                'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ';
+    
+            IF COALESCE(P_TEXT_COL,'') <> '' THEN
+                SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+                'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ';
+            END IF;
+    
+            IF COALESCE(P_TEXT_COL2,'') <> '' THEN
+                SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+                'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ';
+            END IF;
+    
+            IF COALESCE(P_TEXT_COL3,'') <> '' THEN
+                SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+                'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ';
+            END IF;
+    
+            -- 현재 레벨과 이전 레벨 PATH를 이어서 새로운 PATH 생성
+            SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+                I_LVL || ' AS LEVEL, ' || 
+                'L_PREV.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+                'FROM ' || P_TAB_NAME || ' C ' ||
+                'JOIN ' || V_LEVEL_PREV_NAME || ' L_PREV ON C.' || P_FK_COL || ' = L_PREV.CD) ';
+    
+            -- 다음 반복을 위해 이전 레벨 이름을 현재 레벨 이름으로 업데이트!
+            SET V_LEVEL_PREV_NAME = V_LEVEL_CURRENT_NAME;
+            SET I_LVL = I_LVL + 1; -- **WHILE 루프에서는 카운터를 직접 증가시켜줘야 함!**
+    
+        END WHILE; -- WHILE 루프 끝
+    END; -- BEGIN
+
+    -- 반복문 끝
+
+    -- 최종 SELECT 문 (생성된 모든 LEVEL CTE들을 UNION ALL 해서 반환하는 방식)
+    SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+        'SELECT ROWNO, UP_CD AS '||P_FK_COL||', CD AS '||P_PK_COL;
+
+    IF COALESCE(P_TEXT_COL2,'') <> '' THEN
+       SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+       ', CD_NM AS '||P_TEXT_COL;
+    END IF;
+
+    IF COALESCE(P_TEXT_COL2,'') <> '' THEN
+       SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+       ', CD2 AS '||P_TEXT_COL2;
+    END IF;
+
+    IF COALESCE(P_TEXT_COL2,'') <> '' THEN
+    SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+        ', CD3 AS '||P_TEXT_COL3;
+    END IF;
+
+    SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+    ', LEVEL, PATH ' ||
+             'FROM (' ||
+             'SELECT * FROM LEVEL0 ';
+    
+    -- 2레벨부터 P_MAX_LEVEL(5)까지 UNION ALL 추가
+    BEGIN
+        DECLARE I_UNION_LVL INT DEFAULT 1;
+        DECLARE P_MAX_LEVEL_UNION INT DEFAULT 5; -- 여기서도 5로 고정해볼게요
+    
+        WHILE I_UNION_LVL <= P_MAX_LEVEL_UNION DO
+            SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+            'UNION ALL ' ||
+            'SELECT * FROM LEVEL' || I_UNION_LVL || ' '; -- 여기 CD_NM, CD2, CD3 도 추가
+            SET I_UNION_LVL = I_UNION_LVL + 1;
+        END WHILE;
+    END;
+            SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
+             ') AS ALL_LEVELS ' ||
+             'ORDER BY PATH';
+    
+
+
+
+
+
+--    -- LEVEL2 CTE 추가 
+--        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+--        'LEVEL2 AS (' ||
+--        'SELECT ' ||
+--        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+--        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+--        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+--        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+--        'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ' ||
+--        'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ' ||
+--        '3 AS LEVEL, ' ||
+--        'L1.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+--        'FROM ' || P_TAB_NAME || ' C ' ||
+--        'JOIN LEVEL1 L1 ON C.' || P_FK_COL || ' = L1.CD), ' ||
+--
+--    -- LEVEL3 CTE 추가 
+--        'LEVEL3 AS (' ||
+--        'SELECT ' ||
+--        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+--        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+--        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+--        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+--        'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ' ||
+--        'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ' ||
+--        '3 AS LEVEL, ' ||
+--        'L2.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+--        'FROM ' || P_TAB_NAME || ' C ' ||
+--        'JOIN LEVEL2 L2 ON C.' || P_FK_COL || ' = L2.CD), ' ||
+--        
+--    -- LEVEL4 CTE 추가
+--        'LEVEL4 AS (' ||
+--        'SELECT ' ||
+--        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+--        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+--        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+--        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+--        'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ' ||
+--        'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ' ||
+--        '4 AS LEVEL, ' ||
+--        'L3.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+--        'FROM ' || P_TAB_NAME || ' C ' ||
+--        'JOIN LEVEL3 L3 ON C.' || P_FK_COL || ' = L3.CD), ' ||
+--
+--    -- LEVEL5 CTE 추가            
+--        'LEVEL5 AS (' ||
+--        'SELECT ' ||
+--        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+--        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+--        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+--        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+--        'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ' ||
+--        'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ' ||
+--        '5 AS LEVEL, ' ||
+--        'L4.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+--        'FROM ' || P_TAB_NAME || ' C ' ||
+--        'JOIN LEVEL4 L4 ON C.' || P_FK_COL || ' = L4.CD) ' ||
+        
+--     -- 최종 SELECT와 UNION ALL 부분 
+--         'SELECT ROWNO, UP_CD AS '||P_FK_COL||', CD AS '||P_PK_COL||', CD_NM AS '||P_TEXT_COL||', CD2 AS '||P_TEXT_COL2||', CD3 AS '||P_TEXT_COL3||', LEVEL, PATH ' ||
+--         'FROM (' ||
+--         'SELECT * FROM LEVEL1 ' ||
+--         'UNION ALL SELECT * FROM LEVEL2 ' ||
+--         'UNION ALL SELECT * FROM LEVEL3 ' ||
+--         'UNION ALL SELECT * FROM LEVEL4 ' ||
+--         'UNION ALL SELECT * FROM LEVEL5 ' ||
+--         ') AS ALL_LEVELS ' ||
+--         'ORDER BY PATH';
+
+    -- 디버깅용으로 SQL 문장 출력 (선택 사항 - 나중에 주석 처리해도 돼)
+    -- CALL DBMS_OUTPUT.PUT_LINE(V_SQL_STATEMENT);
+    --SET OUT_MSG = V_SQL_STATEMENT;
+    -- 동적 SQL 실행!
+    PREPARE S1 FROM V_SQL_STATEMENT;
+    OPEN C_RESULT;
+        
+    -- 처리된 행 수 확인 / DML(INSERT, UPDATE, DELETE) 문일떄 처리건수 층 나타낼떄 ROW_COUNT를 사용할수 있다.
+    -- GET DIAGNOSTICS V_CNT = ROW_COUNT;
+    -- -- 성공 메시지
+    -- IF V_CNT > 0 THEN
+    --     SET OUT_CNT = V_CNT;
+    --     SET OUT_MSG = 'SUCCESS: ' || CAST(V_CNT AS VARCHAR(10)) || ' rows inserted into hierarchy table';
+    -- ELSE
+    --     SET OUT_CNT = 0;
+    --     SET OUT_MSG = 'WARNING: No rows inserted. Check if starting value exists.';
+    -- END IF;
+
+END 

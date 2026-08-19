@@ -1,0 +1,605 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1101_TAB01_NEW_SELECT"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DR_JAN_AMT      DECIMAL(20,5) DEFAULT 0,
+        DR_AMT          DECIMAL(20,5) DEFAULT 0,
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CR_AMT		    DECIMAL(20,5) DEFAULT 0,
+        CR_JAN_AMT      DECIMAL(20,5) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+    SELECT CASE B.DRCR_GB WHEN '차변'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, A.ACC_CD, A.ACC_NM,  A.CR_AMT, CASE B.DRCR_GB WHEN '대변'THEN A.CR_AMT - A.DR_AMT ELSE 0 END AS CR_JAN_AMT
+       FROM (
+                        SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --일반계정 집계
+                          FROM (
+                                     SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
+                                       FROM GADMIN.ACCOU1
+                                      WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                     UNION ALL
+                                     SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+                                       FROM GADMIN.ACCOU1
+                                      WHERE DRCR_GB IN ('입금','출금')
+                                        AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                     UNION ALL
+                                     SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --전기이월 포함
+                                       FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+                                ) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                GROUP BY A.ACC_CD, A.ACC_NM
+            ) A, GADMIN.BSACC2 B
+     WHERE A.ACC_CD = B.ACC_CD
+       AND B.HAPJAN_DISP != 'N'
+       AND NOT EXISTS (SELECT *   FROM GADMIN.BSACC2 C WHERE B.ACC_CD = C.ACC_CD AND C.HAPJAN_DISP = 'N')
+       AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
+    ORDER BY B.CHULRYEOK_CD    -- 출력순서
+    ;--
+
+    -- 절대 자산 집계 순서 바꾸면 안됨!!!!!!!!!!
+    --(자        산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1000000' AS ACC_CD, '(자        산)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '1%' ;--
+
+    --(유 동  자 산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1100000' AS ACC_CD, 'Ⅰ.유 동 자 산' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '11%' ;--
+
+    --(당 좌  자 산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1110000' AS ACC_CD, '(당 좌  자 산)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '111%' ;--
+
+    --현금및현금등가물
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1110100' AS ACC_CD, '현금및현금성자산' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '11101%' ;--
+
+    --단기 금융 상품
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1110200' AS ACC_CD, '단기 금융 상품' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '11102%' ;--
+
+    --매  출  채  권
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1110400' AS ACC_CD, '매  출  채  권' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '11104%' ;--
+
+    --임원종업원단기대여금
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1110800' AS ACC_CD, '임원종업원단기대여금' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '11108%' ;--
+
+    --(재 고  자 산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1120000' AS ACC_CD, '(재 고  자 산)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '112%' ;          --
+
+    --저    장    품
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1120100' AS ACC_CD, '저    장    품' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '11201%' ;          --
+
+    --(고 정  자 산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1200000' AS ACC_CD, 'Ⅱ.비 유 동 자 산' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12%' ;--
+
+    --(투 자  자 산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1210000' AS ACC_CD, '(투 자  자 산)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '121%' ;--
+
+    --장 기 금융상품
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1210600' AS ACC_CD, '장 기 금융상품' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12106%' ;     --
+
+    --투 자 유가증권
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1210700' AS ACC_CD, '투 자 유가증권' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12107%' ;     --
+
+    --(유 형  자 산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1220000' AS ACC_CD, '(유 형  자 산)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '122%' ;--
+
+    --업 무 용 차 량
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1220900' AS ACC_CD, '업 무 용 차 량' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12209%' ;--
+
+    --감가상각누계액(업무)
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1221000' AS ACC_CD, '감가상각누계액(업무)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12210%' ;--
+
+    --감가상각누계액(집기비품)
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1221600' AS ACC_CD, '감가상각누계액(집기비품)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12216%' ;--
+
+    --구    축    물
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1221700' AS ACC_CD, '구    축    물' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12217%' ;--
+
+    --감가상각누계액(구축물)
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1221800' AS ACC_CD, '감가상각누계액(구축물)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '12218%' ;--
+
+    --(기타비유동자산)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '1240000' AS ACC_CD, '(기타비유동자산)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '124%' ;--
+
+    --자산총계
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) - SUM(A.CR_AMT) AS DR_AMT, '1999999' AS ACC_CD, '자 산 총 계(Ⅰ+Ⅱ)' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+        SELECT SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
+          FROM GADMIN.ACCOU1 A
+         WHERE 1 = 1
+           AND SUBSTRING(A.ACC_CD,1,1) = '1'
+           AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+        UNION ALL
+        SELECT SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
+          FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+         WHERE SUBSTRING(ACC_CD,1,1) = '1'
+        UNION ALL
+        SELECT
+        --'1110101' AS ACC_CD, '현          금 ' AS ACC_NM,
+        SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+        FROM GADMIN.ACCOU1
+        WHERE DRCR_GB IN ('입금','출금')
+        AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+        ) A;--
+
+    --(부        채)
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2000000' AS ACC_CD, '(부        채)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+        SELECT SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
+          FROM GADMIN.ACCOU1 A
+         WHERE 1 = 1
+           AND SUBSTRING(A.ACC_CD,1,1) = '2'
+           AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+        UNION ALL
+        SELECT SUM(DR_AMT), SUM(CR_AMT)
+          FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+         WHERE SUBSTRING(ACC_CD,1,1) = '2'
+        ) A;     --
+
+    --Ⅰ.유 동 부 채
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2100000' AS ACC_CD, 'Ⅰ.유 동 부 채' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '21%' ;     --
+
+    --미  지  급  금
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2100300' AS ACC_CD, '미  지  급  금' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '21003%' ;          --
+
+    --미 지 급 비 용
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2100500' AS ACC_CD, '미 지 급 비 용' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '21005%' ;  --
+
+    --유동성장기부채
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2101200' AS ACC_CD, '유동성장기부채' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '21012%' ;  --
+
+    --Ⅱ.비 유 동 부 채
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2200000' AS ACC_CD, 'Ⅱ.비 유 동 부 채' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '22%' ;  --
+
+    --퇴직연금운용자산
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '2200700' AS ACC_CD, '퇴직연금운용자산' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '22007%' ;  --
+
+    --Ⅲ.자  본  금
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '3100000' AS ACC_CD, 'Ⅲ.자  본  금' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '31%' ;  --
+
+    --Ⅵ.기타포괄손익누계액
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '3260000' AS ACC_CD, 'Ⅵ.기타포괄손익누계액' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '326%' ;  --
+
+    --당기말미처분이익잉여금
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '3300900' AS ACC_CD, '당기말미처분이익잉여금' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT 0 AS DR_JAN_AMT, 0 AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) AS CR_JAN_AMT
+                  FROM SESSION.TEMP A
+                 WHERE ACC_CD = '3300901'   --이월이익잉여금
+                 UNION ALL
+                SELECT 0 AS DR_JAN_AMT, 0 AS DR_AMT, CU_TOT AS CR_AMT,  CU_TOT AS CR_JAN_AMT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '7300909'   --당기순이익
+            ) A
+            ;--
+
+    --Ⅶ.이 익 잉 여 금
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '3300000' AS ACC_CD, 'Ⅶ.이 익 잉 여 금' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT,  SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+     WHERE A.ACC_CD LIKE '33%' ;  --
+
+
+    --자본총계
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '3000000' AS ACC_CD, '(자        본)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
+                  FROM GADMIN.ACCOU1 A
+                 WHERE 1 = 1
+                   AND SUBSTRING(A.ACC_CD,1,1) = '3'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                UNION ALL
+                SELECT 0 AS DR_AMT, CU_TOT AS CR_AMT  --당기순이익
+                   FROM GADMIN.EBUS_FIN_INCOME
+                  WHERE ACC_CD = '7300909'
+                UNION ALL
+                SELECT SUM(DR_AMT), SUM(CR_AMT)
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+                 WHERE SUBSTRING(ACC_CD,1,1) = '3'
+            ) A;      --
+
+    --부채자본총계
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '3999999' AS ACC_CD, '부채와 자본총계' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '2000000'
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '3000000'
+            ) A ;          --
+
+    --Ⅰ.매  출  액
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6100000' AS ACC_CD, 'Ⅰ.매  출  액' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '61%'
+            ) A ;  --
+
+    --(운송원가및주택분양원가)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6200000' AS ACC_CD, '(운송원가및주택분양원가)' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_JAN_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6220000'
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6230000'
+            ) A ;        --
+
+     --(매   출   액)
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6300000' AS ACC_CD, 'Ⅲ.매 출 총 손 익' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6100000'
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6200000'
+                UNION ALL
+                SELECT 0 AS DR_JAN_AMT, SUM(DR_AMT) AS DR_AMT, A.ACC_CD, A.ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+                  FROM (
+                        --당기
+                        SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS DR_AMT
+                          FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                           AND B.ACC_GB = '원가'
+                           AND A.ACC_CD LIKE '6%'
+                           AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                        SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS DR_AMT
+                          FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                           AND B.ACC_GB = '원가'
+                           AND A.ACC_CD LIKE '6%'
+                         GROUP BY A.ACC_CD, A.ACC_NM
+                              ) A, GADMIN.BSACC2 B
+                    WHERE A.ACC_CD = B.ACC_CD
+                GROUP BY A.ACC_CD, A.ACC_NM
+            ) A ;          --
+
+     --Ⅱ.운 송 원 가
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6200000' AS ACC_CD, 'Ⅱ.운 송 원 가' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT 0 AS DR_JAN_AMT, SUM(DR_AMT) AS DR_AMT, A.ACC_CD, A.ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+                  FROM (
+                        --당기
+                        SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS DR_AMT
+                          FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                           AND B.ACC_GB = '원가'
+                           AND A.ACC_CD LIKE '6%'
+                           AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                        SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS DR_AMT
+                          FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                           AND B.ACC_GB = '원가'
+                           AND A.ACC_CD LIKE '6%'
+                         GROUP BY A.ACC_CD, A.ACC_NM
+                              ) A, GADMIN.BSACC2 B
+                    WHERE A.ACC_CD = B.ACC_CD
+                GROUP BY A.ACC_CD, A.ACC_NM
+            ) A ;          --
+
+     --Ⅰ.재  료  비
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6220000' AS ACC_CD, 'Ⅰ.재  료  비' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '622%'
+            ) A
+    ;          --
+
+     --상    여    금*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6230200' AS ACC_CD, '상    여    금*' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '62302%'
+            ) A
+    ;          --
+
+     --Ⅱ.노  무  비
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6230000' AS ACC_CD, 'Ⅱ.노  무  비' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '623%'
+            ) A
+    ;          --
+
+     --급         여*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6230100' AS ACC_CD, '급         여*' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '62301%'
+            ) A
+    ;          --
+
+     --복 리 후 생 비*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6230600' AS ACC_CD, '복 리 후 생 비*' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '62306%'
+            ) A
+    ;          --
+
+     --복리후생비(정비)+
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6230610' AS ACC_CD, '복리후생비(정비)+' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '623061%'
+            ) A
+    ;          --
+
+     --복리후생비(운전)+
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6230620' AS ACC_CD, '복리후생비(운전)+' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '623062%'
+            ) A
+    ;          --
+
+     --Ⅲ.경       비
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6240000' AS ACC_CD, 'Ⅲ.경       비' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '624%'
+            ) A
+    ;          --
+
+     --보    험    료*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6240100' AS ACC_CD, '보    험    료*' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '62401%'
+            ) A
+    ;          --
+
+     --차 량 정 비 비*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6241000' AS ACC_CD, '차 량 정 비 비*' AS ACC_NM, 0 AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD LIKE '6241%'
+            ) A
+    ;          --
+
+    --Ⅳ.판매비와관리비
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6400000' AS ACC_CD, 'Ⅳ.판매비와관리비' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '64%' ;--
+
+    --급          여*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6400200' AS ACC_CD, '급          여*' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '64002%' ;--
+
+    --상    여    금*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6400400' AS ACC_CD, '상    여    금*' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '64004%' ;--
+
+    --복 리 후 생 비*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6400800' AS ACC_CD, '복 리 후 생 비*' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '64008%' ;--
+
+
+    --복리후생비(직원)+
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6400810' AS ACC_CD, '복리후생비(직원)+' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '640081%' ;--
+
+    --복리후생비(임원)+
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6400820' AS ACC_CD, '복리후생비(임원)+' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '640082%' ;--
+
+    --수 도 광 열 비*
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6401000' AS ACC_CD, '수 도 광 열 비*' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '640100%' ;--
+
+    --세 금 과 공 과
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6401300' AS ACC_CD, '세 금 과 공 과' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '640130%' ;--
+
+    --지 급 임 차 료
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6403300' AS ACC_CD, '지 급 임 차 료' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, 0 AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '640330%' ;--
+
+    --Ⅴ.영 업 손 익
+
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(COALESCE(DR_AMT,0)) AS DR_AMT, '6500000' AS ACC_CD, 'Ⅴ.영 업 손 익' AS ACC_NM, SUM(COALESCE(CR_AMT,0)) AS CR_AMT, (SUM(COALESCE(CR_AMT,0)) - SUM(COALESCE(DR_AMT,0))) AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6400000'  --판매비와관리비
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6300000'  -- 매출 총이익
+            ) A
+        ;--
+
+    --Ⅵ.영 업 외 수 익
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6600000' AS ACC_CD, 'Ⅵ.영 업 외 수 익' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '66%' ;--
+
+    --Ⅶ.영 업 외 비 용
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6700000' AS ACC_CD, 'Ⅶ.영 업 외 비 용' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) AS CR_JAN_AMT
+      FROM SESSION.TEMP A
+      WHERE ACC_CD LIKE '67%' ;--
+
+    --(손        익)
+
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, A.DR_AMT AS DR_AMT, '6000000' AS ACC_CD, '(손        익)' AS ACC_NM, CR_AMT AS CR_AMT, (CR_AMT - DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
+                  FROM (
+                            SELECT COALESCE(DR_AMT,0) AS DR_AMT, COALESCE(CR_AMT,0) AS CR_AMT FROM SESSION.TEMP WHERE ACC_CD = '6500000'  --매출 총이익
+                            UNION ALL
+                            SELECT COALESCE(DR_AMT,0) AS DR_AMT, COALESCE(CR_AMT,0) AS CR_AMT FROM SESSION.TEMP WHERE ACC_CD = '6600000'  --판매비와관리비
+                            UNION ALL
+                            SELECT COALESCE(DR_AMT,0) AS DR_AMT, COALESCE(CR_AMT,0) AS CR_AMT FROM SESSION.TEMP WHERE ACC_CD = '6700000'  --Ⅶ.영 업 외 비 용
+                        )
+            ) A
+        ;--
+
+
+    --Ⅷ.경 상 이 익
+    INSERT INTO SESSION.TEMP
+    SELECT 0 AS DR_JAN_AMT, SUM(A.DR_AMT) AS DR_AMT, '6800000' AS ACC_CD, 'Ⅷ.경 상 이 익' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(A.CR_AMT) - SUM(A.DR_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6300000'
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6400000'
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6600000'
+                UNION ALL
+                SELECT * FROM SESSION.TEMP WHERE ACC_CD = '6700000'
+            ) A ;--
+
+    --합계
+    INSERT INTO SESSION.TEMP
+    SELECT SUM(DR_JAN_AMT) AS DR_JAN_AMT, SUM(DR_AMT) AS DR_AMT, '9000000' AS ACC_CD, '합  계' AS ACC_NM, SUM(A.CR_AMT) AS CR_AMT, SUM(CR_JAN_AMT) AS CR_JAN_AMT
+      FROM (
+                SELECT DR_JAN_AMT, DR_AMT, CR_AMT, CR_JAN_AMT FROM SESSION.TEMP WHERE ACC_CD = '1000000'
+                UNION ALL
+                SELECT DR_JAN_AMT, DR_AMT, CR_AMT, CR_JAN_AMT FROM SESSION.TEMP WHERE ACC_CD = '3999999'
+                UNION ALL
+                SELECT DR_JAN_AMT, DR_AMT, CR_AMT - CR_JAN_AMT, CR_JAN_AMT - CR_JAN_AMT FROM SESSION.TEMP WHERE ACC_CD = '6000000'
+
+            ) A ;      --
+
+END P1;--
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT DR_JAN_AMT, DR_AMT, ACC_CD, ACC_NM, CR_AMT, CR_JAN_AMT
+      FROM (
+                        SELECT A.*, B.CHULRYEOK_CD
+                          FROM SESSION.TEMP A, GADMIN.BSACC2 B
+                        WHERE 1 = 1
+                          AND A.ACC_CD = B.ACC_CD
+                        UNION ALL
+                        SELECT A.*, '9000000'
+                          FROM SESSION.TEMP A
+                         WHERE A.ACC_CD = '9000000'
+                     )
+    WHERE 1 = 1
+      AND NOT ( DR_AMT = 0 AND CR_AMT = 0 )
+    ORDER BY CHULRYEOK_CD
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

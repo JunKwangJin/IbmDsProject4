@@ -1,0 +1,77 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0801_TAB04_DDLB"
+(IN IN_FROMDATE VARCHAR(10),
+ IN IN_TODATE VARCHAR(10),
+ IN IN_ACCCD  VARCHAR(10),
+ IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+    DECLARE   V_YEAR            VARCHAR(4) DEFAULT '';--
+    DECLARE   V_GISU            VARCHAR(4) DEFAULT '';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DATE		    VARCHAR(10),
+        ACC_NO          VARCHAR(3),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        ACC_CONT        VARCHAR(300),
+        MANAGE_CD_1     VARCHAR(9),
+        MANAGE_ITEM_1   VARCHAR(45),
+        MANAGE_CD_2     VARCHAR(9),
+        MANAGE_ITEM_2   VARCHAR(90),
+        DR_AMT          DECIMAL(15,0),
+        CR_AMT          DECIMAL(15,0),
+        JAN_AMT         DECIMAL(15,0)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+--개수 찾기
+SELECT GISU INTO V_GISU
+  FROM GADMIN.BSACC9
+ WHERE START <= IN_FROMDATE
+   AND TERMINATION >= IN_FROMDATE
+;--
+
+P1: BEGIN
+    DECLARE CURSOR_MAN2 CURSOR WITH RETURN FOR
+    WITH MAN_DDLB AS
+    (
+    SELECT DISTINCT MANAGE_CD_2, MANAGE_ITEM_2
+    FROM (
+            SELECT '' AS MANAGE_CD_2, '' AS MANAGE_ITEM_2 FROM SYSIBM.SYSDUMMY1
+            UNION ALL
+            SELECT MANAGE_2 AS MANAGE_CD_2, ITEM_2 AS MANAGE_ITEM_2
+              FROM GADMIN.TRADEKYE A, GADMIN.BSACC2 B   -- 관리항목2의 명칭이 다른것이 있어 BSACC8를 이용함
+            WHERE 1 = 1
+              AND A.ACC_CD = B.ACC_CD
+              AND YEAR = V_GISU
+              AND A.ACC_CD = IN_ACCCD
+              AND (A.DR_00 <> 0 OR A.CR_00 <> 0)
+            UNION ALL
+            SELECT A.MANAGE_CD_2, A.MANAGE_ITEM_2
+              FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+            WHERE 1 = 1
+              AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+              AND A.ACC_CD = IN_ACCCD
+              AND A.ACC_CD = B.ACC_CD
+              AND (A.DR_AMT <> 0 OR A.CR_AMT <> 0)
+         )
+    )
+    SELECT MANAGE_CD_2, MANAGE_ITEM_2
+      FROM (
+                SELECT *
+                  FROM MAN_DDLB
+                WHERE 1 = 1
+                ORDER BY regexp_replace(MANAGE_ITEM_2,'\(.\)|\(..\)|[[:punct:]]|[0-9]|Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ| ')
+                        , MANAGE_CD_2 -- (주)와 같은 머리말 뺴고 명칭으로만 정렬(21.9.2/전광진)
+           )
+    ;--
+
+    OPEN CURSOR_MAN2;--
+END P1;--
+END MAIN 

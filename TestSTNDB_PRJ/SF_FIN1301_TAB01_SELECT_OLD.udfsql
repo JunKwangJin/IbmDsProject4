@@ -1,0 +1,84 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_FIN1301_TAB01_SELECT_OLD"
+(IN IN_FROMMONTH
+VARCHAR(7), IN_TOMONTH VARCHAR(7))
+RETURNS
+      TABLE (
+		        ACC_CD          VARCHAR(10),
+		        ACC_NM          VARCHAR(60),
+		        AMT             DECIMAL(20,5)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   RETURN
+
+                SELECT ACC_CD, ACC_NM, SUM(AMT) AS AMT
+                FROM (
+                        /*
+                        SELECT ACC_CD, ACC_NM, 0 AS AMT, CHAGAM_GB
+                          FROM GADMIN.BSACC2
+                         WHERE ACC_GB IN ('수익','비용','원가')
+                        UNION ALL
+                        SELECT --SUBSTRING(DATE,6,2) AS MONTH,
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                          FROM GADMIN.BSACC2 A
+                                LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,2) = SUBSTRING(B.ACC_CD,1,2))
+                         WHERE A.ACC_GB IN ('원가')
+                           AND SUBSTRING(A.ACC_CD,3, 5) = '00000'
+                           AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                        GROUP BY A.ACC_CD, A.ACC_NM
+                        UNION ALL
+
+                        SELECT --SUBSTRING(DATE,6,2) AS MONTH,
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                          FROM GADMIN.BSACC2 A
+                                LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,2) = SUBSTRING(B.ACC_CD,1,2))
+                         WHERE A.ACC_GB IN ('수익','비용')
+                           AND ( SUBSTRING(A.ACC_CD,3, 5) = '00000' OR A.ACC_CD = '6100100')
+                           AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                        GROUP BY A.ACC_CD, A.ACC_NM
+                        UNION ALL
+                        SELECT --SUBSTRING(DATE,6,2) AS MONTH,
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                          FROM GADMIN.BSACC2 A
+                                LEFT OUTER JOIN GADMIN.ACCOU1 B ON (A.ACC_CD = B.ACC_CD)
+                         WHERE A.ACC_GB IN ('수익','비용')
+                           AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                           AND A.ACC_CD NOT IN (
+                                                    --중복 계산 문제 처리 추가
+                                                    SELECT
+                                                            A.ACC_CD
+                                                      FROM GADMIN.BSACC2 A
+                                                            LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,2) = SUBSTRING(B.ACC_CD,1,2))
+                                                     WHERE A.ACC_GB IN ('수익','비용')
+                                                       AND ( SUBSTRING(A.ACC_CD,3, 5) = '00000' OR A.ACC_CD = '6100100')
+                                                       AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                                               )
+                        GROUP BY A.ACC_CD, A.ACC_NM
+                         */
+                        SELECT ACC_CD, ACC_NM, 0 AS AMT, CHAGAM_GB
+                          FROM GADMIN.BSACC2
+                         WHERE ACC_GB IN ('수익','비용','원가')
+                        UNION ALL
+                        SELECT A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                          FROM GADMIN.BSACC2 A
+                                LEFT OUTER JOIN GADMIN.ACCOU1 B ON (A.ACC_CD = B.ACC_CD)
+                         WHERE A.ACC_GB IN ('원가')
+                           AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                        GROUP BY A.ACC_CD, A.ACC_NM
+                        UNION ALL
+                         SELECT A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                          FROM GADMIN.BSACC2 A
+                                LEFT OUTER JOIN GADMIN.ACCOU1 B ON (A.ACC_CD = B.ACC_CD)
+                         WHERE A.ACC_GB IN ('수익','비용')
+                           AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                        GROUP BY A.ACC_CD, A.ACC_NM
+                	) A
+                WHERE 1 = 1
+                  AND NOT ( SUBSTRING(ACC_CD,3,5) != '00000'  AND AMT = 0 AND (
+                                                                                     --ACC_CD = '6100100' OR
+                                                                                     SUBSTRING(ACC_CD,1,2) != '73') )
+                GROUP BY ACC_CD, ACC_NM
+                ORDER BY ACC_CD, ACC_NM ;--
+
+END

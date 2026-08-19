@@ -1,0 +1,93 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_FIN1301_TAB01_SELECT"
+(
+     IN IN_FROMMONTH VARCHAR(7),
+     IN_TOMONTH VARCHAR(7)
+)
+RETURNS
+      TABLE (
+		        ACC_CD          VARCHAR(10),
+		        ACC_NM          VARCHAR(60),
+		        AMT             DECIMAL(20,5)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   RETURN
+        WITH SON_ACC AS (
+            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '차변'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '대변'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '차감' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+               FROM (
+                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --일반계정 집계
+                                  FROM (
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
+                                               FROM GADMIN.ACCOU1
+                                              WHERE SUBSTRING(DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                                             UNION ALL
+                                             SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+                                               FROM GADMIN.ACCOU1
+                                              WHERE DRCR_GB IN ('입금','출금')
+                                                AND SUBSTRING(DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
+                                             UNION ALL
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --전기이월 포함
+                                               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(SUBSTRING(IN_FROMMONTH,1,4)||'-01-01'))
+                                        ) A, GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                        GROUP BY A.ACC_CD
+                    ) A RIGHT OUTER JOIN GADMIN.BSACC2 B ON A.ACC_CD = B.ACC_CD
+
+        )
+                SELECT ACC_CD, MAX(ACC_NM), SUM(AMT) AS AMT
+                FROM (
+        SELECT A.ACC_CD, A.ACC_NM, A.AMT
+          FROM (
+                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM,
+                       coalesce(SUM(CU_AMT),0) AS AMT
+                  FROM (
+                        SELECT ACC_CD, ACC_NM
+                             , (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                  FROM SON_ACC
+                                 START WITH acc_cd = main.acc_cd
+                               CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                               ) as CU_DR_AMT
+                             , (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                  FROM SON_ACC
+                                 START WITH acc_cd = main.acc_cd
+                               CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                               ) as CU_CR_AMT,
+                               CASE WHEN DRCR_GB IN ('차변','출금') THEN
+                                     (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                          FROM SON_ACC
+                                         START WITH acc_cd = main.acc_cd
+                                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                       ) -
+                                    (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                          FROM SON_ACC
+                                         START WITH acc_cd = main.acc_cd
+                                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                       )
+                                ELSE
+                                    (SELECT coalesce(SUM(sign * CR_AMT),0)
+                                          FROM SON_ACC
+                                         START WITH acc_cd = main.acc_cd
+                                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                       ) -
+                                     (SELECT coalesce(SUM(sign * DR_AMT),0)
+                                          FROM SON_ACC
+                                         START WITH acc_cd = main.acc_cd
+                                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                                       )
+                                END CU_AMT, 0 AS BE_DR_AMT, 0 AS BE_CR_AMT , 0 AS BE_AMT
+                          FROM SON_ACC main
+                         START WITH coalesce(LEVELUP_CD,'')='6000000'
+                        CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                ) A
+                LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
+                WHERE 1 = 1
+                  AND B.SONIK_DISP != 'N'
+                GROUP BY A.ACC_CD, B.SONIK_DISP
+            ) A
+            WHERE A.AMT != 0 )
+    GROUP BY ACC_CD;--
+
+
+END

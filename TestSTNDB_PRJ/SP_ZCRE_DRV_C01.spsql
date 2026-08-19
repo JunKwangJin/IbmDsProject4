@@ -1,0 +1,211 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_ZCRE_DRV_C01"
+(
+    IN IN_TAB_NM        VARCHAR(100)
+  , IN IN_CD1           VARCHAR(100)
+
+  , OUT	OUT_CNT		    INTEGER  -- 처리한 데이터 건수
+  , OUT	OUT_TCNT	    INTEGER  -- 전체 데이터 건수
+  , OUT	OUT_ECNT	    INTEGER  -- 처리 중 에러처리한 건수
+  , OUT	OUT_MSG		    VARCHAR(10000)   -- 메세지
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_ZCRE_DRV_C01
+생성일자	: 2021.03.16
+생성자	: 전광진
+내용	: 운행테이블 변환
+수정일자	: 2021.03.24
+수정자	: 전광진
+수정내용	: BSUNHA2B 변환
+INPUT	: IN IN_TAB_NM      1.테이블명
+	    : IN IN_CD1		    2.예비파라메터
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+     	: OUT_TCNT	    	B.에러COUNT
+     	: OUT_ECNT	    	B.에러COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_CNT INTEGER DEFAULT 0;--
+    DECLARE V_TCNT INTEGER DEFAULT 0;--
+    DECLARE E_TCNT INTEGER DEFAULT 0;--
+    DECLARE V_TAB_CHK INTEGER DEFAULT 0;--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND
+          E1: BEGIN
+               SET V_SQLSTATE = SQLSTATE;--
+               SET OUT_MSG = OUT_MSG|| V_SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+               ROLLBACK ;--
+               RETURN ;--
+          END E1;--
+  DECLARE CONTINUE HANDLER FOR SQLWARNING
+        E2: BEGIN
+             SET V_SQLSTATE = SQLSTATE;--
+             SET OUT_MSG = OUT_MSG||CASE V_SQLSTATE WHEN '01004' THEN V_SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                            ELSE                V_SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END;--
+             ROLLBACK ;--
+             RETURN ;--
+        END E2;--
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        E3: BEGIN
+             SET V_SQLSTATE = SQLSTATE;--
+             SET OUT_MSG = OUT_MSG|| CASE V_SQLSTATE WHEN '42704' THEN V_SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                            WHEN '23502' THEN V_SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+				                            WHEN '23505' THEN v_SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                            WHEN '22001' THEN V_SQLSTATE || CHR(13) || 'ERR03: 저장될 문자열 길이가 너무 깁니다..'
+                                            ELSE               V_SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+             ROLLBACK ;--
+             RETURN ;--
+        END E3;--
+
+  CALL DBMS_OUTPUT.PUT_LINE('시작');  --
+
+  IF IN_TAB_NM = 'BSUNHA2' THEN
+    PBSUNHA2: BEGIN
+    -- 변수 초기화
+        SET (V_CNT, V_TCNT, OUT_CNT, OUT_ECNT, OUT_MSG) = (0, 0, '0', '0', '');--
+
+    -- 목표테이블 존재 확인
+        SET V_TAB_CHK = 0;--
+
+       SET OUT_MSG = CHR(13)||OUT_MSG||'테이블 조회';--
+        SELECT COUNT(*) INTO V_TAB_CHK FROM SYSCAT.TABLES WHERE TABSCHEMA = 'GADMIN' AND TABNAME = 'BSUNHA2B_M';--
+        IF V_TAB_CHK > 0 THEN
+           DROP TABLE  "GADMIN"."BSUNHA2_M";--
+        END IF; --
+
+    -- 테이블 생성
+       SET OUT_MSG = CHR(13)||OUT_MSG||'테이블 생성';--
+       EXECUTE IMMEDIATE 'CREATE OR REPLACE TABLE "GADMIN"."BSUNHA2_M"  (
+       		  "ROUTE_CD" VARCHAR(3) NOT NULL ,
+       		  "PYEON_GB" VARCHAR(2) NOT NULL ,
+       		  "WEEK_GB" VARCHAR(2) NOT NULL ,
+       		  "SEQ" INTEGER NOT NULL ,
+       		  "AMPM_GB" VARCHAR(2) NOT NULL ,
+       		  "SUNBUN" VARCHAR(4),
+       		  "START_TM" VARCHAR(6) ,
+       		  "INTERVAL" VARCHAR(6) ,
+       		  "HOISU" DECIMAL(4,1) ,
+              "SHIFT_WEEK_YN" VARCHAR(1),        -- STN 추가 사항
+              "SHIFT_SAT_YN" VARCHAR(1),          -- STN 추가 사항
+              "SHIFT_SUN_YN" VARCHAR(1),         -- STN 추가 사항
+       		  "TIME_01" VARCHAR(6) ,
+       		  "TIME_02" VARCHAR(6) ,
+       		  "TIME_03" VARCHAR(6) ,
+       		  "TIME_04" VARCHAR(6) ,
+       		  "TIME_05" VARCHAR(6) ,
+       		  "TIME_06" VARCHAR(6) ,
+       		  "TIME_07" VARCHAR(6) ,
+       		  "C_DATE" DATE ,
+       		  "C_USER" VARCHAR(25) ,
+       		  "M_DATE" DATE ,
+       		  "M_USER" VARCHAR(25),
+          	CONSTRAINT "PK_BSUNHA2_M" PRIMARY KEY
+                        ("ROUTE_CD",
+         		 		  "PYEON_GB",
+       		          "WEEK_GB",
+       		          "SEQ",
+       		          "AMPM_GB")
+       )
+       		 IN "USERSPACE1"
+       		 ORGANIZE BY ROW
+       ';--
+
+       EXECUTE IMMEDIATE 'COMMENT ON TABLE  "GADMIN"."BSUNHA2_M" IS '||CHR(39)||'[운행]배차시간표'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."ROUTE_CD" IS '||CHR(39)||'노선'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."PYEON_GB" IS '||CHR(39)||'편성'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."WEEK_GB" IS '||CHR(39)||'평일구분'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."SEQ" IS '||CHR(39)||'순차키'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."AMPM_GB" IS '||CHR(39)||'오전오후야간구분'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."SUNBUN" IS '||CHR(39)||'순번'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."START_TM" IS '||CHR(39)||'출발시간'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."INTERVAL" IS '||CHR(39)||'간격'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."HOISU" IS '||CHR(39)||'회수'||CHR(39);--
+
+       /* STN 추가 사항*/
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."SHIFT_WEEK_YN" IS '||CHR(39)||'평일SHIFT유무'||CHR(39);--
+       -- STN 추가 사항
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."SHIFT_SAT_YN" IS '||CHR(39)||'토요SHIFT유무'||CHR(39);--
+       -- STN 추가 사항
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."SHIFT_SUN_YN" IS '||CHR(39)||'일요SHIFT유무'||CHR(39);--
+
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_01" IS '||CHR(39)||'시간01'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_02" IS '||CHR(39)||'시간02'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_03" IS '||CHR(39)||'시간03'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_04" IS '||CHR(39)||'시간04'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_05" IS '||CHR(39)||'시간05'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_06" IS '||CHR(39)||'시간06'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."TIME_07" IS '||CHR(39)||'시간07'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."C_DATE" IS '||CHR(39)||'입력일자'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."C_USER" IS '||CHR(39)||'입력자ID'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."M_DATE" IS '||CHR(39)||'수정일자'||CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2_M"."M_USER" IS '||CHR(39)||'수정자ID'||CHR(39);--
+
+    END PBSUNHA2;--
+
+
+  ELSEIF IN_TAB_NM = 'BSUNHA2B' THEN
+    PBSUNHA2B: BEGIN
+    -- 변수 초기화
+        SET (V_CNT, V_TCNT, OUT_CNT, OUT_ECNT, OUT_MSG) = (0, 0, '0', '0', '');--
+
+    -- 목표테이블 존재 확인
+        SET V_TAB_CHK = 0;--
+
+       SET OUT_MSG = CHR(13)||OUT_MSG||'테이블 조회';--
+        SELECT COUNT(*) INTO V_TAB_CHK FROM SYSCAT.TABLES WHERE TABSCHEMA = 'GADMIN' AND TABNAME = 'BSUNHA2B_M';--
+        IF V_TAB_CHK > 0 THEN
+           DROP TABLE  "GADMIN"."BSUNHA2B_M";--
+        END IF; --
+
+    -- 테이블 생성
+       SET OUT_MSG = CHR(13)||OUT_MSG||'테이블 생성';--
+       EXECUTE IMMEDIATE 'CREATE OR REPLACE TABLE "GADMIN"."BSUNHA2B_M"  (
+       		  "ROUTE_CD" VARCHAR(3) NOT NULL,
+       		  "PYEON_GB" VARCHAR(2) NOT NULL,
+       		  "WEEK_GB" VARCHAR(2) NOT NULL,
+       		  "AMPM_GB" VARCHAR(2) NOT NULL,
+       		  "DRIVE_ST" VARCHAR(2) NOT NULL,
+       		  "HOISU" DECIMAL(5,1),
+       		  "C_DATE" DATE,
+       		  "C_USER" VARCHAR(25) ,
+       		  "M_DATE" DATE,
+       		  "M_USER" VARCHAR(25),
+         CONSTRAINT "PK_BSUNHA2B_M" PRIMARY KEY("ROUTE_CD", "PYEON_GB", "WEEK_GB", "AMPM_GB", "DRIVE_ST")
+
+       )
+       		 IN "USERSPACE1"
+       		 ORGANIZE BY ROW
+       '; --
+
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."ROUTE_CD" IS ' || CHR(39) ||'노선'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."PYEON_GB" IS ' || CHR(39) ||'편성구분'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."WEEK_GB"  IS ' || CHR(39) ||'평일구분'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."AMPM_GB"  IS ' || CHR(39) ||'오후오전구분'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."DRIVE_ST" IS ' || CHR(39) ||'운행상태'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."HOISU"    IS ' || CHR(39) ||'회수'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."C_DATE"   IS ' || CHR(39) ||'입력일자'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."C_USER"   IS ' || CHR(39) ||'입력자USER ID'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."M_DATE"   IS ' || CHR(39) ||'수정일자'|| CHR(39);--
+       EXECUTE IMMEDIATE 'COMMENT ON COLUMN "GADMIN"."BSUNHA2B_M"."M_USER"   IS ' || CHR(39) ||'수정자USER ID'|| CHR(39);--
+
+    END PBSUNHA2B;--
+
+  END IF;--
+
+END MAIN 

@@ -1,0 +1,340 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_BBSUPDATE"
+--/*******************************************************************************
+--파일명	: GADMIN.SP_MBC_BBSUPDATE
+--생성일자	: 2021.12.19
+--생성자	: 전광진
+--내용    	: 모바일용 BBS UPDATE
+--수정일자	: 2022.02.13
+--수정자	: 전광진
+--수정일자	: 2022.03.16
+--수정자	: 전광진
+--수정내용    : 사번으로 등록할수 있도록 변경
+--        : 사번을 Primary Key로 지정
+--        : table에 APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME 정보를 저장함
+--수정일자	: 2022.05.06
+--수정자	: 전광진
+--수정내용    : DB 정보 Table(MBCDB.GADMIN.DBUSERS)의 코드 정보를 GADMIN.EBUS_COMMON_C의 UP_CD = 'COM98' AND CD='10' 의 컬럼 BIGO에서 가져옴
+--        : 사번을 Primary Key로 지정
+--        : table에 APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME 정보를 저장함
+--Compile : 2022.5.6
+-- INPUT  : IN_TIMEID         1 TIME id
+--OUTPUT	: OUT_CNT	    	A.처리COUNT
+--	    : OUT_MSG	        B.처리결과메시지
+--*******************************************************************************/
+(
+      IN IN_TIMEID           VARCHAR(20)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_TEMP_DAT    VARCHAR(1200)  DEFAULT '';--
+	DECLARE V_BBSID       VARCHAR(14);--
+ 	DECLARE V_GROUP_GB    VARCHAR(1);--
+	DECLARE V1_BBSID      VARCHAR(14);--
+ 	DECLARE V1_GROUP_GB   VARCHAR(1);--
+	DECLARE V_BBS_TITLE   VARCHAR(1200);--
+	DECLARE V_BBS_CONTENT VARCHAR(5000);--
+	DECLARE V_CELLPHONE   VARCHAR(11);--
+	DECLARE V_INSA_NO     VARCHAR(10);--
+	DECLARE V_INSA_NM     VARCHAR(20);--
+	DECLARE V_APPLICATION_ID
+	                      VARCHAR(50);--
+	DECLARE V_APPLICATION_NAME
+	                      VARCHAR(250);--
+	DECLARE V_CLIENT_HOSTNAME
+	                      VARCHAR(250);--
+    DECLARE V_CNT         INTEGER;--
+    DECLARE V_KEY_MSG     VARCHAR(10000)  DEFAULT '';--
+    DECLARE V_USER_CHK    VARCHAR(1);--
+
+    DECLARE V_ALARM       VARCHAR(500);--
+
+    DECLARE SQLCODE       INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE      CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER     CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER      CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL      CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO       CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE      CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+	DECLARE C_BBSTEMP   CURSOR FOR
+	    ( SELECT BBSID, BBS_GROUP_GB, TEMP_DAT AS DAT
+	        FROM GADMIN.MBC_BBSTEMP
+           WHERE TIMEID = IN_TIMEID
+        );--
+
+	DECLARE C_BBSUSERTEMP CURSOR FOR
+	 WITH V_TEMP AS
+	    ( SELECT SEQ, TEMP_DAT||'\' AS DAT
+	        FROM GADMIN.MBC_BBSUSERTEMP
+           WHERE TIMEID = IN_TIMEID
+        )
+     SELECT SUBSTR(DAT,1,INSTR(DAT, '\', 1, 1)-1)                                                 AS CELLPHONE  -- 휴대폰번호
+          , SUBSTR(DAT, INSTR(DAT, '\', 1, 1)+1, INSTR(DAT, '\', 1, 2) - INSTR(DAT, '\', 1, 1)-1) AS INSA_NO  -- 사번
+          , SUBSTR(DAT, INSTR(DAT, '\', 1, 2)+1, INSTR(DAT, '\', 1, 3) - INSTR(DAT, '\', 1, 2)-1) AS INSA_NM  -- 직원명
+     FROM V_TEMP
+    ORDER BY SEQ;--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME을 가져온다
+    SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
+    SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
+            = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
+                 FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2))
+                WHERE APPLICATION_ID = V_APPLICATION_ID);--
+
+--  저장할 기존 게시판 데이터를 저장하기전에 삭제한다.
+
+    DELETE GADMIN.MBC_BBS
+     WHERE (BBSID)
+        IN (
+           SELECT DISTINCT
+                  BBSID   -- BBSID
+             FROM GADMIN.MBC_BBSTEMP
+            WHERE TIMEID = IN_TIMEID
+           )
+    ;--
+
+--  데이터를 저장한다.
+
+    SET V_SQLSTATE = '00000';--
+
+    OPEN C_BBSTEMP;--
+
+
+    FETCH FROM C_BBSTEMP
+          INTO V_BBSID
+             , V_GROUP_GB
+             , V_TEMP_DAT
+             ;--
+    SET V_BBS_TITLE = COALESCE(V_TEMP_DAT,'');--
+    SET V_BBS_CONTENT = '';--
+    SET V_KEY_MSG = COALESCE(V_KEY_MSG,'')||'[BBSID]:'||COALESCE(V_BBSID,'')||'[제목]:'||COALESCE(V_BBS_TITLE,'');--
+    SET V_CNT = 0;--
+	WHILE (V_SQLSTATE = '00000' ) DO
+          SET V_CNT = V_CNT + 1;--
+        -- 데이터 UPDATE
+          IF V_CNT > 1 THEN
+             SET V_BBS_CONTENT = COALESCE(V_BBS_CONTENT,'') || COALESCE(V_TEMP_DAT,'')||CHR(13)||CHR(10);--
+          END IF;--
+          SET V_SQLSTATE = '00000';--
+          FETCH FROM C_BBSTEMP
+                INTO
+                     V1_BBSID
+                   , V1_GROUP_GB
+                   , V_TEMP_DAT
+          ;--
+          SET V_KEY_MSG = '[BBSID]:'||COALESCE(V_BBSID,'')||'[제목]:'||COALESCE(V_BBS_TITLE,'');--
+	END WHILE;--
+
+	INSERT INTO GADMIN.MBC_BBS(
+                BBSID
+              , BBS_GROUP_GB
+              , BBS_TITLE
+              , BBS_DT
+              , BBS_CONTENT
+              , APPLICATION_ID
+              , APPLICATION_NAME
+              , CLIENT_HOSTNAME
+              , C_DATE
+
+              )
+       VALUES (
+                V_BBSID
+              , V_GROUP_GB
+              , V_BBS_TITLE
+              , CURRENT TIMESTAMP
+              , V_BBS_CONTENT
+              , V_APPLICATION_ID
+              , V_APPLICATION_NAME
+              , V_CLIENT_HOSTNAME
+              , CURRENT TIMESTAMP
+              )
+              ;--
+    CLOSE C_BBSTEMP;--
+------------공지사항 저장 완료.
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+
+--  데이터를 저장한다.
+    SET V_SQLSTATE = '00000';--
+    OPEN C_BBSUSERTEMP;--
+
+    FETCH FROM C_BBSUSERTEMP INTO
+               V_CELLPHONE
+             , V_INSA_NO
+             , V_INSA_NM
+             ;--
+
+--    SET V_KEY_MSG ='[전화번호]:'||'[성명]:'||V_INSA_NM;--
+--    SET V_LOG_SEQ = CURRENT TIMESTAMP;--
+--    CALL  GADMIN.SP_MBC_LOG_U01(V_LOG_TIMEID, 'SP_MBC_BBSUPDATE', V_LOG_SEQ, V_KEY_MSG||':'||V_INSA_NM, OUT_CNT, OUT_MSG);--
+    SET V_CNT = 0;--
+	WHILE (V_SQLSTATE = '00000' ) DO
+          SET V_KEY_MSG = '[전화번호]:'||COALESCE(V_CELLPHONE,'')||'[성명]:'||V_INSA_NM;--
+--          SET V_LOG_SEQ = CURRENT TIMESTAMP;--
+--          CALL GADMIN.SP_MBC_LOG_U01(V_LOG_TIMEID, 'SP_MBC_BBSUPDATE', V_LOG_SEQ, V_KEY_MSG||':'||V_INSA_NM, OUT_CNT, OUT_MSG);--
+          SET V_CNT = V_CNT + 1;--
+        -- 데이터 UPDATE
+        -- User Table을 먼저 저장한다.
+-- 3. USERS TABLE 저장
+          SET V_USER_CHK = 0;-- User 유무 검사
+          SELECT COUNT(*) INTO V_USER_CHK FROM GADMIN.MBC_USERS WHERE INSA_NO = V_INSA_NO;--
+
+          IF COALESCE(V_USER_CHK,'') > '0' THEN
+--  (1) 정상(User가 존재하면 수정)
+             UPDATE GADMIN.MBC_USERS
+                SET INSA_NM = V_INSA_NM
+                  , CELLPHONE = V_CELLPHONE
+                  , INSA_NO = V_INSA_NO
+                  , APPLICATION_ID = V_APPLICATION_ID
+                  , APPLICATION_NAME = V_APPLICATION_ID
+                  , CLIENT_HOSTNAME = V_CLIENT_HOSTNAME
+                  , JAEJIK_YN = '1'
+                  , M_DATE = CURRENT TIMESTAMP
+              WHERE INSA_NO = V_INSA_NO
+                AND ( INSA_NM <> V_INSA_NM
+                 OR   CELLPHONE <> V_CELLPHONE
+                 OR   COALESCE(JAEJIK_YN,'') <> '1')
+             ;--
+--  (6) 추가(User가 없으면 삽입)
+          ELSEIF COALESCE(V_USER_CHK,'') = '0' THEN
+                 INSERT INTO GADMIN.MBC_USERS( CELLPHONE
+                                             , INSA_NO
+                                             , INSA_NM
+                                             , APPLICATION_ID
+                                             , APPLICATION_NAME
+                                             , CLIENT_HOSTNAME
+                                             , JAEJIK_YN
+                                             , C_DATE)
+                                      VALUES ( V_CELLPHONE
+                                             , V_INSA_NO
+                                             , V_INSA_NM
+                                             , V_APPLICATION_ID
+                                             , V_APPLICATION_NAME
+                                             , V_CLIENT_HOSTNAME
+                                             ,'1' --재직유무
+                                             , CURRENT TIMESTAMP)
+                 ;--
+          END IF;--
+          SET V_SQLSTATE ='00000';--
+          FETCH FROM C_BBSUSERTEMP INTO
+                     V_CELLPHONE
+                   , V_INSA_NO
+                   , V_INSA_NM
+                   ;--
+	END WHILE;--
+    CLOSE C_BBSUSERTEMP;--
+------------User Data 먼저 저장 완료
+
+
+
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--  저장할 게시판 사용자 데이터를 저장하기전에 삭제한다.
+
+    DELETE GADMIN.MBC_BBSUSERS
+     WHERE (BBSID)
+        IN (
+           SELECT DISTINCT
+                  BBSID   -- BBSID
+             FROM GADMIN.MBC_BBSUSERTEMP
+            WHERE TIMEID = IN_TIMEID
+           )
+    ;--
+
+------------BBS User를 저장
+    SET V_SQLSTATE = '00000';--
+
+    OPEN C_BBSUSERTEMP;--
+
+    FETCH FROM C_BBSUSERTEMP INTO
+               V_CELLPHONE
+             , V_INSA_NO
+             , V_INSA_NM
+             ;--
+
+--    SET V_KEY_MSG ='[전화번호]:'||'[성명]:'||V_INSA_NM;--
+--    SET V_LOG_SEQ = CURRENT TIMESTAMP;--
+--    CALL  GADMIN.SP_MBC_LOG_U01(V_LOG_TIMEID, 'SP_MBC_BBSUPDATE', V_LOG_SEQ, V_KEY_MSG||':'||V_INSA_NM, OUT_CNT, OUT_MSG);--
+    SET V_CNT = 0;--
+	WHILE (V_SQLSTATE = '00000' ) DO
+          SET V_KEY_MSG = '[전화번호]:'||COALESCE(V_CELLPHONE,'')||'[성명]:'||V_INSA_NM;--
+--          SET V_LOG_SEQ = CURRENT TIMESTAMP;--
+--          CALL GADMIN.SP_MBC_LOG_U01(V_LOG_TIMEID, 'SP_MBC_BBSUPDATE', V_LOG_SEQ, V_KEY_MSG||':'||V_INSA_NM, OUT_CNT, OUT_MSG);--
+          SET V_CNT = V_CNT + 1;--
+        -- 데이터 UPDATE
+        -- BBSUSERS TABLE 저장
+
+-- 2. BBS_USERS TABLE 저장
+          SET V_USER_CHK = '0';-- User 유무 검사
+          SELECT COUNT(*) INTO V_USER_CHK FROM GADMIN.MBC_BBSUSERS WHERE BBSID = V_BBSID AND CELLPHONE = V_CELLPHONE AND INSA_NO = V_INSA_NO;--
+
+          IF COALESCE(V_USER_CHK,'0') = '0' THEN
+--  (1) 추가(User가 없으면 삽입)
+          INSERT INTO GADMIN.MBC_BBSUSERS(
+                        BBSID
+                      , CELLPHONE
+                      , INSA_NO
+                      , APPLICATION_ID
+                      , APPLICATION_NAME
+                      , CLIENT_HOSTNAME
+                      , C_DATE
+                      )
+               VALUES (
+                        V_BBSID
+                      , V_CELLPHONE
+                      , V_INSA_NO
+                      , V_APPLICATION_ID
+                      , V_APPLICATION_NAME
+                      , V_CLIENT_HOSTNAME
+                      , CURRENT TIMESTAMP
+                      )
+          ;--
+          END IF;--
+
+          SET V_SQLSTATE ='00000';--
+          FETCH FROM C_BBSUSERTEMP INTO
+                     V_CELLPHONE
+                   , V_INSA_NO
+                   , V_INSA_NM
+                   ;--
+
+	END WHILE;--
+
+    CLOSE C_BBSUSERTEMP;--
+
+
+    SET (OUT_CNT, OUT_MSG) = (V_CNT, COALESCE(OUT_MSG,'')||CHR(13)||'저장되었습니다.');--
+
+END MAIN 

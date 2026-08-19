@@ -1,0 +1,63 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_USER_LOGIN"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_USER_LOGIN
+생성일자	: 2022.6.8
+생성자	: 전광진
+내용	    : USER LOGIN
+수정일자	:
+수정자	:
+수정내용    :
+수정일자	:
+수정자	:
+수정내용    :
+
+예제
+SELECT * FROM GADMIN.SF_MBC_USER_LOGIN(사용자명, 휴대폰번호)
+*******************************************************************************/
+(
+    IN IN_USER_NM    VARCHAR(20)  -- 사용자명
+  , IN IN_CELLPHONE  VARCHAR(11)  -- 휴대폰번호
+)
+
+
+RETURNS
+    TABLE
+    (
+      CELLPHONE         VARCHAR(11)
+    , USER_NO           VARCHAR(10)
+    , JIKJONG           VARCHAR(25)
+    , USER_NM           VARCHAR(20)
+    , JAEJIK_YN         VARCHAR(1)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_USER_NM    VARCHAR(20);-- 사용자명
+   DECLARE V_CELLPHONE  VARCHAR(11);-- 휴대폰번호
+
+
+   SET V_USER_NM     = COALESCE(IN_USER_NM,'');--
+   SET V_CELLPHONE   = COALESCE(IN_CELLPHONE,'');--
+
+   RETURN
+   SELECT CELLPHONE
+        , INSA_NO
+        , JIKJONG
+        , INSA_NM
+        , JAEJIK_YN
+     from (SELECT CELLPHONE
+                , INSA_NO
+                , JIKJONG
+                , INSA_NM
+                , JAEJIK_YN
+                , ROW_NUMBER() OVER ( ORDER BY INSA_NO DESC )
+             FROM GADMIN.MBC_USERS
+            WHERE CELLPHONE  = V_CELLPHONE
+              AND INSA_NM    = V_USER_NM
+              AND JAEJIK_YN = '1'
+              AND INSA_NO IS NOT NULL
+              AND INSA_NO <> ''
+            FETCH FIRST 1 ROWS ONLY
+          )
+   ;--
+END

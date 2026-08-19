@@ -1,0 +1,121 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0101_S01"
+(
+    IN IN_EOPMUGB_CD    VARCHAR(10)
+  , IN IN_CD_NM         VARCHAR(200)
+
+  , OUT	OUT_CNT		    VARCHAR(100)
+  , OUT	OUT_MSG		    VARCHAR(100)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_SYS0101_S01
+생성일자	: 2021.03.03
+생성자	: 전광진
+내용	: 공통코드 조회
+수정일자	:
+수정자	:
+수정내용
+INPUT	: IN IN_EOPMUGB_CD  1.분류코드
+                            (분류코드그리드 : 세부업무구분 ddlb의 MENU_PATH 값 지정
+                             공통코드 그리드 : 코드분류 그리드의 선택된 CD 값 지정)
+	    : IN IN_CD_NM		2.코드명
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_CNT INTEGER DEFAULT 0;--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+    -- 변수 초기화
+    SET (V_CNT, OUT_CNT, OUT_MSG) = (0,'0', '');--
+
+
+         --DATA COUNT
+		SELECT COUNT(*) INTO V_CNT
+		 FROM GADMIN.EBUS_COMMON_C
+		WHERE 1=1
+		  AND UP_CD = IN_EOPMUGB_CD
+		     AND CD_NM LIKE  COALESCE(IN_CD_NM,'') || '%';--
+
+
+    P1: BEGIN
+
+         --DATA SELECT
+		DECLARE CURSOR_SYSO1 CURSOR WITH RETURN FOR
+		SELECT
+		    --ROW_NUMBER() OVER(ORDER BY SORT, CD) AS ROW_NO
+		     ''    AS CK
+			, UP_CD AS UP_CD
+			, CD AS DATA
+			, CD_NM AS LABEL
+			, CD
+			, CD_NM
+			, CD_SNM AS CD_SNM
+			, CD_ENM AS CD_ENM
+			, CD_ESNM AS CD_ESNM
+		    , CD_LEN AS CD_LEN
+			, SORT AS SORT
+		    , CD1
+		    , CD2
+		    , CD3
+		    , CD4
+		    , CD5
+		    , CD6
+		    , CD7
+		    , CD8
+		    , CD9
+		    , CD10
+		    , CD1_NM
+		    , CD2_NM
+		    , CD3_NM
+		    , CD4_NM
+		    , CD5_NM
+		    , CD6_NM
+		    , CD7_NM
+		    , CD8_NM
+		    , CD9_NM
+		    , CD10_NM
+			, CASE WHEN SUJEONG_YN != '1' THEN '0' ELSE '1' END AS SUJEONG_YN
+		    , CASE WHEN SAYONG_YN != '1' THEN '0' ELSE '1' END AS SAYONG_YN
+			, BIGO AS BIGO
+		 FROM GADMIN.EBUS_COMMON_C
+		WHERE 1=1
+		  AND UP_CD = IN_EOPMUGB_CD
+		     AND CD_NM LIKE  COALESCE(IN_CD_NM,'') || '%'
+
+		ORDER BY COALESCE(SORT,0), CD	;--
+
+	    OPEN CURSOR_SYSO1;--
+   END P1;--
+
+   SET (OUT_CNT, OUT_MSG) = (VARCHAR(V_CNT), '조회되었습니다');--
+
+
+
+END MAIN 

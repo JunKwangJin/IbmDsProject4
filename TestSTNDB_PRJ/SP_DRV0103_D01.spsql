@@ -1,0 +1,76 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0103_D01"
+(
+      IN IN_USER_ID          VARCHAR(12)
+    , IN IN_ROUTE_CD         VARCHAR(3)
+    , IN IN_PYEON_GB         VARCHAR(2)
+      , OUT OUT_CNT              VARCHAR(2)
+      , OUT OUT_MSG              VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+        DECLARE V_CNT   INT  DEFAULT 0 ;--
+        DECLARE V_KEY_MSG VARCHAR(100) DEFAULT '';--
+
+        DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+        DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+        DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+               E1: BEGIN
+                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR03: '||V_KEY_MSG||'실행중 알수없는 오류로 종료되었습니다.' ; --
+                     SET OUT_CNT = '-1'; --
+                     RETURN; --
+               END E1;--
+
+        SET OUT_MSG              = ''; --
+        SET OUT_CNT              = ''; --
+
+ -- CRUD가 발생하는 KEY
+    SELECT '[노선 ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][편성구분 : '||GADMIN.SF_EBUS_COMMON_CD('DRV04',IN_PYEON_GB,'')||']' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
+
+       P1: BEGIN
+                 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                        E2: BEGIN
+                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: 자료 저장 시 오류가 발생하였습니다.' ; --
+                             SET OUT_CNT = '-1'; --
+                             ROLLBACK ; --
+                             RETURN ;--
+                        END E2;--
+
+            SELECT COUNT(*) INTO V_CNT
+                   FROM GADMIN.BSUNHA3_M
+                  WHERE EXC_GB   = '00001'
+                    AND ROUTE_CD = IN_ROUTE_CD
+                    AND PYEON_GB = IN_PYEON_GB
+            ;--
+            IF V_CNT > 0 THEN
+               DELETE FROM GADMIN.BSUNHA3_M
+                     WHERE EXC_GB   = '00001'
+                       AND ROUTE_CD = IN_ROUTE_CD
+                       AND PYEON_GB = IN_PYEON_GB
+               ;--
+            END IF;--
+
+            SELECT COUNT(*) INTO V_CNT
+                   FROM GADMIN.BSUNHA3_D
+                  WHERE EXC_GB   = '00001'
+                    AND ROUTE_CD = IN_ROUTE_CD
+                    AND PYEON_GB = IN_PYEON_GB
+            ;--
+            IF V_CNT > 0 THEN
+               DELETE FROM GADMIN.BSUNHA3_D
+                     WHERE EXC_GB   = '00001'
+                       AND ROUTE_CD = IN_ROUTE_CD
+                       AND PYEON_GB = IN_PYEON_GB
+            ;--
+            END IF;--
+        END P1 ;--
+
+        SET OUT_MSG = '삭제 되었습니다.' ; --
+        SET OUT_CNT = '1';            --
+
+
+END MAIN 

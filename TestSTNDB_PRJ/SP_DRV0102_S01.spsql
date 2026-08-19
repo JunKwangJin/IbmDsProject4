@@ -1,0 +1,115 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0102_S01"
+(
+    IN  IN_ROUTE_CD VARCHAR(15),
+    IN  IN_USER_ID VARCHAR(12),
+    IN  IN_OFFICE_CD VARCHAR(5),
+    IN  IN_PYEON_GB VARCHAR(2),
+    IN  IN_WEEK_GB VARCHAR(2),
+    OUT OUT_CNT VARCHAR(2),
+    OUT OUT_MSG VARCHAR(100)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0102_S01
+생성일자	: 2020.07.03
+생성자	: 전광진
+내용	    : 배차시간표 입력용 조회 입니다.
+USAGE   : GADMIN.SP_DRV0102_S01(노선, USER ID, 영업소코드, 노선코드, 편성구분, 평일구분)
+수정일자	:
+수정자	:
+수정내용
+INPUT	: IN_USER_ID        1.사용자 ID
+	    : IN_OFFICE_CD      2.영업소코드
+        : IN_ROUTE_CD       3.노선코드
+	    : IN_PYEON_GB	    4.코드명
+	    : IN_WEEK_GB	    5.평일구분
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+        WITH
+         AM AS
+           (SELECT * FROM GADMIN.BSUNHA2_M	WHERE GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='L'),
+         PM AS
+           (SELECT * FROM GADMIN.BSUNHA2_M	WHERE GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='R')
+
+         SELECT '' AS CK
+              , NVL(AM.ROUTE_CD, PM.ROUTE_CD) AS ROUTE_CD
+              , NVL(AM.PYEON_GB, PM.PYEON_GB) AS PYEON_GB
+              , NVL(AM.WEEK_GB, PM.WEEK_GB)   AS WEEK_GB
+              , AM.SEQ                        AS AM_SEQ
+              , AM.AMPM_GB                    AS AM_AMPM_GB
+              , NVL(AM.SUNBUN, PM.SUNBUN)     AS SUNBUN
+              , AM.START_TM	                  AS AM_START_TM
+              , AM.HOISU	                  AS AM_HOISU
+              , AM.SHIFT_WEEK_YN              AS AM_SHIFT_WEEK_YN
+              , AM.SHIFT_SAT_YN               AS AM_SHIFT_SAT_YN
+              , AM.SHIFT_SUN_YN               AS AM_SHIFT_SUN_YN
+              , AM.TIME_01	                  AS AM_TIME_01
+              , AM.TIME_02	                  AS AM_TIME_02
+              , AM.TIME_03	                  AS AM_TIME_03
+              , AM.TIME_04	                  AS AM_TIME_04
+              , AM.TIME_05	                  AS AM_TIME_05
+              , AM.TIME_06	                  AS AM_TIME_06
+              , AM.TIME_07	                  AS AM_TIME_07
+              , PM.SEQ                        AS PM_SEQ
+              , PM.AMPM_GB		              AS PM_AMPM_GB
+              , PM.START_TM	                  AS PM_START_TM
+              , PM.HOISU	                  AS PM_HOISU
+              , PM.SHIFT_WEEK_YN              AS PM_SHIFT_WEEK_YN
+              , PM.SHIFT_SAT_YN               AS PM_SHIFT_SAT_YN
+              , PM.SHIFT_SUN_YN               AS PM_SHIFT_SUN_YN
+              , PM.TIME_01	                  AS PM_TIME_01
+              , PM.TIME_02	                  AS PM_TIME_02
+              , PM.TIME_03	                  AS PM_TIME_03
+              , PM.TIME_04	                  AS PM_TIME_04
+              , PM.TIME_05	                  AS PM_TIME_05
+              , PM.TIME_06	                  AS PM_TIME_06
+              , PM.TIME_07	                  AS PM_TIME_07
+         FROM AM
+         FULL OUTER JOIN PM
+           ON AM.ROUTE_CD = PM.ROUTE_CD
+          AND AM.PYEON_GB = PM.PYEON_GB
+          AND AM.WEEK_GB  = PM.WEEK_GB
+          AND AM.SUNBUN   = PM.SUNBUN
+        WHERE NVL(AM.ROUTE_CD, PM.ROUTE_CD) LIKE COALESCE(IN_ROUTE_CD,'')||'%'
+          AND NVL(AM.PYEON_GB, PM.PYEON_GB) LIKE COALESCE(IN_PYEON_GB,'')||'%'
+          AND NVL(AM.WEEK_GB,  PM.WEEK_GB)  LIKE COALESCE(IN_WEEK_GB,'')||'%'
+         ORDER BY 1,2,3,4,5;	--
+        OPEN CURSOR_DRV;--
+   END P1;--
+END MAIN 

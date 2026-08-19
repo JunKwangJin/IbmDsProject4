@@ -1,0 +1,122 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0103_S01"
+(
+    IN  IN_USER_ID VARCHAR(12),
+    IN  IN_PYEON_GB VARCHAR(2),
+    OUT OUT_CNT VARCHAR(2),
+    OUT OUT_MSG VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0103_S01
+생성일자	: 2021.04.09
+생성자	: 전광진
+내용	    : 운행계통 조회 입니다.
+USAGE   : GADMIN.SP_DRV0103_S01(USER ID, 편성구분)
+수정일자	:
+수정자	:
+수정내용	:
+INPUT	: IN_USER_ID        1.사용자 ID
+	    : IN_PYEON_GB	    2.코드명
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+--    DECLARE V_CAR_LST VARCHAR(100) DEFAULT '';--
+--    DECLARE V_CAR_TYPE_CD VARCHAR(100) DEFAULT '';--
+--    DECLARE V_REG_DATE DATE;--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+--                    OUT_RESULT_CD  := '1';--
+--                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.구매상세내역 지급일자 업데이트 과정 중 오류가 발생했습니다. ' ; --
+--                    ROLLBACK;--
+--                    RETURN;--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+
+         SELECT '' AS CK
+              , M.ROUTE_CD                  AS ROUTE_CD
+              , M.PYEON_GB                  AS PYEON_GB
+              , M.ROUTE_CD                  AS OLD_ROUTE_CD
+              , M.PYEON_GB                  AS OLD_PYEON_GB
+              , M.INGA_CNT                  AS DAESU
+              , M.YEBI_CNT                  AS YEBI
+              , A.JUNG_CNT                  AS PJ_CNT
+              , A.JUNG_TIME                 AS PJ_TIME
+              , A.JUNG_CNT * A.JUNG_TIME    AS PJ_CT
+              , A.SHORT_CNT                 AS PS_CNT
+              , A.SHORT_TIME                AS PS_TIME
+              , A.SHORT_CNT * A.SHORT_TIME  AS PS_CT
+              , A.JUNG_CNT + A.SHORT_CNT    AS P_CNT
+              , A.JUNG_CNT * A.JUNG_TIME + A.SHORT_CNT * A.SHORT_TIME
+                                            AS P_TIME
+
+              , B.JUNG_CNT                  AS TJ_CNT
+              , B.JUNG_TIME                 AS TJ_TIME
+              , B.JUNG_CNT * B.JUNG_TIME    AS TJ_CT
+              , B.SHORT_CNT                 AS TS_CNT
+
+              , B.JUNG_CNT + A.SHORT_CNT    AS T_CNT
+              , B.JUNG_CNT * B.JUNG_TIME    AS T_TIME
+              , C.JUNG_CNT                  AS SJ_CNT
+              , C.JUNG_TIME                 AS SJ_TIME
+              , C.JUNG_CNT * C.JUNG_TIME    AS SJ_CT
+              , C.SHORT_CNT                 AS SS_CNT
+              , C.JUNG_CNT + C.SHORT_CNT    AS S_CNT
+              , C.JUNG_CNT * C.JUNG_TIME    AS S_TIME
+              , A.ALLOC_CONT                AS ALLOC_PCONT
+              , B.ALLOC_CONT                AS ALLOC_TCONT
+              , C.ALLOC_CONT                AS ALLOC_SCONT
+              , M.SEC_DIST                  AS SEC_DIST
+
+         FROM
+             (SELECT BSUNHA3_M.*
+                   , GADMIN.SF_EBUS_COMMON_CD('DRV06',ROUTE_CD,'SORT') AS SORT1
+                   , GADMIN.SF_EBUS_COMMON_CD('DRV04',PYEON_GB,'SORT') AS SORT2
+                FROM GADMIN.BSUNHA3_M
+               WHERE EXC_GB = '00001'
+             ) AS M
+        LEFT OUTER JOIN
+             (SELECT *
+                FROM GADMIN.BSUNHA3_D
+               WHERE EXC_GB  = '00001'
+                 AND WEEK_GB = '10'
+             ) AS A
+           ON M.EXC_GB   = A.EXC_GB
+          AND M.ROUTE_CD = A.ROUTE_CD
+          AND M.PYEON_GB = A.PYEON_GB
+        LEFT OUTER JOIN
+             (SELECT *
+                FROM GADMIN.BSUNHA3_D
+               WHERE EXC_GB  = '00001'
+                 AND WEEK_GB = '20'
+             ) AS B
+           ON M.EXC_GB   = B.EXC_GB
+          AND M.ROUTE_CD = B.ROUTE_CD
+          AND M.PYEON_GB = B.PYEON_GB
+        LEFT OUTER JOIN
+             (SELECT *
+                FROM GADMIN.BSUNHA3_D
+               WHERE EXC_GB='00001'
+                 AND WEEK_GB='30'
+             ) AS C
+           ON M.EXC_GB   = C.EXC_GB
+          AND M.ROUTE_CD = C.ROUTE_CD
+          AND M.PYEON_GB = C.PYEON_GB
+        WHERE M.PYEON_GB  LIKE COALESCE(IN_PYEON_GB,'')||'%'
+        ORDER BY M.SORT1, M.SORT2;	--
+
+        OPEN CURSOR_DRV;--
+   END P1;--
+END MAIN 

@@ -1,0 +1,144 @@
+CREATE FUNCTION COMMON.USF_LOGIN_CHK00
+(
+    IN IN_SYSGB     VARCHAR(1   ) ,
+    IN IN_USER_ID   VARCHAR(10  ) ,
+    IN IN_PASSWD    VARCHAR(4000)
+)
+
+
+RETURNS
+
+      TABLE ( 
+            USER_GUBUN          VARCHAR(1   )   ,  
+            USER_ID             VARCHAR(10  )   ,  
+            USER_NM             VARCHAR(100 )   ,  
+            PASSWORD            VARCHAR(4000)   ,  
+            SOSOK_CD            VARCHAR(10  )   ,  
+            JAEJIK_GBCD         VARCHAR(2   )   ,  
+            JIKJONG_CD          VARCHAR(2   )   ,  
+            HP_NO               VARCHAR(30  )   ,  
+--            EMAIL               VARCHAR(100 )   ,  
+            JIKWI_CD            VARCHAR(100 )   ,  
+            LAST_LOGIN_DT       TIMESTAMP       ,  
+            PTL_ROLE_ID         VARCHAR(10  )   ,  
+            USER_REGNO1         VARCHAR(8   )   ,  
+            USER_REGNO2         VARCHAR(100 )      
+            )
+
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+        SELECT  
+                  A.USER_GUBUN                  AS USER_GUBUN
+                , A.USER_ID                     AS USER_ID
+                , A.USER_NM                     AS USER_NM
+                , A.USER_PW                     AS PASSWORD
+                , A.BUSEO_CD                    AS BUSEO_CD
+                , A.JAEJIK_GBCD                 AS JAEJIK_GBCD
+                , A.SINBUN_CD                   AS SINBUN_CD
+                , A.HP_NO                       AS HP_NO
+                , A.EMAIL                       AS EMAIL
+                , A.HAKGYO_EMAIL_ID             AS HAKGYO_EMAIL_ID
+                , A.JIKGEUP_CD                  AS JIKGEUP_CD
+                , A.HAKNYEON                    AS HAKNYEON
+                , A.JINGEUPHAKNYEON             AS JINGEUPHAKNYEON
+                , A.HOEGYE_DANWI                AS HOEGYE_DANWI
+                , SYSDATE                       AS LAST_LOGIN_DT
+                , COMMON.USF_PORTAL_ROLE_ID('1',A.USER_GUBUN,A.SINBUN_CD)  
+                                                AS PTL_ROLE_ID
+                , A.USER_REGNO1                 AS USER_REGNO1
+                , A.USER_REGNO2                 AS USER_REGNO2
+        FROM    (
+                SELECT 
+                          '1'                     AS USER_GUBUN
+                        , HAKBEON                 AS USER_ID
+                        , NAME                    AS USER_NM
+                        , PASSWORD                AS USER_PW
+                        , JUMIN_NO1               AS USER_REGNO1
+                        , JUMIN_NO2               AS USER_REGNO2
+                        , SOSOK_CD                AS BUSEO_CD 
+                        , ''                      AS JIKGEUP_CD
+                        , CASE WHEN HAKJEOK_ST_CD IN ('01','02','07') THEN '1'
+                               ELSE '2'
+                          END                     AS JAEJIK_GBCD
+                        , TO_CHAR(HAKNYEON)       AS HAKNYEON
+                        , ''                      AS JINGEUPHAKNYEON
+                        , HAKJEOK_ST_CD           AS SINBUN_CD
+                        , HP_NO                   AS HP_NO
+                        , HAKGYO_EMAIL            AS EMAIL
+                        , HAKGYO_EMAIL            AS HAKGYO_EMAIL_ID
+                        , ''                      AS HOEGYE_DANWI
+                FROM    HAKSA.HS_HAKJEOKGIBON_M
+                WHERE       HAKBEON     =   IN_USER_ID
+--                    변환하면서 암호솔루션 부재로 암호보분 제거                
+--                        AND PASSWORD    =   XX1.ENC_VARCHAR_INS(IN_PASSWD,11,'SH3')
+                        AND PASSWORD    =   IN_PASSWD
+
+--                        AND NVL(PASSWORD,'1111')    =   CASE WHEN IN_PASSWD = '1111' THEN NVL(PASSWORD,'1111') ELSE '-' END
+
+                UNION ALL
+                SELECT
+                          '2'                     AS USER_GUBUN
+                        , A.INSA_NO               AS USER_ID
+                        , A.INSA_NM               AS USER_NM
+                        , A.INSA_PWD              AS USER_PW
+                        , A.JUMIN_NO1             AS USER_REGNO1
+                        , A.JUMIN_NO2             AS USER_REGNO2
+                        , COMMON.USF_CS_SOSOKCHANGE_CD('1',A.INSA_NO,A.BUSEO_CD) AS BUSEO_CD
+                        , A.JIKGEUP_CD            AS JIKGEUP_CD
+                        , A.JAEJIK_GBCD           AS JAEJIK_GBCD
+                        , ''                      AS HAKNYEON 
+                        , ''                      AS JINGEUPHAKNYEON 
+                        , B.JIKJONG_GBCD          AS SINBUN_CD
+                        , A.HP                    AS HP_NO
+                        , A.EMAIL                 AS EMAIL
+                        , A.EMAIL_ID              AS HAKGYO_EMAIL_ID
+                        , DECODE(A.JAEJIK_GBCD, '4', A.PAGYUN_HOEGYE_DANWI, A.HOEGYE_DANWI) 
+                                                  AS HOEGYE_DANWI
+                FROM                    GADMIN.AM_INSA_M    A
+                        LEFT OUTER JOIN GADMIN.AM_JIKJONG_C B
+                                        ON      A.HOEGYE_DANWI  =   B.HOEGYE_DANWI
+                                            AND A.JIKJONG_CD    =   B.JIKJONG_CD
+                WHERE       INSA_NO     =   IN_USER_ID
+--                    변환하면서 암호솔루션 부재로 암호보분 제거                
+--                        AND INSA_PWD    =   XX1.ENC_VARCHAR_INS(IN_PASSWD,11,'SH3')
+                        AND INSA_PWD    =   IN_PASSWD
+
+--                        AND NVL(INSA_PWD,'1111')    =   CASE WHEN IN_PASSWD = '1111' THEN NVL(INSA_PWD,'1111') ELSE '-' END
+
+                UNION ALL
+                SELECT
+                          '3'                      AS USER_GUBUN
+                        , OEBU_USER_ID             AS USER_ID
+                        , OEBU_USER_NM             AS USER_NM
+                        , OEBU_USER_PW             AS USER_PW
+                        , BIRTHDAY                 AS USER_REGNO1
+                        , NULL                     AS USER_REGNO2
+                        , SOSOK_CD                 AS BUSEO_CD
+                        , ''                       AS JIKGEUP_CD 
+                        , '1'                      AS JAEJIK_GBCD 
+                        , ''                       AS HAKNYEON
+                        , ''                       AS JINGEUPHAKNYEON
+                        , '2'                      AS SINBUN_CD
+                        , TEL_NO                   AS HP_NO
+                        , ''                       AS EMAIL
+                        , ''                       AS HAKGYO_EMAIL_ID
+                        , ''                       AS HOEGYE_DANWI
+                FROM    COMMON.CS_OEBUUSER_M
+                WHERE       OEBU_USER_ID    =   IN_USER_ID
+--                    변환하면서 암호솔루션 부재로 암호보분 제거                
+--                        AND OEBU_USER_PW    =   XX1.ENC_VARCHAR_INS(IN_PASSWD,11,'SH3')
+                        AND OEBU_USER_PW    =   IN_PASSWD
+
+--                        AND NVL(OEBU_USER_PW,'1111')    =   CASE WHEN IN_PASSWD = '1111' THEN NVL(OEBU_USER_PW,'1111') ELSE '-' END
+
+                        AND SAYONG_YN       =   '1'
+                )           A
+        ;--
+
+END
+
+--COMMIT;

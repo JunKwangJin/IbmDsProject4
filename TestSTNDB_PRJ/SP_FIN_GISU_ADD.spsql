@@ -1,0 +1,160 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN_GISU_ADD"
+--/*******************************************************************************
+--파일명    : GADMIN.SP_FIN_GISU_ADD
+--생성일자  : 2026.06.26
+--생성자    : 전광진
+--내용      : 기수 테이블(GADMIN.BSACC9)에 다음 기수를 추가 (마감 및 이월)
+--           입력된 기수(IN_GISU)를 기준으로 기수+1, 년도+1 하여 신규 기수를 등록
+--           신규 기수의 날짜 범위: (현재년도+1)-01-01 ~ (현재년도+1)-12-31
+--           처리 성공 시 현재 기수(IN_GISU)의 MAGAM_CHK를 '1'로 업데이트
+-- INPUT   : IN_GISU          현재 기수 (3자리 숫자, 예: '001')
+--         : IN_UPD_GB        처리구분 (0:최초호출-INSERT시도, 1:중복확인후재호출-UPDATE)
+-- OUTPUT  : OUT_CNT          처리 COUNT
+--         : OUT_MSG          처리결과메시지 (중복시 'DUO:...', 오류 시 오류코드 포함)
+--*******************************************************************************/
+(
+      IN  IN_GISU               VARCHAR(3)
+   , IN  IN_UPD_GB              VARCHAR(1)
+   , OUT OUT_CNT                VARCHAR(4)
+   , OUT OUT_MSG                VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+    
+    DECLARE V_PROC_NM           VARCHAR(200)   DEFAULT '"GADMIN"."SP_FIN_GISU_ADD"';-- 
+
+    DECLARE V_START             VARCHAR(10)    DEFAULT '';--
+    DECLARE V_TERMINATION       VARCHAR(10)    DEFAULT '';--
+    DECLARE V_YEAR              VARCHAR(4)     DEFAULT '';--
+    DECLARE V_NEW_GISU          VARCHAR(3)     DEFAULT '';--
+    DECLARE V_NEW_YEAR          CHAR(4)        DEFAULT '';--
+    DECLARE V_NEW_START         VARCHAR(10)    DEFAULT '';--
+    DECLARE V_NEW_TERMINATION   VARCHAR(10)    DEFAULT '';--
+    DECLARE V_CNT               INTEGER        DEFAULT 0;--
+    DECLARE V_EXIST_START       VARCHAR(10)    DEFAULT '';--
+    DECLARE V_EXIST_TERMINATION VARCHAR(10)    DEFAULT '';--
+    DECLARE V_KEY_MSG           VARCHAR(10000) DEFAULT '';--
+    
+    DECLARE V_USER_ID           VARCHAR(25)    DEFAULT '';--
+    DECLARE V_WORKSTATION       VARCHAR(200)    DEFAULT '';--
+    DECLARE V_APPLICATIONINFOMATION  VARCHAR(200)    DEFAULT '';--
+
+    DECLARE SQLCODE             INTEGER        DEFAULT 0;--
+    DECLARE SQLSTATE            CHAR(5)        DEFAULT '00000';--
+    DECLARE V_SQLSTATE          CHAR(5)        DEFAULT '00000';--
+
+    DECLARE LEN_UNDER           CONDITION FOR SQLSTATE '01004';-- 변수의 길이가 너무 작습니다.
+    DECLARE LEN_OVER            CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL            CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO             CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE            CONDITION FOR SQLSTATE '42704';-- TABLE이 없을때
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--
+    DECLARE UNDO HANDLER FOR LEN_UNDER        SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+    DECLARE UNDO HANDLER FOR NO_TABLE         SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+    DECLARE UNDO HANDLER FOR NOT_NULL         SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+    DECLARE UNDO HANDLER FOR ROW_DUO          SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+    DECLARE UNDO HANDLER FOR LEN_OVER         SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+    DECLARE UNDO HANDLER FOR SQLWARNING       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13)||'[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']');--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) = ('0', '');--
+    SET V_KEY_MSG = '[기수]:'||COALESCE(IN_GISU, '');--
+    
+    SET V_USER_ID = CURRENT CLIENT_USERID;--
+    SET V_WORKSTATION = CURRENT CLIENT_WRKSTNNAME;--
+    SET V_APPLICATIONINFOMATION = CURRENT CLIENT_APPLNAME;--
+
+--  현재 기수의 날짜 정보 조회
+    SET V_SQLSTATE = '00000';--
+    SELECT START, TERMINATION
+      INTO V_START, V_TERMINATION
+      FROM GADMIN.BSACC9
+     WHERE GISU = IN_GISU;--
+
+    IF V_SQLSTATE <> '00000' THEN
+        SET OUT_MSG = 'ERR10: '||COALESCE(V_KEY_MSG,'')||' 해당 기수를 찾을 수 없습니다.'
+                      ||CHR(13)||'[SQLSTATE:'||V_SQLSTATE||']';--
+        RETURN;--
+    END IF;--
+
+--  기수+1, 년도+1 계산
+    SET V_YEAR            = LEFT(V_START, 4);--
+    SET V_NEW_GISU        = LPAD(INTEGER(IN_GISU) + 1, 3, '0');--
+    SET V_NEW_YEAR        = CAST(INTEGER(V_YEAR) + 1 AS CHAR(4));--
+    SET V_NEW_START       = V_NEW_YEAR||'-01-01';--
+    SET V_NEW_TERMINATION = V_NEW_YEAR||'-12-31';--
+
+    SET V_KEY_MSG = '[기수]:'||COALESCE(IN_GISU,'')||
+                   ' -> [신규기수]:'||COALESCE(V_NEW_GISU,'')||
+                   ' [기간]:'||COALESCE(V_NEW_START,'')||' ~ '||COALESCE(V_NEW_TERMINATION,'');--
+
+--  신규 기수 중복 체크
+    SELECT COUNT(*) INTO V_CNT
+      FROM GADMIN.BSACC9
+     WHERE GISU = V_NEW_GISU;--
+
+    IF COALESCE(V_CNT, 0) > 0 THEN
+--      DB에 저장된 기존 기수 정보 조회
+        SELECT START, TERMINATION
+          INTO V_EXIST_START, V_EXIST_TERMINATION
+          FROM GADMIN.BSACC9
+         WHERE GISU = V_NEW_GISU;--
+
+        IF IN_UPD_GB = '0' THEN
+--          최초 호출(INSERT 시도)인데 중복 → DUO 반환, 재호출 시 IN_UPD_GB='1' 로 UPDATE 요청
+            SET OUT_MSG = 'DUO: 이미 존재하는 기수입니다.'
+                          ||CHR(13)||'[신규기수: '||V_NEW_GISU||'] [기간: '||V_EXIST_START||' ~ '||V_EXIST_TERMINATION||']'
+--                          ||CHR(13)||'IN_UPD_GB=1 로 재호출하면 UPDATE합니다.'
+--                          ||CHR(13)||'[SQLSTATE:'||SQLSTATE||']'
+                          ;--
+            RETURN;--
+        END IF;--
+
+--      IN_UPD_GB='1': 중복 확인 후 재호출 → UPDATE
+        UPDATE GADMIN.BSACC9
+           SET START       = V_NEW_START
+             , TERMINATION = V_NEW_TERMINATION
+             , M_USER      = V_USER_ID
+             , M_DATE      = CURRENT TIMESTAMP
+         WHERE GISU = V_NEW_GISU;--
+
+--      현재 기수 마감 처리
+        UPDATE GADMIN.BSACC9
+           SET MAGAM_CHK   = '1'
+             , M_USER      = V_USER_ID
+             , M_DATE      = CURRENT TIMESTAMP
+         WHERE GISU = IN_GISU;--
+
+        SET (OUT_CNT, OUT_MSG) = ('1', COALESCE(OUT_MSG,'')||CHR(13)||
+                                 '수정되었습니다. [신규기수:'||V_NEW_GISU||
+                                 '] [기간:'||V_NEW_START||' ~ '||V_NEW_TERMINATION||']'||CHR(13)||
+                                 '마감처리되었습니다. [기수:'||IN_GISU||']');--
+        RETURN;--
+    END IF;--
+
+--  신규 기수 등록 (중복 없음)
+    INSERT INTO GADMIN.BSACC9
+           ( GISU,        START,        TERMINATION,       C_USER,     C_DATE )
+    VALUES ( V_NEW_GISU,  V_NEW_START,  V_NEW_TERMINATION, V_USER_ID, CURRENT TIMESTAMP);--
+    SET (OUT_CNT, OUT_MSG) = ('1', V_NEW_GISU||'기['||V_NEW_GISU||
+                                 '] [기간:'||V_NEW_START||' ~ '||V_NEW_TERMINATION||']'||' 회기년도가 생성되었습니다.');--
+                 
+
+
+--  현재 기수 마감 처리
+    UPDATE GADMIN.BSACC9
+       SET MAGAM_CHK   = '1'
+       ,   M_USER      = V_USER_ID
+       ,   M_DATE      = CURRENT TIMESTAMP
+     WHERE GISU = IN_GISU;--
+
+    SET (OUT_CNT, OUT_MSG) = ('1', COALESCE(OUT_MSG,'')||CHR(13)||
+                             '저장되었습니다. [신규기수:'||V_NEW_GISU||
+                             '] [기간:'||V_NEW_START||' ~ '||V_NEW_TERMINATION||']'||CHR(13)||
+                             '마감처리되었습니다. [기수:'||IN_GISU||']');--
+
+END MAIN 

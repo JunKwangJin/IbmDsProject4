@@ -1,0 +1,104 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_JUSO_INFO"  (
+    p_keyword VARCHAR(255),
+    p_page_size INT DEFAULT 10, -- 한 페이지에 가져올 주소 개수 (기본 10개, 최대 1000)
+    p_current_page INT DEFAULT 1 -- 가져올 페이지 번호 (기본 1페이지)
+)
+RETURNS TABLE (
+    road_addr VARCHAR(500),    -- 도로명 주소
+    zip_no VARCHAR(10)         -- 우편번호
+)
+LANGUAGE SQL
+DETERMINISTIC
+READS SQL DATA
+NO EXTERNAL ACTION
+BEGIN ATOMIC
+
+    -- 여기에 너의 juso.go.kr API 인증키를 넣어줘!
+    DECLARE v_api_key VARCHAR(50) DEFAULT 'U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDM=';
+    DECLARE v_encoded_keyword VARCHAR(512);
+    DECLARE v_api_url VARCHAR(1000);
+    DECLARE v_http_response CLOB; -- HTTP 응답은 CLOB으로 받아서 XMLPARSER로 XML로 변환
+    DECLARE v_xml_response XML;   -- CLOB을 XML로 파싱한 결과
+    DECLARE v_error_code VARCHAR(10);
+    DECLARE v_error_msg VARCHAR(500);
+    DECLARE v_total_count INT;
+    DECLARE v_page_size INT;
+    DECLARE v_page_count INT;
+    DECLARE v_current_page INT;
+
+    SET v_page_size = p_page_size;
+    SET v_current_page = p_current_page;
+    -- p_page_size가 유효한 범위(1~1000)를 벗어나면 조정
+    SET v_page_size = CASE
+                          WHEN v_page_size < 1 THEN 1
+                          WHEN v_page_size > 100 THEN 100
+                          ELSE v_page_size
+                      END;
+--"https://business.juso.go.kr/addrlink/addrLinkApi.do?currentPage=1&countPerPage=10&keyword=대구 지산동&confmKey=U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDQ=&resultType=json"
+    -- p_current_page가 1보다 작으면 1로 조정
+    SET v_current_page = CASE
+                            WHEN v_current_page < 1 THEN 1
+                            ELSE v_current_page
+                         END;
+
+    -- 1. 검색 키워드를 URL 인코딩
+    SET v_encoded_keyword = DB2XML.URLENCODE(p_keyword, 'UTF-8');
+
+    -- 2. juso.go.kr API URL 구성 (페이지네이션 추가)
+    SET v_api_url = CAST('https://business.juso.go.kr/addrlink/addrLinkApi.do' ||
+                    '?confmKey=' || v_api_key ||
+                    '&currentPage=' || DB2XML.URLENCODE(CHAR(v_current_page), '') ||
+                    '&countPerPage=' || DB2XML.URLENCODE(CHAR(v_page_size), '') ||
+                    '&keyword=' || v_encoded_keyword ||
+                    '&resultType=xml' AS VARCHAR(255)); -- 결과 타입 XML로 유지!
+
+    -- 3. HTTP GET 요청 보내기 (응답은 CLOB으로 받음)
+    SET v_http_response = DB2XML.HTTPGETCLOB(v_api_url, XMLPARSE(DOCUMENT '<httpHeader/>'));
+
+    -- 4. CLOB 응답을 XML로 파싱
+    -- 만약 응답이 비어있으면(NULL) XMLPARSER가 에러를 낼 수 있으므로 체크
+    IF v_http_response IS NOT NULL THEN
+        SET v_xml_response = XMLPARSE(DOCUMENT v_http_response);
+    ELSE
+        -- 응답이 NULL인 경우 빈 XML을 할당하거나 적절히 처리
+        SET v_xml_response = XMLPARSE(DOCUMENT '<httpHeader/>');
+    END IF;
+
+    -- 5. XML 응답에서 공통 정보(errorCode, totalCount) 추출
+    -- XMLELEMENT와 XMLQUERY를 사용 (경로는 XML마다 다를 수 있으니 정확한 경로 확인 필수)
+    -- 예상 경로: /response/common/errorCode, /response/common/totalCount
+    SET v_error_code = XMLCAST(XMLQUERY('$X/response/common/errorCode/text()' PASSING v_xml_response AS "X") AS VARCHAR(5));
+    SET v_error_msg = XMLCAST(XMLQUERY('$X/response/common/errorMessage/text()' PASSING v_xml_response AS "X") AS VARCHAR(500));
+    SET v_total_count = XMLCAST(XMLQUERY('$X/response/common/totalCount/text()' PASSING v_xml_response AS "X") AS INTEGER);
+    SET v_page_count = v_total_count / v_page_size;--페이지수 계산
+        -- 성공적으로 주소 정보를 받아왔고 결과가 있을 때 XMLTABLE을 사용
+        -- XMLTABLE은 XML 문서를 테이블 형태로 펼쳐줌
+
+	IF XMLCAST(v_xml_response AS VARCHAR(5000)) IS NULL OR LENGTH(TRIM(XMLCAST(v_xml_response AS VARCHAR(5000)))) = 0 THEN
+        SET v_error_msg = 'API 응답이 비어있습니다 (네트워크 문제 또는 빈 응답).';
+        SET v_error_code = 'DB_ERROR';
+    END IF;
+
+	IF v_error_code <> '0' THEN
+	    SET v_error_msg = CASE 
+	                         WHEN v_error_code = '-999' THEN '우편번호가 정상조회 되지 않습니다.(관리자에게 문의 하세요)'
+	                         ELSE REPLACE(v_error_msg,'검색어','주소')
+	                      END;
+    END IF;
+    -- 성공적으로 주소 정보를 받아왔고 결과가 있을 때 XMLTABLE을 사용
+    -- XMLTABLE은 XML 문서를 테이블 형태로 펼쳐줌
+    RETURN SELECT v_error_msg, v_error_code FROM SYSIBM.SYSDUMMY1
+           UNION ALL
+    	   SELECT T.roadAddr, T.zipNo
+             FROM XMLTABLE('$result//response/juso' PASSING v_xml_response as "result"
+                COLUMNS
+                    roadAddr VARCHAR(500) PATH 'roadAddr',
+                    zipNo VARCHAR(10) PATH 'zipNo'
+                ) AS T;
+--    ELSE
+--        -- API 호출 실패 또는 검색 결과가 없을 때 빈 테이블 반환
+--        -- 빈 결과를 명시적으로 반환
+--        RETURN SELECT NULL AS road_addr, NULL AS zip_no
+--               FROM SYSIBM.SYSDUMMY1
+--               WHERE 1 = 0; -- 항상 FALSE 조건을 주어 빈 테이블 반환
+END

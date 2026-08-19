@@ -1,0 +1,54 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_CUSTOMER_M_GETALL" 
+(
+    OUT OUT_CNT INTEGER, 
+    OUT OUT_MSG VARCHAR(1000)
+)
+  DYNAMIC RESULT SETS 1 
+ LANGUAGE SQL
+P1: BEGIN
+------------------------------------------------------------------------
+-- SQL Stored Procedure 
+------------------------------------------------------------------------
+DECLARE CURSOR_CS_CUSTOMER_M CURSOR WITH RETURN FOR 
+	SELECT CT.CUSTOMER_ID AS CustomerId
+	       , CT.CUSTOMER_NM AS CustomerNm
+	       , CT.BIZ_NO AS BizNo
+	       , CT.CEO_NM AS CeoNm
+	       , CT.JUMIN_NO AS JuminNo
+	       , CT.BIZ_FORMAT AS BizFormat
+	       , CT.BIZ_KIND AS BizKind
+	       , CT.TEL_NO AS TelNo
+	       , CT.FAX_NO AS FaxNo
+	       , CT.POST_CD AS PostCd
+	       , CT.BIZ_ADD1 AS BizAdd1
+	       , CT.BIZ_ADD2 AS BizAdd2
+	       , CT.PURSAL_GBCD AS PurSalGbCd
+	       , CS105.CD_SNM AS PurSalGb
+	       , CT.EMAIL AS Email
+	       , CT.USE_YN AS UseYn
+	       , CT.INITIAL_DT AS InitialDt
+	       , CT.USAGE_SOSOK_CD AS UsageSosokCd
+	       , SK.SOSOK_NM AS UsageSosok
+	       , CT.DC_RATE AS DcRate
+	       , CT.ROW_ID AS RowId
+	       , CT.INSERT_ID AS InsertId
+	       , CT.INSERT_NM AS InsertNm
+	       , CT.INSERT_DT AS InsertDt
+	       , CT.INSERT_IP AS InsertIp
+	       , CT.INSERT_PGM AS InsertPgm
+	       , CT.UPDATE_ID AS UdateId
+	       , CT.UPDATE_NM AS UdateNm
+	       , CT.UPDATE_DT AS UdateDt
+	       , CT.UPDATE_IP AS UdateIp
+	       , CT.UPDATE_PGM AS UpdatePgm
+	FROM GADMIN.CS_CUSTOMER_M AS CT
+	   LEFT OUTER JOIN GADMIN.CS_SOSOK_M AS SK
+	   ON CT.USAGE_SOSOK_CD = SK.SOSOK_CD
+	   LEFT OUTER JOIN TABLE (GADMIN.USF_COMMON_LST02('', 'CS105')) AS CS105
+	   ON CT.PURSAL_GBCD = CS105.CD
+	WHERE CUSTOMER_NM LIKE '%'
+	ORDER BY CUSTOMER_NM;
+    
+OPEN CURSOR_CS_CUSTOMER_M;--
+
+END P1 

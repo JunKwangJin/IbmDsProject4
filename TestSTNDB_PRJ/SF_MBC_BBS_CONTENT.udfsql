@@ -1,0 +1,65 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_BBS_CONTENT"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_BBS_CONTENT
+생성일자	: 2021.12.21
+생성자	: 전광진
+내용	    : 게시판 목록 리스트
+수정일자	: 2022. 6. 13
+수정자	: 전광진
+수정내용    : 게시판 제목과 게시일자를 리턴테이블에 추가한다.
+예제
+SELECT * FROM GADMIN.SF_MBC_BBS_CONTENT(휴대폰번호, BBSID)
+*******************************************************************************/
+(
+    IN IN_CELLPHONE  VARCHAR(11)  -- 전화번호
+  , IN IN_BBSID      VARCHAR(14)  -- BBSID
+)
+
+
+RETURNS
+    TABLE
+    (
+      BBS_CONTENT   VARCHAR(5000)
+    , BBS_TITLE     VARCHAR(150)
+    , BBS_DT        TIMESTAMP
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_CELLPHONE  VARCHAR(11);-- 전화번호
+   DECLARE V_BBSID      VARCHAR(14);-- BBSID
+   DECLARE V_BBS_GROUP_GB
+                        VARCHAR(1);-- 게시판 사용자 그룸(1:개별, 2:전체)
+
+   SET V_CELLPHONE = COALESCE(IN_CELLPHONE,'');--
+   SET V_BBSID     = COALESCE(IN_BBSID,'');--
+
+   SET V_BBS_GROUP_GB   = (SELECT BBS_GROUP_GB
+                             FROM GADMIN.MBC_BBS
+                            WHERE BBSID = V_BBSID);--
+
+   RETURN
+   SELECT B.BBS_CONTENT
+        , B.BBS_TITLE
+        , B.BBS_DT
+     FROM GADMIN.MBC_BBS AS B INNER JOIN
+          ( SELECT INSA_NO AS USERID
+                 , CELLPHONE
+                 , 1 AS BBS_GROUP_GB
+                 , BBSID
+              FROM GADMIN.MBC_BBSUSERS
+             WHERE BBSID = V_BBSID
+             UNION ALL
+            SELECT INSA_NO AS USERID
+                 , CELLPHONE
+                 , 2 AS BBS_GROUP_GB
+                 , V_BBSID AS BBSID
+              FROM GADMIN.MBC_USERS
+             WHERE JAEJIK_YN = '1'
+          ) AS U
+       ON B.BBSID = U.BBSID
+      AND B.BBS_GROUP_GB = U.BBS_GROUP_GB
+    WHERE U.CELLPHONE = V_CELLPHONE
+      AND U.BBSID  = V_BBSID
+    ;--
+END

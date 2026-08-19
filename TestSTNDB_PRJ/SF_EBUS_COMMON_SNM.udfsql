@@ -1,0 +1,51 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_EBUS_COMMON_SNM"    (IN_UP_CD VARCHAR(20),
+IN_SNM VARCHAR(60), IN_RETURN VARCHAR(20))
+
+RETURNS VARCHAR(1000)
+BEGIN
+    DECLARE V_RETURN_VALUE VARCHAR(1000);--
+    DECLARE SQLSTATE CHAR(5)  DEFAULT '00000';--
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE CONTINUE HANDLER FOR NOT FOUND RETURN (null); --('DATA NOT FOUND'); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN (SQLCODE); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+--    BEGIN
+    SELECT (CASE IN_RETURN
+                WHEN 'UP_CD'    THEN    UP_CD
+                WHEN 'CD'       THEN    CD
+                WHEN 'CD_NM'    THEN    CD_NM
+                WHEN 'CD_ENM'   THEN    CD_ENM
+                WHEN 'ABBR_NM'  THEN    CD_SNM
+                WHEN 'ABBR_ENM' THEN    CD_ESNM
+                WHEN 'CD_LEN'   THEN    CD_LEN
+                WHEN 'SORT'     THEN    TO_CHAR(SORT)
+                WHEN 'SAYONG_YN' THEN   SAYONG_YN
+                WHEN 'BIGO'     THEN    BIGO
+                WHEN 'CD1'      THEN    CD1
+                WHEN 'CD2'      THEN    CD2
+                WHEN 'CD3'      THEN    CD3
+                WHEN 'CD4'      THEN    CD4
+                WHEN 'CD5'      THEN    CD5
+                WHEN 'CD6'      THEN    CD6
+                WHEN 'CD7'      THEN    CD7
+                WHEN 'CD8'      THEN    CD8
+                WHEN 'CD9'      THEN    CD9
+                WHEN 'CD10'     THEN    CD10
+            ELSE CD END)
+      INTO V_RETURN_VALUE
+      FROM GADMIN.EBUS_COMMON_C AS T1
+     WHERE UP_CD = IN_UP_CD
+       AND CD_SNM = IN_SNM
+     ORDER BY SORT
+     ;          --
+
+--    EXCEPTION
+--       WHEN NOT FOUND THEN
+----            RETURN (NULL);--
+--            RETURN (SQLCODE);--
+--        WHEN OTHERS THEN
+--            RETURN (NULL);--
+--    END;       --
+
+    RETURN V_RETURN_VALUE;--
+
+END

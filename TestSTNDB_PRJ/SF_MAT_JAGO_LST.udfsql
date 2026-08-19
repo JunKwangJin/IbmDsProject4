@@ -1,0 +1,79 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MAT_JAGO_LST"
+(
+      IN_IPADDR VARCHAR(16),
+      IN_CHANGGO_CD VARCHAR(6), IN_CHULGO_DT DATE, IN_GUBUN_CD VARCHAR(2)
+)
+  RETURNS
+      TABLE(
+                 SEQ        VARCHAR(2000)
+               , PRODUC_NO  VARCHAR(8)
+               , PRODUC_NM  VARCHAR(100)
+               , JAGO_QTY   DECIMAL(12,2)
+               , CHULGO     DECIMAL(12,2)
+               , JANGO      DECIMAL(12,2)
+           )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+
+  RETURN
+  WITH VT_EWOL AS
+                -- 이월 데이터
+               (
+                 SELECT PRODUC_NO
+                      , COALESCE(EWOL_01,0) AS QTY
+                   FROM GADMIN.JAGUJAGO
+                  WHERE YEAR       =  SUBSTR(IN_CHULGO_DT, 1,4)
+                    AND CHANGGO_CD =  IN_CHANGGO_CD
+                )
+     , VT_JACHUL AS
+                 -- 출고일 현재까지 당해에 출고된 수량 합계를 구함
+               (
+                 SELECT PRODUC_NO
+                      , COALESCE(SUM(COALESCE(QTY,0)),0) AS QTY
+                   FROM GADMIN.JACHUL1
+                  WHERE DATE BETWEEN TRUNC(IN_CHULGO_DT,'YYYY') AND IN_CHULGO_DT
+                    AND (DATE = IN_CHULGO_DT AND GUBUN_CD <> IN_GUBUN_CD) -- 출고일과 같으면서 출고구분이 같으면 출고수량에서 제외
+                    AND CHANGGO_CD = IN_CHANGGO_CD
+                  GROUP BY PRODUC_NO
+               )
+     , VT_JAGUMA AS
+                 -- 구매 수량 파악
+               (
+                 SELECT PRODUC_NO
+                      , COALESCE(SUM(COALESCE(QTY,0)),0) AS QTY
+                   FROM GADMIN.JAGUMA1
+                  WHERE DATE BETWEEN TRUNC(IN_CHULGO_DT,'YYYY') AND IN_CHULGO_DT
+                    AND CHANGGO_CD = IN_CHANGGO_CD
+                  GROUP BY PRODUC_NO
+               )
+     , VT_TEMP AS
+                 -- 구매 수량 파악
+               (
+                 SELECT LEFT(LISTAGG(SEQ, ', ') WITHIN GROUP (ORDER BY SEQ), 2000) AS SEQ
+                      , PRODUC_NO
+                      , COALESCE(SUM(COALESCE(QTY,0)),0) AS QTY
+                   FROM GADMIN.JACHUL1_TEMP
+                  WHERE IPADDR = IN_IPADDR
+                    AND DATE          = IN_CHULGO_DT
+                    AND CHANGGO_CD    = IN_CHANGGO_CD
+                    AND GUBUN_CD      = IN_GUBUN_CD
+                  GROUP BY PRODUC_NO
+               )
+-- 임시테이블 의 재고파악
+  SELECT  SEQ
+       ,  VT_TEMP.PRODUC_NO
+       ,  BSJAJA.PRODUC_NM
+       ,  COALESCE(VT_EWOL.QTY,0) + COALESCE(VT_JAGUMA.QTY,0) - COALESCE(VT_JACHUL.QTY,0)
+       ,  COALESCE(VT_TEMP.QTY,0)
+       ,  COALESCE(VT_EWOL.QTY,0) + COALESCE(VT_JAGUMA.QTY,0) - COALESCE(VT_JACHUL.QTY,0) - COALESCE(VT_TEMP.QTY,0)
+    FROM VT_TEMP
+    LEFT OUTER JOIN GADMIN.BSJAJA AS BSJAJA
+                                  ON VT_TEMP.PRODUC_NO = BSJAJA.PRODUC_NO
+    LEFT OUTER JOIN VT_EWOL       ON VT_TEMP.PRODUC_NO = VT_EWOL.PRODUC_NO
+    LEFT OUTER JOIN VT_JACHUL     ON VT_TEMP.PRODUC_NO = VT_JACHUL.PRODUC_NO
+    LEFT OUTER JOIN VT_JAGUMA     ON VT_TEMP.PRODUC_NO = VT_JAGUMA.PRODUC_NO
+   ;--
+
+END

@@ -1,0 +1,52 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_EBUS_USERMENUSOSOK"
+(
+    IN IN_USER_ID  VARCHAR(20) --EBUS_GROUPUSER_M.USER_ID%TYPE -- USER_ID
+,   IN IN_MENU_ID  VARCHAR(10) --EBUS_GROUPMENU_M.USER_ID%TYPE -- MENU_ID
+,   IN IN_SOSOK_TYPE VARCHAR(1)  -- 1 郴家加, 2 瘤沥家加 殿
+)
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_USEREOPMUSOSOK CURSOR WITH RETURN FOR
+		     SELECT SOSOK_CD
+		           , SOSOK_NM
+		           , ABBR_NM
+		       FROM (
+		              SELECT DISTINCT GUH.SOSOK_CD
+                            , S.SOSOK_NM
+                            , S.ABBR_NM
+                            , S.SORT
+                      FROM GADMIN.EBUS_GROUPMENU_M GM
+                     INNER JOIN (SELECT GU.AUTHGROUP_ID
+                                         , GU.USER_ID
+                                         , GU.SOSOK_CD
+                                     FROM GADMIN.EBUS_GROUPUSER_M as GU
+                                    UNION ALL
+                                   SELECT GH.AUTHGROUP_ID
+                                         , GH.USER_ID
+                                         , GH.SOSOK_CD
+                                     FROM GADMIN.EBUS_EOPMUGH_M as GH) as GUH
+                        ON GM.AUTHGROUP_ID=GUH.AUTHGROUP_ID
+                      INNER JOIN GADMIN.EBUS_SOSOK_M as S ON GUH.SOSOK_CD=S.SOSOK_CD
+                      WHERE GUH.USER_ID = IN_USER_ID
+                        AND GM.MENU_ID = IN_MENU_ID
+                        )
+             ORDER BY SORT;--
+
+	    OPEN CURSOR_USEREOPMUSOSOK;--
+   END P1;--
+END MAIN 

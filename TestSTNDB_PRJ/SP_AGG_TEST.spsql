@@ -1,0 +1,11 @@
+CREATE OR REPLACE PROCEDURE GADMIN.SP_AGG_TEST
+ (OUT OUT_TERMINAL_NM GADMIN.TERMINALS)
+P1: BEGIN
+	-- #######################################################################
+	-- # Returns count of tables created by GADMIN and like VARNAME
+	-- #######################################################################
+   SELECT ARRAY_AGG(TERMINAL_NM ORDER BY SEQ)
+     INTO OUT_TERMINAL_NM
+   FROM GADMIN.BSUNHA4_D
+   WHERE ROUTE_CD = '120';--
+END P1 

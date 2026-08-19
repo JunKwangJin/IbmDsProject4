@@ -1,0 +1,103 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB" 
+(
+    IN P_TAB_NAME VARCHAR(128),     -- 테이블 이름 (예: gadmin.cs_common_c)
+    IN P_PK_COL VARCHAR(128),       -- 고유 키 컬럼 (자식, 예: CD)
+    IN P_FK_COL VARCHAR(128),       -- 외래 키 컬럼 (부모, 예: UP_CD)
+    IN P_TEXT_COL VARCHAR(128),     -- 표시할 텍스트 컬럼 (예: CD_NM)
+    IN P_START_VAL VARCHAR(255)     -- 시작 부모 값 (최상위 부모의 UP_CD, 예: 'A')
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: "GADMIN"."USP_CS_HiERARCHY_TAB" 
+생성일자	: 2025.10.5
+생성자	: 전광진
+내용    	: Table를 Hierarchy Table구조로 만든다.
+수정일자	:
+수정자	:
+수정내용    :
+INPUT   : IN P_TAB_NAME VARCHAR(128),     -- 1. 테이블 이름 (예: gadmin.cs_common_c) 
+          IN P_PK_COL VARCHAR(128),       -- 2. 고유 키 컬럼 (자식, 예: CD)            
+          IN P_FK_COL VARCHAR(128),       -- 3. 외래 키 컬럼 (부모, 예: UP_CD)         
+          IN P_TEXT_COL VARCHAR(128),     -- 4. 표시할 텍스트 컬럼 (예: CD_NM)          
+          IN P_START_VAL VARCHAR(255)     -- 5. 시작 부모 값 (최상위 부모의 UP_CD, 예: 'A')
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_SQL_STATEMENT VARCHAR(8000); -- 쿼리 길이 고려해서 좀 더 길게 잡음
+    DECLARE C_RESULT CURSOR WITH RETURN TO CALLER FOR S1;
+
+
+    -- 동적 SQL로 쿼리 생성 시작!
+
+    SET V_SQL_STATEMENT = 'WITH LEVEL1 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY T.' || P_PK_COL || ') AS ROWNO, ' ||
+        'T.' || P_FK_COL || ' AS UP_CD, ' ||
+        'T.' || P_PK_COL || ' AS CD, ' ||
+        'T.' || P_TEXT_COL || ' AS CD_NM, ' ||
+        '1 AS LEVEL, ' ||
+        'CAST(T.' || P_PK_COL || ' AS VARCHAR(1000)) AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' AS T ' ||
+        'WHERE T.' || P_FK_COL || ' = ''' || P_START_VAL || '''), ' ||
+
+    -- LEVEL2 CTE 추가        
+        'LEVEL2 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'C.' || P_FK_COL || ' AS UP_CD, ' ||
+        'C.' || P_PK_COL || ' AS CD, ' ||
+        'C.' || P_TEXT_COL || ' AS CD_NM, ' ||
+        '2 AS LEVEL, ' ||
+        'L1.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL1 L1 ON C.' || P_FK_COL || ' = L1.CD), ' ||
+
+    -- LEVEL3 CTE 추가 
+        'LEVEL3 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'C.' || P_FK_COL || ' AS UP_CD, ' ||
+        'C.' || P_PK_COL || ' AS CD, ' ||
+        'C.' || P_TEXT_COL || ' AS CD_NM, ' ||
+        '3 AS LEVEL, ' ||
+        'L2.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL2 L2 ON C.' || P_FK_COL || ' = L2.CD), ' ||
+        
+    -- LEVEL4 CTE 추가
+        'LEVEL4 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'C.' || P_FK_COL || ' AS UP_CD, ' ||
+        'C.' || P_PK_COL || ' AS CD, ' ||
+        'C.' || P_TEXT_COL || ' AS CD_NM, ' ||
+        '4 AS LEVEL, ' ||
+        'L3.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL3 L3 ON C.' || P_FK_COL || ' = L3.CD) ' ||
+
+    -- 최종 SELECT와 UNION ALL 부분 (원래 둘리님 쿼리처럼)
+        'SELECT ROWNO, UP_CD, CD, CD_NM, LEVEL, PATH ' ||
+        'FROM (' ||
+        'SELECT * FROM LEVEL1 ' ||
+        'UNION ALL SELECT * FROM LEVEL2 ' ||
+        'UNION ALL SELECT * FROM LEVEL3 ' ||
+        'UNION ALL SELECT * FROM LEVEL4 ' ||
+        ') AS ALL_LEVELS ' ||
+        'ORDER BY PATH';
+
+    -- 디버깅용으로 SQL 문장 출력 (선택 사항 - 나중에 주석 처리해도 돼)
+    CALL DBMS_OUTPUT.PUT_LINE(V_SQL_STATEMENT);
+
+    -- 동적 SQL 실행!
+    PREPARE S1 FROM V_SQL_STATEMENT;
+    OPEN C_RESULT;
+
+END MAIN 

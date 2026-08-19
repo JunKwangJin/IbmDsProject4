@@ -1,0 +1,114 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MAT_PRODJAGO_LST01"
+/*******************************************************************************
+파일명	: GADMIN.SF_MAT_PRODJAGO_LST01
+생성일자	: 2022.4.8
+생성자	: 전광진
+내용	    : 재고를 포함한 품목리스트(jachul1)
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_MAT_PRODJAGO_LST01(APPLICATIONID, 출고일자, 창고코드, 구분코드, 품목코드, 품목명, SEQ)
+* IPADDR: SYSPROC.MON_GET_APPLICATION_ID()
+*******************************************************************************/
+                         ( IN_IPADDR     VARCHAR(50)  --
+                         , IN_CHULGO_DT  DATE
+                         , IN_CHANGGO_CD VARCHAR(5)
+                         , IN_GUBUN_CD   VARCHAR(2) -- 10: 출고 , 20: 이동출고, 30: 공동출고, 40: 기타출고
+                         , IN_PRODUC_NO  VARCHAR(60)
+                         , IN_PRODUC_NM  VARCHAR(60)
+                         , IN_SEQ        VARCHAR(3)
+                         )
+  RETURNS TABLE( PRODUC_NO      VARCHAR(13)
+               , PRODUC_NM      VARCHAR(60)
+               , CHANGGO_CD     VARCHAR(6)
+               , CHANGGO_NM     VARCHAR(15)
+               , UNIT_CD        VARCHAR(6)
+               , CLASS_CD       VARCHAR(6)
+               , MAKING_CD      VARCHAR(6)
+               , CAR_TYPE_CD    VARCHAR(6)
+               , JAGO_QTY       DECIMAL(12,2)
+               , EWOL_QTY       DECIMAL(12,2)
+               , GUMA_QTY       DECIMAL(12,2)
+               , CHUL_QTY       DECIMAL(12,2)
+               , TEMP_QTY       DECIMAL(12,2)
+               , TD_DT          TIMESTAMP
+               )
+BEGIN ATOMIC
+  DECLARE V_CHULGO_DT DATE; --
+  SET V_CHULGO_DT = COALESCE(IN_CHULGO_DT,CURRENT DATE);--
+  RETURN
+         WITH EWOL (CHANGGO_CD, PRODUC_NO, QTY) AS
+         (SELECT CHANGGO_CD
+                , PRODUC_NO
+                , EWOL_01
+            FROM  GADMIN.JAGUJAGO
+           WHERE YEAR = VARCHAR_FORMAT(V_CHULGO_DT,'YYYY')
+         )
+         , CHUL (CHANGGO_CD, PRODUC_NO, QTY) AS
+         (SELECT CHANGGO_CD
+                , PRODUC_NO
+                , SUM(QTY)
+            FROM GADMIN.JACHUL1
+           WHERE (DATE BETWEEN TRUNC(V_CHULGO_DT,'YYYY') AND V_CHULGO_DT)
+             AND (
+                 CHANGGO_CD <> IN_CHANGGO_CD
+              OR DATE <> V_CHULGO_DT
+              OR GUBUN_CD <> IN_GUBUN_CD
+                 )
+           GROUP BY CHANGGO_CD, PRODUC_NO
+         )
+         , GUMA (CHANGGO_CD, PRODUC_NO, QTY) AS
+         (SELECT CHANGGO_CD
+                , PRODUC_NO
+                , SUM (QTY)
+            FROM GADMIN.JAGUMA1
+           WHERE (DATE BETWEEN TRUNC(V_CHULGO_DT,'YYYY') AND V_CHULGO_DT)
+           GROUP BY CHANGGO_CD, PRODUC_NO
+         )
+         , TEMP (CHANGGO_CD, PRODUC_NO, QTY) AS
+         (SELECT CHANGGO_CD
+                , PRODUC_NO
+                , SUM(QTY)
+            FROM GADMIN.JACHUL1_TEMP
+           WHERE IPADDR = IN_IPADDR
+             AND  SEQ < IN_SEQ
+           GROUP BY CHANGGO_CD, PRODUC_NO
+         )
+         SELECT JJ.PRODUC_NO
+              , JJ.PRODUC_NM
+              , OFFI.DATA AS CHANGGO_CD
+              , OFFI.LABEL AS CHANGGO_NM
+              , JJ.UNIT_CD
+              , JJ.CLASS_CD
+              , JJ.MAKING_CD
+              , JJ.CAR_TYPE_CD
+              , COALESCE(EWOL.QTY, 0.0)
+              + COALESCE(GUMA.QTY, 0.0)
+              - COALESCE(CHUL.QTY, 0.0)
+              - COALESCE(TEMP.QTY, 0.0)
+              , COALESCE(EWOL.QTY, 0.0)
+              , COALESCE(GUMA.QTY, 0.0)
+              , COALESCE(CHUL.QTY, 0.0)
+              , COALESCE(TEMP.QTY, 0.0)
+              , CURRENT TIMESTAMP
+           FROM TABLE(GADMIN.SF_COM_OFFICE_DDLB(LOWER('admin'),'DRV0101')) AS OFFI
+          INNER JOIN GADMIN.BSJAJA AS JJ ON OFFI.DATA <> ''
+                 AND ( JJ.PRODUC_NM LIKE '%'||IN_PRODUC_NO||'%'
+                  OR JJ.PRODUC_NO LIKE '%'||IN_PRODUC_NO||'%'
+                  )
+           LEFT OUTER JOIN EWOL
+             ON JJ.PRODUC_NO  = EWOL.PRODUC_NO
+            AND OFFI.DATA = EWOL.CHANGGO_CD
+           LEFT OUTER JOIN CHUL
+             ON JJ.PRODUC_NO  = CHUL.PRODUC_NO
+            AND OFFI.DATA = CHUL.CHANGGO_CD
+           LEFT OUTER JOIN GUMA
+             ON JJ.PRODUC_NO  = GUMA.PRODUC_NO
+            AND OFFI.DATA = GUMA.CHANGGO_CD
+           LEFT OUTER JOIN TEMP
+             ON JJ.PRODUC_NO  = TEMP.PRODUC_NO
+            AND OFFI.DATA = TEMP.CHANGGO_CD
+          ORDER BY JJ.PRODUC_NM, CHANGGO_NM;--
+
+END

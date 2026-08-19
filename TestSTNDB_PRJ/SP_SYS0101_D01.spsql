@@ -1,0 +1,63 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0101_D01" (
+    IN IN_UP_CD		  VARCHAR(10)
+  , IN IN_CD		  VARCHAR(10)
+
+  , OUT	OUT_CNT		  VARCHAR(2)
+  , OUT	OUT_MSG		  VARCHAR(100)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_SYS0101_D01
+생성일자	: 2021.03.08
+생성자	: 전광진
+내용	: 공통코드 삭제
+수정일자	:
+수정자	:
+수정내용
+INPUT	: IN IN_UP_CD		1.분류코드
+	    : IN IN_CD   		2.공통코드
+
+OUTPUT	: OUT_CNT	    	A.처리결과코드
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+    -- 변수 클리러
+    SET (OUT_CNT, OUT_MSG) = ('0', '');--
+
+    -- 데이터 삭제
+		DELETE FROM GADMIN.EBUS_COMMON_C
+		WHERE 1=1
+		  AND UP_CD        =     IN_UP_CD
+		  AND CD 		   =     IN_CD;--
+
+   SET OUT_CNT = '1'; --
+   SET OUT_MSG = '삭제되었습니다.' ; --
+
+
+END MAIN 

@@ -1,0 +1,177 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB2" 
+(
+    IN P_TAB_NAME VARCHAR(128),     -- 테이블 이름 (예: gadmin.cs_common_c)
+    IN P_PK_COL VARCHAR(128),       -- 고유 키 컬럼 (자식, 예: CD)
+    IN P_FK_COL VARCHAR(128),       -- 외래 키 컬럼 (부모, 예: UP_CD)
+    IN P_TEXT_COL VARCHAR(128),     -- 표시할 텍스트 컬럼 (예: CD_NM)
+    IN P_START_VAL VARCHAR(255)     -- 시작 부모 값 (최상위 부모의 UP_CD, 예: 'A')
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: "GADMIN"."USP_CS_HIERARCHY_TAB" 
+생성일자	: 2025.10.8
+생성자	: 전광진
+내용    	: 불특정 테이블의 계층 구조를 Global Temp Table에 생성
+사용예	:
+    CALL GADMIN.USP_BUILD_HIERARCHY(
+        'GADMIN.CS_COMMON_C', 'CD', 'UP_CD', 'CD_NM', 'A', ?, ?
+    );
+    SELECT * FROM SESSION.GTT_HIERARCHY ORDER BY PATH;
+*******************************************************************************/
+
+LANGUAGE SQL
+
+BEGIN
+    DECLARE V_SQL_STATEMENT VARCHAR(8000);
+
+    DECLARE V_SQLCODE INT DEFAULT 0;
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';
+    DECLARE V_CNT INT DEFAULT 0;
+    DECLARE V_ERROR_MSG VARCHAR(1000);
+    DECLARE V_SQLSTATUS CHAR(5) DEFAULT '00000';
+
+    DECLARE SQLCODE INT DEFAULT 0;
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';
+    DECLARE ROW_COUNT INT DEFAULT 0;
+    DECLARE DB2_RETURN_STATUS CHAR(5) DEFAULT '00000';
+
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SET V_SQLCODE = SQLCODE;
+        SET V_SQLSTATE = SQLSTATE;
+        SET V_CNT = ROW_COUNT;
+        SET V_SQLSTATUS = DB2_RETURN_STATUS;
+        GET DIAGNOSTICS EXCEPTION 1
+            V_ERROR_MSG = MESSAGE_TEXT;
+        
+        SET OUT_CNT = -1;
+        SET OUT_MSG = 'ERROR [' || V_SQLSTATE || '/' || 
+                      CAST(V_SQLCODE AS VARCHAR(10)) || ']: ' || 
+                      COALESCE(V_ERROR_MSG, 'Unknown error');
+    END;
+    
+    DECLARE CONTINUE HANDLER FOR SQLWARNING
+    BEGIN
+        SET V_SQLCODE = SQLCODE;
+        SET V_SQLSTATE = SQLSTATE;
+        SET V_CNT = ROW_COUNT;
+        SET V_SQLSTATUS = DB2_RETURN_STATUS;
+        GET DIAGNOSTICS EXCEPTION 1
+            V_ERROR_MSG = MESSAGE_TEXT;
+        
+        SET OUT_MSG = 'WARNING [' || V_SQLSTATE || ']: ' || 
+                      COALESCE(V_ERROR_MSG, 'Unknown warning');
+    END;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+    BEGIN
+        SET OUT_CNT = 0;
+        SET OUT_MSG = 'WARNING: No data found for the given criteria';
+    END;
+
+
+DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
+    ROWNO INT,
+    UP_CD VARCHAR(255),
+    CD VARCHAR(255),
+    CD_NM VARCHAR(500),
+    LEVEL INT,
+    PATH VARCHAR(1000)
+) ON COMMIT PRESERVE ROWS NOT LOGGED;
+
+    -- 기존 데이터 삭제
+    BEGIN
+        DELETE FROM SESSION.GTT_HIERARCHY;
+    END;
+
+    -- 동적 SQL 생성
+    SET V_SQL_STATEMENT = 
+        'INSERT INTO SESSION.GTT_HIERARCHY ' ||
+    -- LEVEL1 CTE 추가    
+        'WITH LEVEL1 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY T.' || P_PK_COL || ') AS ROWNO, ' ||
+        'CAST(T.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST(T.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+        'CAST(T.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+        '1 AS LEVEL, ' ||
+        'CAST(T.' || P_PK_COL || ' AS VARCHAR(1000)) AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' AS T ' ||
+        'WHERE T.' || P_FK_COL || ' = ''' || P_START_VAL || '''), ' ||
+        
+    -- LEVEL2 CTE 추가        
+        'LEVEL2 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+        '2 AS LEVEL, ' ||
+        'L1.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL1 L1 ON C.' || P_FK_COL || ' = L1.CD), ' ||
+
+    -- LEVEL3 CTE 추가 
+        'LEVEL3 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+        '3 AS LEVEL, ' ||
+        'L2.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL2 L2 ON C.' || P_FK_COL || ' = L2.CD), ' ||
+        
+    -- LEVEL4 CTE 추가
+        'LEVEL4 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+        '4 AS LEVEL, ' ||
+        'L3.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL3 L3 ON C.' || P_FK_COL || ' = L3.CD), ' ||
+
+    -- LEVEL5 CTE 추가            
+        'LEVEL5 AS (' ||
+        'SELECT ' ||
+        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
+        'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
+        'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ' ||
+        'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ' ||
+        '5 AS LEVEL, ' ||
+        'L4.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
+        'FROM ' || P_TAB_NAME || ' C ' ||
+        'JOIN LEVEL4 L4 ON C.' || P_FK_COL || ' = L4.CD) ' ||
+        
+    -- 최종 SELECT와 UNION ALL 부분 
+        'SELECT ROWNO, UP_CD, CD, CD_NM, LEVEL, PATH ' ||
+        'FROM (' ||
+        'SELECT * FROM LEVEL1 ' ||
+        'UNION ALL SELECT * FROM LEVEL2 ' ||
+        'UNION ALL SELECT * FROM LEVEL3 ' ||
+        'UNION ALL SELECT * FROM LEVEL4 ' ||
+        'UNION ALL SELECT * FROM LEVEL5 ' ||
+        ') AS ALL_LEVELS';
+
+    -- 동적 SQL 실행
+        EXECUTE IMMEDIATE V_SQL_STATEMENT;
+        
+        -- 처리된 행 수 확인
+        GET DIAGNOSTICS V_CNT = ROW_COUNT;
+        
+    
+    -- 성공 메시지
+    IF V_CNT > 0 THEN
+        SET OUT_CNT = V_CNT;
+        SET OUT_MSG = 'SUCCESS: ' || CAST(V_CNT AS VARCHAR(10)) || ' rows inserted into hierarchy table';
+    ELSE
+        SET OUT_CNT = 0;
+        SET OUT_MSG = 'WARNING: No rows inserted. Check if starting value exists.';
+    END IF;
+
+END 

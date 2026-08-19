@@ -1,0 +1,55 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_BBSMSG_GETBYID"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_BBSMSG_GETBYID
+생성일자	: 2024. 3.20
+생성자	: 전광진
+내용	    : 게시판 내용
+예제
+SELECT * FROM GADMIN.SF_MBC_BBSMSG_GETBYID(BBSID)
+*******************************************************************************/
+(
+    IN IN_BBSID      VARCHAR(14)  -- BBSID
+)
+
+
+RETURNS
+    TABLE
+    (
+      BBSID             VARCHAR(14)
+    , BBS_GROUP_GB      VARCHAR(1)
+    , BBS_TITLE         VARCHAR(150)
+    , BBS_DT            TIMESTAMP(6)
+    , BBS_CONTENT       VARCHAR(5000)
+    , APPLICATION_ID    VARCHAR(50)
+    , APPLICATION_NAME  VARCHAR(250)
+    , CLIENT_HOSTNAME   VARCHAR(250)
+    , C_USER            VARCHAR(25)
+    , C_DATE            TIMESTAMP(6)
+    )
+    
+    
+    
+    
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_BBSID      VARCHAR(14);-- BBSID
+
+   SET V_BBSID     = COALESCE(IN_BBSID,'');--
+
+
+   RETURN
+   SELECT BBSID
+        , BBS_GROUP_GB
+        , BBS_TITLE
+        , BBS_DT
+        , BBS_CONTENT
+        , APPLICATION_ID
+        , APPLICATION_NAME
+        , CLIENT_HOSTNAME
+        , C_USER
+        , C_DATE
+     FROM GADMIN.MBC_BBS 
+    WHERE BBSID  LIKE V_BBSID
+    ;--
+END

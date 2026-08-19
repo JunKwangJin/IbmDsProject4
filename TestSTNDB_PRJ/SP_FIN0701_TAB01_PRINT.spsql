@@ -1,0 +1,271 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0701_TAB01_PRINT"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE         CHAR(5) DEFAULT '00000';--
+    DECLARE   V_LAST_DAY        VARCHAR(10) DEFAULT ''; --
+    DECLARE   V_YEAR            VARCHAR(4) DEFAULT '';--
+    DECLARE   V_MONTH           VARCHAR(2) DEFAULT '';--
+    DECLARE   V_DAY             VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_GISU            VARCHAR(3) DEFAULT '';--
+    DECLARE   V_CUR_ACC_CD      VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_CUR_ACC_NM      VARCHAR(60)   DEFAULT '';--
+    DECLARE   V_CUR_DRCR_GB     VARCHAR(6)   DEFAULT '';--
+
+    DECLARE   V_YIWOL_AMT       DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   V_JAN_TOT_AMT     DECIMAL(20,5) DEFAULT 0.0;--
+
+    DECLARE   V_DATE            VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_ACC_NO          VARCHAR(4)    DEFAULT '';--
+    DECLARE   V_ACC_CD          VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_ACC_NM          VARCHAR(60)   DEFAULT '';--
+    DECLARE   V_ACC_CONT        VARCHAR(300)  DEFAULT '';--
+    DECLARE   V_IN_AMT          DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   V_OUT_AMT         DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   V_JAN_AMT         DECIMAL(20,5) DEFAULT 0.0;--
+
+    DECLARE   V_DR_00           DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   V_CR_00           DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   V_DR_AMT          DECIMAL(20,5) DEFAULT 0.0;--
+    DECLARE   V_CR_AMT          DECIMAL(20,5) DEFAULT 0.0;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DATE           VARCHAR(10),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        ACC_CONT        VARCHAR(300),
+        DR_AMT          DECIMAL(20,5),
+        CR_AMT          DECIMAL(20,5),
+        JAN_AMT         DECIMAL(20,5)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+--개수 찾기
+SELECT GISU INTO V_GISU
+  FROM GADMIN.BSACC9
+ WHERE START <= IN_FROMDATE
+   AND TERMINATION >= IN_TODATE;--
+
+
+    SET V_MONTH = SUBSTRING(IN_FROMDATE,6,2);		   --
+
+    SELECT SUBSTRING(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') - 1,1,10) INTO V_LAST_DAY
+      FROM SYSIBM.SYSDUMMY1;--
+
+P1: BEGIN
+
+    DECLARE C_CHONGGAE CURSOR FOR
+    SELECT A.ACC_CD, A.ACC_NM, B.DRCR_GB
+      FROM GADMIN.HAPJAN A
+            INNER JOIN
+            ( SELECT ACC_CD, ACC_NM, DRCR_GB
+                FROM GADMIN.BSACC2
+               WHERE 1 = 1
+                 --AND ACC_INPUT = 'Y'
+                 AND HAPJAN_DISP != 'N'
+                 ) B ON ( A.ACC_CD = B.ACC_CD )
+     WHERE YEAR = V_GISU
+    ORDER BY ACC_CD;--
+
+    OPEN C_CHONGGAE;--
+
+    FETCH FROM C_CHONGGAE INTO V_CUR_ACC_CD, V_CUR_ACC_NM, V_CUR_DRCR_GB;--
+
+    SET V_DAY = V_DATE;--
+
+    WHILE (SQLSTATE = '00000' )
+    DO
+
+
+    --전월이월 금액 찾기
+    SELECT COALESCE(DR_00, 0), COALESCE(CR_00, 0) INTO V_DR_00, V_CR_00
+      FROM GADMIN.HAPJAN A
+            LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
+     WHERE YEAR = V_GISU
+       AND A.ACC_CD = V_CUR_ACC_CD
+       AND B.ACC_GB IN ('자산','부채','자본');--
+
+    IF SUBSTRING(IN_FROMDATE, 6, 5) = '01-01' THEN
+        SET V_DR_AMT = V_DR_00 + 0;--
+        SET V_CR_AMT = V_CR_00 + 0;--
+    ELSE
+            IF V_CUR_ACC_CD = '1110101' THEN
+                 SELECT COALESCE(SUM(CR_AMT),0) + COALESCE(V_DR_00, 0), COALESCE(SUM(DR_AMT),0) + COALESCE(V_CR_00, 0) INTO V_DR_AMT, V_CR_AMT
+                   FROM GADMIN.ACCOU1
+                  WHERE 1 = 1
+                    AND DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LAST_DAY
+                 ;--
+            ELSE
+                 SELECT COALESCE(SUM(DR_AMT),0) + COALESCE(V_DR_00, 0), COALESCE(SUM(CR_AMT),0) + COALESCE(V_CR_00, 0) INTO V_DR_AMT, V_CR_AMT
+                   FROM GADMIN.ACCOU1
+                  WHERE 1 = 1
+                    AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LAST_DAY
+                    AND ACC_CD = V_CUR_ACC_CD;--
+            END IF;--
+    END IF; --
+
+	IF V_CUR_DRCR_GB = '차변' THEN
+    	SET V_YIWOL_AMT = V_DR_AMT - V_CR_AMT;--
+
+        IF V_CUR_ACC_CD = '1110101' THEN
+            --차변계정 현금
+            INSERT INTO SESSION.TEMP
+            SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, SUM(DR_AMT - CR_AMT) OVER(ORDER BY DATE) FROM
+            (
+                      SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, '전기이월' AS ACC_CONT, V_YIWOL_AMT AS DR_AMT, 0 AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
+                        FROM SYSIBM.SYSDUMMY1
+                      UNION ALL
+                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, '일계표에서' AS ACC_CONT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT) AS JAN_AMT
+                        FROM GADMIN.ACCOU1 A,
+                            (
+                                SELECT B.DATE, C.ROW_ID, B.ACC_CONT FROM GADMIN.ACCOU1 B,
+                                    ( SELECT DATE, MAX(ACC_NO) AS ACC_NO, MAX(ROW_ID) AS ROW_ID  FROM GADMIN.ACCOU1 WHERE DRCR_GB IN ('입금','출금')  AND DATE BETWEEN IN_FROMDATE AND IN_TODATE GROUP BY DATE  ) C
+                                 WHERE B.DRCR_GB IN ('입금','출금')
+                                   AND B.DATE = C.DATE
+                                   AND B.ROW_ID = C.ROW_ID
+                             ) B
+                      WHERE A.DRCR_GB IN ('입금','출금')
+                         AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         AND A.DATE = B.DATE
+                    GROUP BY VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD')
+                    ORDER BY DATE, ROW_ID
+            ) A;--
+        ELSE
+            --차변계정 현금이외
+    	    SET V_YIWOL_AMT = V_DR_AMT - V_CR_AMT;--
+
+            INSERT INTO SESSION.TEMP
+            SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, SUM(DR_AMT - CR_AMT) OVER(ORDER BY DATE) FROM
+            (
+                      SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, '전기이월' AS ACC_CONT, V_YIWOL_AMT AS DR_AMT, 0 AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
+                        FROM SYSIBM.SYSDUMMY1
+                      UNION ALL
+--                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, MAX(B.ACC_CONT) AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, '일계표에서' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT) AS JAN_AMT
+                        FROM GADMIN.ACCOU1 A,
+                            (
+                                SELECT B.DATE, C.ROW_ID, B.ACC_CONT FROM GADMIN.ACCOU1 B,
+                                    ( SELECT DATE, MAX(ACC_NO) AS ACC_NO, MAX(ROW_ID) AS ROW_ID
+                                        FROM GADMIN.ACCOU1
+                                       WHERE  ACC_CD = V_CUR_ACC_CD
+                                         AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                         GROUP BY DATE  ) C
+                                 WHERE B.ACC_CD = V_CUR_ACC_CD
+                                   AND B.DATE = C.DATE
+                                   AND B.ROW_ID = C.ROW_ID
+                             ) B
+                      WHERE  A.ACC_CD = V_CUR_ACC_CD
+                         AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         AND A.DATE = B.DATE
+                    GROUP BY VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD')
+                    ORDER BY DATE, ROW_ID
+            ) A;--
+        END IF;--
+
+    ELSE
+        --대변 계정
+    	SET V_YIWOL_AMT = V_CR_AMT - V_DR_AMT;--
+
+    	INSERT INTO SESSION.TEMP
+        SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, SUM(CR_AMT - DR_AMT) OVER(ORDER BY DATE) FROM
+        (
+                  SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, '전기이월' AS ACC_CONT, 0 AS DR_AMT, V_YIWOL_AMT AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
+                    FROM SYSIBM.SYSDUMMY1
+                  UNION ALL
+                  SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, '일계표에서' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                    FROM GADMIN.ACCOU1 A,
+                        (
+                            SELECT B.DATE, C.ROW_ID, B.ACC_CONT FROM GADMIN.ACCOU1 B,
+                                ( SELECT DATE, MAX(ACC_NO) AS ACC_NO, MAX(ROW_ID) AS ROW_ID
+                                    FROM GADMIN.ACCOU1
+                                   WHERE  ACC_CD = V_CUR_ACC_CD
+                                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                     GROUP BY DATE  ) C
+                             WHERE B.ACC_CD = V_CUR_ACC_CD
+                               AND B.DATE = C.DATE
+                               AND B.ROW_ID = C.ROW_ID
+                         ) B
+                  WHERE  A.ACC_CD = V_CUR_ACC_CD
+                     AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                     AND A.DATE = B.DATE
+                GROUP BY VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD')
+                ORDER BY DATE, ROW_ID
+        ) A;--
+
+    END IF;	   --
+
+    INSERT INTO SESSION.TEMP
+    SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, '월계' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, NULL AS JAN_AMT
+       FROM SESSION.TEMP
+      WHERE ACC_CD = V_CUR_ACC_CD
+      GROUP BY ACC_CD;--
+
+    IF V_CUR_DRCR_GB = '차변' THEN
+        IF V_CUR_ACC_CD = '1110101' THEN   --현금
+             INSERT INTO SESSION.TEMP
+             SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+               FROM (
+                         SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, V_CR_00 AS DR_AMT, V_DR_00 AS CR_AMT, (V_CR_00 + V_DR_00) AS JAN_AMT
+                           FROM SYSIBM.SYSDUMMY1
+                         UNION ALL
+                         SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                           FROM GADMIN.ACCOU1
+                          WHERE 1 = 1
+                            AND DRCR_GB IN ('입금','출금')
+                            AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE )
+             ;--
+        ELSE
+             INSERT INTO SESSION.TEMP
+             SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+               FROM (
+                         SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, V_DR_00 AS DR_AMT, V_CR_00 AS CR_AMT, (V_DR_00 + V_CR_00) AS JAN_AMT
+                           FROM SYSIBM.SYSDUMMY1
+                         UNION ALL
+                         SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT)  AS JAN_AMT
+                           FROM GADMIN.ACCOU1
+                          WHERE 1 = 1
+                            AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                            AND ACC_CD = V_CUR_ACC_CD
+                          GROUP BY ACC_CD )
+              ;--
+        END IF;--
+    ELSE
+             INSERT INTO SESSION.TEMP
+             SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+               FROM (
+                         SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, V_DR_00 AS DR_AMT, V_CR_00 AS CR_AMT, (V_DR_00 + V_CR_00) AS JAN_AMT
+                           FROM SYSIBM.SYSDUMMY1
+                         UNION ALL
+                         SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, '누계' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                           FROM GADMIN.ACCOU1
+                          WHERE 1 = 1
+                            AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                            AND ACC_CD = V_CUR_ACC_CD
+                         GROUP BY ACC_CD )
+             ;--
+    END IF;--
+
+    FETCH FROM C_CHONGGAE INTO V_CUR_ACC_CD, V_CUR_ACC_NM, V_CUR_DRCR_GB;--
+
+    END WHILE;--
+
+    CLOSE C_CHONGGAE;--
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, JAN_AMT
+      FROM SESSION.TEMP
+     WHERE NOT( DR_AMT = 0 AND CR_AMT = 0 );--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

@@ -1,0 +1,127 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0302_TAB01_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_LASTDATE VARCHAR(10) DEFAULT '';--
+
+    SELECT TO_CHAR(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') -1,'YYYY-MM-DD') INTO V_LASTDATE FROM SYSIBM.SYSDUMMY1;--
+
+    P1: BEGIN
+
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+		SELECT *
+		   FROM (
+                    SELECT A.CLASS, COALESCE(B.EWOL_AMT,0) AS EWOL_AMT, COALESCE(C.IN_AMT,0) AS IN_AMT, COALESCE(C.IN_TOT,0) AS IN_TOT, COALESCE(D.OUT_AMT,0) AS OUT_AMT, COALESCE(D.OUT_TOT,0) AS OUT_TOT
+                          , COALESCE(B.EWOL_AMT,0) + COALESCE(C.IN_TOT,0) - COALESCE(D.OUT_TOT,0) AS JAE_AMT
+                      FROM
+                             (  SELECT CLASS
+                                  FROM GADMIN.BSJAJA
+                                GROUP BY CLASS
+                                UNION ALL
+                                SELECT 'C.N.G'
+                                  FROM SYSIBM.SYSDUMMY1 ) A
+                            LEFT OUTER JOIN (
+                                                SELECT A.CLASS, SUM(AMT) AS EWOL_AMT
+                                                  FROM GADMIN.BSJAJA A
+                                                        LEFT OUTER JOIN
+                                                        (    SELECT PRODUC_NO, SUM(AMT) AS AMT
+                                                               FROM (
+                                                                         SELECT A.PRODUC_NO, A.UNIT_PRICE_01 AS AMT
+                                                                           FROM GADMIN.JAGUJAGO A
+                                                                          WHERE 1 = 1
+                                                                            AND A.YEAR = SUBSTRING(IN_FROMDATE,1,4)
+                                                                         UNION ALL
+                                                                         SELECT A.PRODUC_NO, SUM(A.SUPPLY_PRICE) AS AMT
+                                                                           FROM GADMIN.JAGUMA1 A
+                                                                          WHERE A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDATE
+                                                                         GROUP BY A.DATE, A.PRODUC_NO
+                                                                         UNION ALL
+                                                                         SELECT A.PRODUC_NO, SUM(A.PRICE) * -1 AS AMT
+                                                                           FROM GADMIN.JACHUL1 A
+                                                                          WHERE A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDATE
+                                                                         GROUP BY A.DATE, A.PRODUC_NO
+                                                                      )
+                                                                GROUP BY PRODUC_NO
+                                                        ) B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 GROUP BY A.CLASS ) B ON (A.CLASS = B.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT CLASS, SUM(IN_AMT) AS IN_AMT, SUM(IN_TOT) AS IN_TOT
+                                                  FROM (
+                                                            SELECT B.CLASS, SUM(SUPPLY_PRICE) AS IN_AMT, 0 AS IN_TOT
+                                                               FROM GADMIN.JAGUMA1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                             WHERE 1 = 1
+                                                               AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                            GROUP BY B.CLASS
+                                                            UNION ALL
+                                                            SELECT B.CLASS, 0 AS IN_AMT, SUM(SUPPLY_PRICE) AS IN_TOT
+                                                               FROM JAGUMA1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                             WHERE 1 = 1
+                                                               AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                                                            GROUP BY B.CLASS
+                                                        )
+                                                GROUP BY CLASS
+                                                UNION ALL
+                                                SELECT CLASS, SUM(IN_AMT) AS IN_AMT, SUM(IN_TOT) AS IN_TOT
+                                                   FROM (
+                                                            SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT, 0 AS IN_TOT
+                                                              FROM  UNHANG07 A -- 林蜡 郴开
+                                                             WHERE 1 = 1
+                                                               AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                            UNION ALL
+                                                            SELECT 'C.N.G' AS CLASS, 0 AS IN_AMT, SUM(A.PRICE) AS IN_TOT
+                                                              FROM  UNHANG07 A -- 林蜡 郴开
+                                                             WHERE 1 = 1
+                                                               AND A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                                                          )
+                                                 GROUP BY CLASS
+                                              ) C ON (A.CLASS = C.CLASS)
+                            LEFT OUTER JOIN (
+                                                SELECT CLASS, SUM(OUT_AMT) AS OUT_AMT, SUM(OUT_TOT) AS OUT_TOT
+                                                  FROM (
+                                                            SELECT B.CLASS, SUM(A.PRICE) AS OUT_AMT, 0 AS OUT_TOT
+                                                               FROM JACHUL1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                             WHERE 1 = 1
+                                                               AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                            GROUP BY B.CLASS
+                                                            UNION ALL
+                                                            SELECT B.CLASS, 0 AS OUT_AMT, SUM(PRICE) AS OUT_TOT
+                                                               FROM JACHUL1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                             WHERE 1 = 1
+                                                               AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                                                            GROUP BY B.CLASS
+                                                        )
+                                                GROUP BY CLASS
+                                                UNION ALL
+                                                SELECT CLASS, SUM(IN_AMT) AS IN_AMT, SUM(IN_TOT) AS IN_TOT
+                                                   FROM (
+                                                            SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT, 0 AS IN_TOT
+                                                              FROM  UNHANG07 A -- 林蜡 郴开
+                                                             WHERE 1 = 1
+                                                               AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                            UNION ALL
+                                                            SELECT 'C.N.G' AS CLASS, 0 AS IN_AMT, SUM(A.PRICE) AS IN_TOT
+                                                              FROM  UNHANG07 A -- 林蜡 郴开
+                                                             WHERE 1 = 1
+                                                               AND A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                                                          )
+                                                 GROUP BY CLASS
+                                              ) D ON (A.CLASS = D.CLASS)
+
+            )
+         ORDER BY 1
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

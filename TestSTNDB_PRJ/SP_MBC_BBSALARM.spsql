@@ -1,0 +1,84 @@
+CREATE PROCEDURE "GADMIN"."SP_MBC_BBSALARM"
+/*******************************************************************************
+파일명	: GADMIN.SP_MBC_BBSALARM
+생성일자	: 2022. 6. 3
+생성자	: 전광진
+내용    	: 모바일용 BBS생성 알람전송
+            : 공지사항을 DB에 저장하고 나서 알람전송을 하나의 프로시저에서 하던것을 분리하여 알람 전송을 별도로 함
+            : DB에 저장후 알람을 바로 전송할경우 알람이 안되는 경우가 발생하여 분리함(COMMIT가 안되는것으로 보임)
+수정일자	: 2026. 6 1.
+수정자	: 전광진
+수정내용  : 외사의 DB코드를 가져오는 부분을 변수로 받아 처리함
+        :
+Compile : 2026.6.1
+ INPUT  : IN IN_BBSFILENM   1. 파일명
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+(
+     IN IN_BBSFILENM         VARCHAR(255)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+	DECLARE V_BBSID       VARCHAR(14);--
+
+    DECLARE V_ALARM       VARCHAR(500);--
+    DECLARE V_KEY_MSG     VARCHAR(100) DEFAULT '';--
+	DECLARE V_COMPANY_CD  VARCHAR(4);--
+
+    DECLARE SQLCODE       INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE      CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER     CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER      CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL      CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO       CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE      CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    SET V_BBSID = LEFT(RIGHT(IN_BBSFILENM,18),14);--
+    SELECT BIGO INTO V_COMPANY_CD FROM GADMIN.EBUS_COMMON_C WHERE UP_CD = 'COM98' AND CD = '10';
+
+-- 공지사항 알림 전송
+    SELECT
+    	DB2XML.HTTPPOSTCLOB(
+    		'http://mbcs.buserp.co.kr:65080/api/_syscall/push/notice',
+    		CAST('<httpHeader>
+    	       <header name="Content-Type" value="application/json;charset=utf-8"/>
+    	       <header name="X-BUSERP-ATK" value="buserp-test-token"/>
+    	       </httpHeader>' AS CLOB(1K)),
+--    	    CAST('{
+--    	        "companyCode": "'||GADMIN.SF_MBC_GETDBBIZCD('')||'",
+--    	    	"articleId": "'||V_BBSID||'"
+--    	    }' AS CLOB(1K))
+    	    CAST('{
+    	        "companyCode": "'||V_COMPANY_CD||'",
+    	    	"articleId": "'||V_BBSID||'"
+    	    }' AS CLOB(1K))
+    	) INTO V_ALARM
+    FROM SYSIBM.SYSDUMMY1;--
+    IF V_ALARM LIKE '%ok%' THEN
+       SET (OUT_CNT, OUT_MSG) = (1, COALESCE(OUT_MSG,'')||CHR(13)||'알람전송되었습니다.'||'('||COALESCE(V_ALARM,'')||')');--
+    ELSE
+       SET (OUT_CNT, OUT_MSG) = (0, COALESCE(OUT_MSG,'')||CHR(13)||'ERR 알람전송에 실패 하였습니다.'||'('||COALESCE(V_ALARM,'')||')');--
+    END IF;--
+
+END MAIN 

@@ -1,0 +1,327 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1101_TAB02_SELECT_OLD"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_PRE_FROMDATE VARCHAR(10), IN IN_PRE_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+P1: BEGIN
+
+    DELETE FROM GADMIN.EBUS_FIN_INCOME;--
+
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT A.ACC_CD, A.ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                --당기 손익계산서
+                SELECT A.ACC_CD, A.ACC_NM, CU_AMT, CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM (
+                          --일반계정
+                          --운수수입
+                          SELECT A.ACC_CD, A.ACC_NM, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                             AND B.ACC_GB = '수익'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '61'
+                            GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                          --일반관리비
+                          SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                             AND B.ACC_GB = '비용'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '64'
+                           GROUP BY A.ACC_CD, A.ACC_NM
+                           UNION ALL
+                          --영업외 수익
+                          SELECT A.ACC_CD, A.ACC_NM, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                             AND B.ACC_GB = '수익'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '66'
+                          GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                          --영업외 비용
+                          SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                             AND B.ACC_GB = '비용'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '67'
+                           GROUP BY A.ACC_CD, A.ACC_NM
+                           UNION ALL
+                          --특별이익
+                          SELECT A.ACC_CD, A.ACC_NM, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                             AND B.ACC_GB = '수익'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '69'
+                          GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                          --법인세
+                          SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                             AND B.ACC_GB = '비용'
+                             AND A.ACC_CD = '7200100'
+                          GROUP BY A.ACC_CD, A.ACC_NM
+                        ) A
+                        UNION ALL
+                --전기 손익계산서
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, BE_AMT, BE_TOT
+                  FROM (
+                          --일반계정
+                          --운수수입
+                          SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(CR_AMT) - SUM(DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                             AND B.ACC_GB = '수익'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '61'
+                            GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                          --일반관리비
+                          SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                             AND B.ACC_GB = '비용'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '64'
+                           GROUP BY A.ACC_CD, A.ACC_NM
+                           UNION ALL
+                          --영업외 수익
+                          SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                             AND B.ACC_GB = '수익'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '66'
+                          GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                          --영업외 비용
+                          SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                             AND B.ACC_GB = '비용'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '67'
+                           GROUP BY A.ACC_CD, A.ACC_NM
+                           UNION ALL
+                          --특별이익
+                          SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                             AND B.ACC_GB = '수익'
+                             AND SUBSTRING(A.ACC_CD,1,2) = '69'
+                          GROUP BY A.ACC_CD, A.ACC_NM
+                          UNION ALL
+                          --법인세
+                          SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT
+                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                           WHERE 1 = 1
+                             AND A.ACC_CD = B.ACC_CD
+                             AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                             AND B.ACC_GB = '비용'
+                             AND A.ACC_CD = '7200100'
+                          GROUP BY A.ACC_CD, A.ACC_NM
+                        ) A
+             ) A, GADMIN.BSACC2 B
+     WHERE A.ACC_CD = B.ACC_CD
+       --AND B.SONIK_DISP != 'N'
+       --AND NOT EXISTS (SELECT *   FROM GADMIN.BSACC2 C WHERE B.ACC_CD = C.ACC_CD AND C.HAPJAN_DISP = 'N')
+       --AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
+    GROUP BY A.ACC_CD, A.ACC_NM
+    --ORDER BY B.CHULRYEOK_CD    -- 출력순서
+    ;--
+
+    --매출액
+    --운수수입
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT ACC_CD, ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT '6100000' AS ACC_CD, '(매   출   액)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '61%'
+                UNION ALL
+                SELECT '6100100' AS ACC_CD, '운  수  수  입' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '61%'
+             )
+    GROUP BY ACC_CD, ACC_NM
+       ;--
+
+    --(운송원가및주택분양원가)
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT ACC_CD, ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                --당기
+                SELECT '6200000' AS ACC_CD, '(운송원가및주택분양원가)' AS ACC_NM, 0 AS CU_AMT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                   AND B.ACC_GB = '원가'
+                   AND SUBSTRING(A.ACC_CD,1,2) = '62'
+                UNION ALL
+                --전기
+                SELECT '6200000' AS ACC_CD, '(운송원가및주택분양원가)' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(DR_AMT) - SUM(CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                   AND B.ACC_GB = '원가'
+                   AND SUBSTRING(A.ACC_CD,1,2) = '62'
+             )
+    GROUP BY ACC_CD, ACC_NM
+       ;                  --
+
+    --매출  총이익
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '6300000' AS ACC_CD, '(매출  총이익)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT - B.CU_TOT, 0 AS BE_AMT, A.BE_TOT - B.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT *    --매출액
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6100000' ) A,
+             (  SELECT *    --운수원가
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6200000'  ) B
+       ;--
+
+    --일반관리비
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT  ACC_CD, ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT '6400000' AS ACC_CD, '(일반  관리비)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '64%'
+             )
+    GROUP BY ACC_CD, ACC_NM
+    ;--
+
+    --영업이익
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '6500000' AS ACC_CD, '(영 업  이 익)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT - B.CU_TOT, 0 AS BE_AMT, A.BE_TOT - B.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT *    --매출총이익
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6300000' ) A,
+             (  SELECT *    --일반관리비
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6400000'  ) B
+       ;--
+
+    --영업외 수익
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '6600000' AS ACC_CD, '(영업 외 수익)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT '6600000' AS ACC_CD, '(영업 외 수익)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '66%'
+             )
+       ;--
+
+    --영업외 비용
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '6700000' AS ACC_CD, '(영업 외 비용)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT '6700000' AS ACC_CD, '(영업 외 비용)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '67%'
+             )
+       ;--
+
+    --경상이익
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '6800000' AS ACC_CD, '(경 상  이 익)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT + B.CU_TOT - C.CU_TOT, 0 AS BE_AMT, A.BE_TOT + B.BE_TOT - C.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT *    --영업이익
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6500000' ) A,
+             (  SELECT *    --영업외수익
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6600000'  ) B,
+             (  SELECT *    --영업외비용
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6700000'  ) C
+
+       ;--
+
+    --특별이익
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '6900000' AS ACC_CD, '(특 별  이 익)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT '6900000' AS ACC_CD, '(특 별  이 익)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '69%'
+             )
+    ;--
+
+    --법인세
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '7200000' AS ACC_CD, '(법 인 세  등)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT '7200000' AS ACC_CD, '(법 인 세  등)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD LIKE '72%'
+             )
+    ;--
+
+    --당기순이익
+    INSERT INTO GADMIN.EBUS_FIN_INCOME
+    SELECT '7300909' AS ACC_CD, '(당기 순 이익)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT + B.CU_TOT - C.CU_TOT, 0 AS BE_AMT, A.BE_TOT + B.BE_TOT - C.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+       FROM (
+                SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL  --경상이익
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6800000' ) A,
+             (  SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL  --특별이익
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '6900000'  ) B,
+             (  SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL    --법인세
+                  FROM GADMIN.EBUS_FIN_INCOME
+                 WHERE ACC_CD = '7200000'  ) C
+       ;    --
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT ACC_CD, CHULRYEOK_GWAMOK AS ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT,
+            (CU_AMT + CU_TOT) - (BE_AMT + BE_TOT) AS UPDOWN_AMT,
+            TRUNC( CASE BE_AMT + BE_TOT WHEN 0 THEN NULL
+                                 ELSE ((CU_AMT + CU_TOT) - (BE_AMT + BE_TOT)) / (BE_AMT + BE_TOT) * 100
+            END, 2) AS UPDOWN_RATE
+      FROM (
+                        SELECT A.*, B.CHULRYEOK_CD, B.CHULRYEOK_GWAMOK
+                          FROM GADMIN.EBUS_FIN_INCOME A, GADMIN.BSACC2 B
+                        WHERE 1 = 1
+                          AND A.ACC_CD = B.ACC_CD
+                        UNION ALL
+                        SELECT A.*, '9000000', ''
+                          FROM GADMIN.EBUS_FIN_INCOME A
+                         WHERE A.ACC_CD = '9000000'
+                     )
+    ORDER BY CHULRYEOK_CD
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

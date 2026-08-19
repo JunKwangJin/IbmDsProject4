@@ -1,0 +1,48 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_AM_LICENSE_D_ADD" 
+(
+    IN IN_INSA_NO VARCHAR(12),
+    IN IN_LICENSE_GBCD VARCHAR(2),
+    IN IN_GYOBU_DT VARCHAR(8),
+    IN IN_LICENSE_NO VARCHAR(30),
+    IN IN_JUKSUNG_GUMSA_DT VARCHAR(8),
+    IN IN_INSERT_ID VARCHAR(25),
+    IN IN_INSERT_IP VARCHAR(25),
+    IN IN_INSERT_PGM VARCHAR(200),
+    IN IN_INSERT_NM VARCHAR(25),
+     
+    OUT OUT_CNT INTEGER, 
+    OUT OUT_MSG VARCHAR(1000)
+)
+
+
+ LANGUAGE SQL
+P1: BEGIN
+------------------------------------------------------------------------
+-- SQL Stored Procedure 
+------------------------------------------------------------------------
+    INSERT INTO 
+        GADMIN.AM_LICENSE_D
+    (
+        INSA_NO,
+        LICENSE_GBCD,
+        GYOBU_DT,
+        LICENSE_NO,
+        JUKSUNG_GUMSA_DT,
+        INSERT_ID,
+        INSERT_IP,
+        INSERT_PGM,
+        INSERT_NM
+    )
+    VALUES
+    (
+        IN_INSA_NO,
+        IN_LICENSE_GBCD,
+        IN_GYOBU_DT,
+        IN_LICENSE_NO,
+        IN_JUKSUNG_GUMSA_DT,
+        IN_INSERT_ID,
+        IN_INSERT_IP,
+        IN_INSERT_PGM,
+        IN_INSERT_NM
+    );
+END P1 

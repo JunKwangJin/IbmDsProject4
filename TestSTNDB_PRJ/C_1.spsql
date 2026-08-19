@@ -1,0 +1,84 @@
+CREATE OR REPLACE PROCEDURE c
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_FROMACCCD VARCHAR(7), IN IN_TOACCCD VARCHAR(7),  IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        MANAGE_1        VARCHAR(9),
+        ITEM_1          VARCHAR(100),
+        MANAGE_2        VARCHAR(9),
+        ITEM_2          VARCHAR(100),
+        ACC_CD_T          VARCHAR(10),
+        ACC_NM_T          VARCHAR(60),
+        MANAGE_1_T        VARCHAR(9),
+        ITEM_1_T          VARCHAR(100),
+        MANAGE_2_T        VARCHAR(9),
+        ITEM_2_T          VARCHAR(100),
+        JAN_AMT         DECIMAL(20,5),
+        PRE_AMT         DECIMAL(20,5)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;	--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+        SELECT *
+       FROM (
+                SELECT ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, ACC_CD AS ACC_CD_T, ACC_NM AS ACC_NM_T, MANAGE_CD_1 AS MANAGE_1_T , MANAGE_ITEM_1 AS ITEM_1_T, MANAGE_CD_2 AS MANAGE_2_T, MANAGE_ITEM_2 AS ITEM_2_T, SUM(JAN_AMT) + SUM(PRE_AMT) AS JAN_AMT,  SUM(PRE_AMT) AS PRE_AMT
+                  FROM (
+                            SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE WHEN A.DRCR_GB = '차변' OR A.DRCR_GB = '출금' THEN SUM(DR_AMT - CR_AMT)
+                                                                                                                                         ELSE SUM(CR_AMT - DR_AMT) END AS JAN_AMT, 0 AS PRE_AMT
+                              FROM (
+                                        SELECT A.DATE, A.ACC_CD, A.ACC_NM, B.DRCR_GB, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, DR_AMT, CR_AMT
+                                           FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                                          WHERE A.ACC_CD = B.ACC_CD
+                                    ) A
+                             WHERE 1 = 1
+                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                AND LENGTH(COALESCE(A.MANAGE_CD_1,'')) > 1
+                            GROUP BY A.ACC_CD, A.ACC_NM,  A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, A.DRCR_GB
+                            UNION ALL
+                            SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, 0 AS JAN_AMT, CASE WHEN B.DRCR_GB = '차변' OR B.DRCR_GB = '출금' THEN SUM(B.DR_AMT) - SUM(B.CR_AMT)
+                                                                                                                                   ELSE SUM(B.CR_AMT) - SUM(B.DR_AMT) END AS PRE_AMT
+                              FROM (
+                                        SELECT B.ACC_CD, B.ACC_NM, C.DRCR_GB, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, DR_AMT, CR_AMT
+                                           FROM TABLE(GADMIN.SF_FIN_PRE_MANAGE_SELECT(IN_FROMDATE)) B, GADMIN.BSACC2 C
+                                          WHERE B.ACC_CD = C.ACC_CD
+                                    ) B
+                            GROUP BY B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, B.DRCR_GB
+                        )
+                 GROUP BY ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2
+             ) A
+     WHERE 1 = 1
+       AND NOT (JAN_AMT = 0 AND PRE_AMT = 0)
+       AND ACC_CD < '3000000'
+       AND ACC_CD >= IN_FROMACCCD  --추가 211022
+       AND ACC_CD <= IN_TOACCCD    --추가 211022
+    ORDER BY ACC_CD, MANAGE_CD_1
+    ;    --
+
+    INSERT INTO SESSION.TEMP
+    SELECT ACC_CD, ACC_NM, '' AS MANAGE_1, '소계' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, '' AS ACC_CD_T, '' AS ACC_NM_T, '' AS MANAGE_1_T, '' AS ITEM_1_T, '' AS MANAGE_2_T, '' AS ITEM_2_T ,SUM(JAN_AMT) AS JAN_AMT, SUM(PRE_AMT) AS PRE_AMT
+      FROM SESSION.TEMP
+    GROUP BY ACC_CD, ACC_NM;--
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT *
+      FROM SESSION.TEMP
+    ORDER BY ACC_CD;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

@@ -1,0 +1,264 @@
+CREATE or replace FUNCTION "GADMIN"."USF_CS_COMMON_LST02"    
+    (
+      IN IN_MENU_ID VARCHAR(10) DEFAULT ''
+    , IN IN_UP_CD VARCHAR(10) DEFAULT ''
+    , IN IN_CD VARCHAR(100) DEFAULT ''
+    , IN IN_CD1 VARCHAR(100) DEFAULT '' , IN IN_CD2 VARCHAR(100) DEFAULT ''
+    , IN IN_CD3 VARCHAR(100) DEFAULT '' , IN IN_CD4 VARCHAR(100) DEFAULT ''
+    , IN IN_CD5 VARCHAR(100) DEFAULT '' , IN IN_CD6 VARCHAR(100) DEFAULT ''
+    , IN IN_CD7 VARCHAR(100) DEFAULT '' , IN IN_CD8 VARCHAR(100) DEFAULT ''
+    , IN IN_CD9 VARCHAR(100) DEFAULT '' , IN IN_CD10 VARCHAR(100) DEFAULT ''
+    )
+    
+RETURNS
+      TABLE (
+             UP_CD      VARCHAR(10),
+             CD         VARCHAR(10),
+             CD_NM      VARCHAR(200),
+			 CD_ENM     VARCHAR(200),
+			 CD_SNM     VARCHAR(200),
+			 CD_ESNM    VARCHAR(100),
+			 CD_LEN     VARCHAR(2),
+             SORT       INTEGER,
+             CD1        VARCHAR(100),
+             CD2        VARCHAR(100),
+             CD3        VARCHAR(100),
+             CD4        VARCHAR(100),
+             CD5        VARCHAR(100),
+             CD6        VARCHAR(100),
+             CD7        VARCHAR(100),
+             CD8        VARCHAR(100),
+             CD9        VARCHAR(100),
+             CD10       VARCHAR(100),
+			 SAYONG_YN  VARCHAR(1),
+			 SUJEONG_YN VARCHAR(1),
+			 BIGO       VARCHAR(2000),
+			 INSERT_DATE  TIMESTAMP(6),
+			 INSERT_ID  VARCHAR(10),
+			 INSERT_NAME  VARCHAR(200),
+			 INSERT_IP  VARCHAR(100),
+			 INSERT_PGM VARCHAR(50),
+			 UPDATE_DATE  TIMESTAMP(6),
+			 UPDATE_ID  VARCHAR(10),
+			 UPDATE_NAME  VARCHAR(200),
+			 UPDATE_IP  VARCHAR(100),
+			 UPDATE_PGM VARCHAR(50)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+--   DECLARE LL_CNT NUMBER(4);--
+--
+--   SET LL_CNT = (SELECT COUNT(*) AS CNT
+--                 FROM GADMIN.CS_EOPMUCOMMON_C
+--                WHERE MENU_ID = IN_MENU_ID
+--                  AND UP_CD = IN_UP_CD);--
+--
+--   IF LL_CNT < 1 THEN
+--
+--
+--   END IF;--
+
+   RETURN
+
+     SELECT	UP_CD,
+            CD,
+            CD_NM ,
+            CD_ENM,
+            CD_SNM,
+            CD_ESNM,
+            CD_LEN,
+            SORT,
+            CD1 ,
+            CD2 ,
+            CD3 ,
+            CD4 ,
+            CD5 ,
+            CD6 ,
+            CD7 ,
+            CD8 ,
+            CD9 ,
+            CD10 ,
+            SAYONG_YN,
+            SUJEONG_YN,
+            BIGO,
+			INSERT_DATE,
+			INSERT_ID,
+			INSERT_NAME,
+			INSERT_IP,
+			INSERT_PGM,
+			UPDATE_DATE,
+			UPDATE_ID,
+			UPDATE_NAME,
+			UPDATE_IP,
+			UPDATE_PGM
+     FROM (
+           		SELECT  RANK() OVER(PARTITION BY UP_CD ORDER BY A DESC)  SEQ,
+                        UP_CD,
+                        CD,
+                        CD_NM ,
+                        CD_ENM,
+                        CD_SNM,
+                        CD_ESNM,
+                        CD_LEN,
+                        SORT,
+                        SAYONG_YN,
+                        SUJEONG_YN,
+                        CD1 ,
+                        CD2 ,
+                        CD3 ,
+                        CD4 ,
+                        CD5 ,
+                        CD6 ,
+                        CD7 ,
+                        CD8 ,
+                        CD9 ,
+                        CD10,
+                        BIGO,
+						INSERT_DATE,
+						INSERT_ID,
+						INSERT_NAME,
+						INSERT_IP,
+						INSERT_PGM,
+						UPDATE_DATE,
+						UPDATE_ID,
+						UPDATE_NAME,
+						UPDATE_IP,
+						UPDATE_PGM
+                FROM (
+	                        SELECT  1 AS A,
+	                                 UP_CD,
+	                                 CD,
+	                                 CD_NM,
+	                                 CD_ENM,
+	                                 CD_SNM,
+	                                 CD_ESNM,
+	                                 CD_LEN,
+	                                 SORT,
+	                                 SAYONG_YN,
+	                                 SUJEONG_YN,
+	                                 CD1,
+	                                 CD2,
+	                                 CD3,
+	                                 CD4,
+	                                 CD5,
+	                                 CD6,
+	                                 CD7,
+	                                 CD8,
+	                                 CD9,
+	                                 CD10,
+ 	                                 BIGO,
+                                     INSERT_DATE,
+                                     INSERT_ID,
+                                     INSERT_NAME,
+                                     INSERT_IP,
+                                     INSERT_PGM,
+                                     UPDATE_DATE,
+                                     UPDATE_ID,
+                                     UPDATE_NAME,
+                                     UPDATE_IP,
+						             UPDATE_PGM
+	                        FROM    GADMIN.CS_COMMON_C
+	                        WHERE   UP_CD LIKE IN_UP_CD || '%'
+	                          AND UP_CD LIKE IN_UP_CD || '%'
+	                          AND COALESCE(CD,' ')  LIKE IN_CD  || '%'
+	                          AND COALESCE(CD1,' ') LIKE IN_CD1 || '%'
+	                          AND COALESCE(CD2,' ') LIKE IN_CD2 || '%'
+	                          AND COALESCE(CD3,' ') LIKE IN_CD3 || '%'
+	                          AND COALESCE(CD4,' ') LIKE IN_CD4 || '%'
+	                          AND COALESCE(CD5,' ') LIKE IN_CD5 || '%'
+	                          AND COALESCE(CD6,' ') LIKE IN_CD6 || '%'
+	                          AND COALESCE(CD7,' ') LIKE IN_CD7 || '%'
+	                          AND COALESCE(CD8,' ') LIKE IN_CD8 || '%'
+	                          AND COALESCE(CD9,' ') LIKE IN_CD9 || '%'
+	                          AND COALESCE(CD10,' ') LIKE IN_CD10 || '%'
+	                        UNION ALL
+	                        SELECT  2 AS A,                  
+	                                UP_CD,                   
+	                                CD,                      
+	                                CD_NM,                   
+	                                CD_ENM,                  
+	                                CD_SNM,                  
+	                                CD_ESNM,                 
+	                                CD_LEN,                  
+	                                SORT,                    
+	                                SAYONG_YN ,              
+	                                '' AS SUJEONG_YN,        
+	                                '' AS CD1 ,              
+	                                '' AS CD2 ,              
+	                                '' AS CD3 ,              
+	                                '' AS CD4 ,              
+	                                '' AS CD5 ,              
+	                                '' AS CD6 ,              
+	                                '' AS CD7 ,              
+	                                '' AS CD8 ,              
+	                                '' AS CD9 ,              
+	                                '' AS CD10,              
+	                                '' AS BIGO,             
+                                    INSERT_DATE,               
+                                    INSERT_ID,               
+                                    INSERT_NAME,               
+                                    INSERT_IP,               
+                                    INSERT_PGM,              
+                                    UPDATE_DATE,               
+                                    UPDATE_ID,               
+                                    UPDATE_NAME,               
+                                    UPDATE_IP,               
+                                    UPDATE_PGM              
+	                        FROM    GADMIN.CS_EOPMUCOMMON_C
+	                        WHERE   UP_CD LIKE IN_UP_CD || '%'
+	                          AND   MENU_ID = IN_MENU_ID
+	                          AND SAYONG_YN   =   '1'
+                            START WITH UP_CD IN ('Z', IN_UP_CD) 
+                            CONNECT BY UP_CD = PRIOR CD
+                     )       A
+                UNION ALL
+                SELECT 1,'','','','','','','',0,'1','','','','','','','','','','','','',NULL,'','','','',NULL,'','','',''
+                  FROM SYSIBM.SYSDUMMY1
+
+                )       A
+
+        WHERE   A.SEQ = 1
+ 
+        ;--
+
+
+
+--   SELECT UP_CD AS UP_CD,
+--       CD AS CD,
+--       CD_NM AS CD_NM,
+--       CD_ENM AS CD_ENM,
+--       CD_SNM AS CD_SNM,
+--       CD_ESNM AS CD_ESNM,
+--       CD_LEN AS CD_LEN,
+--       SORT AS SORT,
+--       CD1 ,
+--       CD2 ,
+--       CD3 ,
+--       CD4 ,
+--       CD5 ,
+--       CD6 ,
+--       CD7 ,
+--       CD8 ,
+--       CD9 ,
+--       CD10,
+--       SAYONG_YN AS SAYONG_YN,
+--       BIGO
+--  FROM GADMIN.CS_COMMON_C
+--  WHERE 1=1
+--    AND UP_CD LIKE IN_UP_CD || '%'
+--    AND NVL(CD1,' ') LIKE IN_CD1 || '%'
+--    AND NVL(CD2,' ') LIKE IN_CD2 || '%'
+--    AND NVL(CD3,' ') LIKE IN_CD3 || '%'
+--    AND NVL(CD4,' ') LIKE IN_CD4 || '%'
+--    AND NVL(CD5,' ') LIKE IN_CD5 || '%'
+--    AND NVL(CD6,' ') LIKE IN_CD6 || '%'
+--    AND NVL(CD7,' ') LIKE IN_CD7 || '%'
+--    AND NVL(CD8,' ') LIKE IN_CD8 || '%'
+--    AND NVL(CD9,' ') LIKE IN_CD9 || '%'
+--    AND NVL(CD10,' ') LIKE IN_CD10 || '%'
+--  ;--
+
+
+END

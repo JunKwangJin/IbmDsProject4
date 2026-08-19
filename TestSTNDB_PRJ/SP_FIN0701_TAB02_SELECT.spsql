@@ -1,0 +1,51 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0701_TAB02_SELECT"
+(IN IN_DATE VARCHAR(10), IN IN_ACC_CD VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DATE           VARCHAR(10),
+        ACC_NO          VARCHAR(4),
+        DRCR_GB         VARCHAR(6),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        ACC_CONT        VARCHAR(60),
+        DR_AMT          DECIMAL(20,5),
+        CR_AMT          DECIMAL(20,5),
+        MANAGE_CD_1     VARCHAR(9),
+        MANAGE_ITEM_1   VARCHAR(45),
+        NAMAGE_CD_2     VARCHAR(9),
+        MANAGE_ITEM_2   VARCHAR(90)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_ACC CURSOR WITH RETURN FOR
+		SELECT * FROM (
+                        SELECT ACC_CD, ACC_NM, VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, A.ACC_NO, A.DRCR_GB,A.ACC_CONT, A.DR_AMT, A.CR_AMT, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_1, A.MANAGE_ITEM_2
+                          FROM GADMIN.ACCOU1 A
+                         --WHERE A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         WHERE A.DATE = IN_DATE
+                        UNION ALL
+                        SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, VARCHAR_FORMAT(B.DATE, 'YYYY-MM-DD') AS DATE, B.ACC_NO, B.DRCR_GB, B.ACC_CONT, B.CR_AMT AS DR_AMT, B.DR_AMT AS CR_AMT, B.MANAGE_CD_1, B.MANAGE_ITEM_1, B.MANAGE_CD_1, B.MANAGE_ITEM_2
+                          FROM GADMIN.ACCOU1 B
+                         --WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         WHERE DATE = IN_DATE
+                           AND DRCR_GB IN ('입금','출금')
+                           AND ACC_CD IS NOT NULL
+                       )
+        WHERE ACC_CD = IN_ACC_CD
+       ORDER BY 1,2
+         ;--
+	OPEN CURSOR_ACC;		--
+
+    END P1;--
+
+END MAIN 

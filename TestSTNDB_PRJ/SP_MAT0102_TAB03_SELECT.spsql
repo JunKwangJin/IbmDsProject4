@@ -1,0 +1,35 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0102_TAB03_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE  VARCHAR(10)
+, IN IN_SANGHO_CD  VARCHAR(9)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    P1: BEGIN
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+		SELECT *
+		  FROM (
+                    SELECT SANGHO_CD, SANGHO, PRODUC_NO, PRODUC_NM, SPEC, QTY, SUPPLY_PRICE
+                      FROM (
+                                SELECT SANGHO_CD, SANGHO, PRODUC_NO, PRODUC_NM, SPEC, SUM(QTY) AS QTY, SUM(SUPPLY_PRICE) AS SUPPLY_PRICE
+                                  FROM GADMIN.JAGUMA1
+                                 WHERE 1 = 1
+                                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                   AND SANGHO_CD LIKE  COALESCE(IN_SANGHO_CD,'')||'%'
+                                 GROUP BY SANGHO_CD, SANGHO, PRODUC_NO, PRODUC_NM, SPEC
+                             ) A
+                 ) A
+         WHERE 1 = 1
+         ORDER BY SANGHO_CD
+           ;--
+
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

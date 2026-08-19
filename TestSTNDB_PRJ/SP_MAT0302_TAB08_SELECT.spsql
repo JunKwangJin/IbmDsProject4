@@ -1,0 +1,43 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0302_TAB08_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_CNT INT DEFAULT 0;--
+
+    P1: BEGIN
+
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT MON
+              , SUM(SEOUL_1) AS SEOUL_1, SUM(COMPANY_1) AS COMPANY_1, SUM(PYUNCHA_1) AS PYUNCHA_1
+              , SUM(SEOUL_2) AS SEOUL_2, SUM(COMPANY_2) AS COMPANY_2, SUM(PYUNCHA_2) AS PYUNCHA_2
+              , SUM(SEOUL_3) AS SEOUL_3, SUM(COMPANY_3) AS COMPANY_3, SUM(PYUNCHA_3) AS PYUNCHA_3
+          FROM (
+                    SELECT SUBSTRING(A.DATE,1,7) AS MON
+                          , 0 AS SEOUL_1
+                          , COALESCE(CASE WHEN B.CLASS != '타이어' THEN SUM(A.PRICE) END,0) AS COMPANY_1
+                          , COALESCE(CASE WHEN B.CLASS != '타이어' THEN 0 - SUM(A.PRICE) END,0)  AS PYUNCHA_1
+                          , 0 AS SEOUL_2
+                          , COALESCE(CASE WHEN B.CLASS = '타이어' THEN SUM(A.PRICE) END,0) AS COMPANY_2
+                          , COALESCE(CASE WHEN B.CLASS = '타이어' THEN 0 - SUM(A.PRICE) END,0)  AS PYUNCHA_2
+                          , 0 AS SEOUL_3
+                          , COALESCE(SUM(A.PRICE),0) AS COMPANY_3
+                          , COALESCE(0 - SUM(A.PRICE),0) AS PYUNCHA_3
+                      FROM JACHUL1 A
+                            LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                     WHERE 1 = 1
+                       AND A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                    GROUP BY  SUBSTRING(A.DATE,1,7), B.CLASS
+               )
+        GROUP BY MON
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

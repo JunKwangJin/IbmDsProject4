@@ -1,0 +1,71 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_COMPOPCARSEARCH_S01"
+(
+    IN  IN_USER_ID VARCHAR(12),
+    IN  IN_MENU_ID VARCHAR(10),
+    IN  IN_CAR_NO  VARCHAR(20),
+    OUT OUT_CNT VARCHAR(2),
+    OUT OUT_MSG VARCHAR(10000)
+
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_COMPOPCARSEARCH_S01
+생성일자	: 2021.04.21
+생성자	: 전광진
+내용	    : 차량조회  조회 POPUP 입니다.
+USAGE   : GADMIN.SP_COMPOPCARSEARCH_S01(USER ID, MENU_ID, 차량번호 )
+수정일자	:
+수정자	:
+수정내용
+INPUT	: IN_USER_ID        1. 사용자 ID
+        : IN_MENU_ID        2. MENU ID
+        : IN_CAR_NO         3. 차량번호
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+        SELECT ROUTE_CD
+             , CAR_CD
+             , CAR_TYPE_CD
+             , YEONSIK
+          FROM GADMIN.BSCAR_M
+         WHERE CAR_ALLOC_YN = '1'  -- 차량 배차 지정된 차량 배차
+           AND GADMIN.SF_EBUS_COMMON_CD('DRV15',CAR_CD,'') LIKE '%'||IN_CAR_NO||'%'
+;	--
+        OPEN CURSOR_DRV;--
+   END P1;--
+END MAIN 

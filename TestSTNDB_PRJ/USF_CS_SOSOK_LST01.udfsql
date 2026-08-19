@@ -1,0 +1,71 @@
+CREATE FUNCTION "GADMIN"."USF_CS_SOSOK_LST01"  (  IN IN_MENU_ID VARCHAR(10)
+                                              , IN IN_SOSOK_CD VARCHAR(10),  IN IN_SOSOK_NM VARCHAR(200)
+                                              , IN IN_ABBR_NM VARCHAR(200),  IN IN_SOSOK_ENM VARCHAR(100)
+                                              , IN IN_ABBR_ENM VARCHAR(100), IN IN_MUNSEO_SOSOK_NM VARCHAR(100)
+                                              , IN IN_TEL_NO VARCHAR(100),   IN IN_SEOLCHI_DT VARCHAR(8)
+                                              , IN IN_PYEJI_DT VARCHAR(8),   IN IN_SAYONG_YN VARCHAR(1)
+                                             )
+RETURNS
+      TABLE (
+             SOSOK_CD VARCHAR(10), 
+             SOSOK_NM VARCHAR(200), 
+             ABBR_NM VARCHAR(200), 
+             SOSOK_ENM VARCHAR(100), 
+             ABBR_ENM VARCHAR(100), 
+             MUNSEO_SOSOK_NM VARCHAR(100), 
+             TEL_NO VARCHAR(100), 
+             SEOLCHI_DT VARCHAR(8), 
+             PYEJI_DT VARCHAR(8), 
+             SORT DECIMAL(5,0),
+             SAYONG_YN VARCHAR(1),
+             INSERT_ID VARCHAR(200),
+             INSERT_IP VARCHAR(200),
+             INSERT_PGM	VARCHAR(200),
+             INSERT_DATE TIMESTAMP,
+             INSERT_NAME VARCHAR(200),
+             UPDATE_ID VARCHAR(200),
+             UPDATE_IP VARCHAR(200),
+             UPDATE_PGM VARCHAR(200),
+             UPDATE_DATE TIMESTAMP,
+             UPDATE_NAME VARCHAR(200)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+     SELECT    SOSOK_CD, 
+                SOSOK_NM, 
+                ABBR_NM, 
+                SOSOK_ENM, 
+                ABBR_ENM, 
+                MUNSEO_SOSOK_NM, 
+                TEL_NO, 
+                SEOLCHI_DT, 
+                PYEJI_DT, 
+                SORT, 
+                SAYONG_YN, 
+                INSERT_ID,
+                INSERT_IP,
+                INSERT_PGM,
+                INSERT_DATE,
+                INSERT_NAME,
+                UPDATE_ID,
+                UPDATE_IP,
+                UPDATE_PGM,
+                UPDATE_DATE,
+                UPDATE_NAME
+         FROM  GADMIN.CS_SOSOK_M
+        WHERE COALESCE(SOSOK_CD        ,'') LIKE IN_SOSOK_CD        || '%'
+          AND COALESCE(SOSOK_NM        ,'') LIKE IN_SOSOK_NM        || '%'
+          AND COALESCE(ABBR_NM         ,'') LIKE IN_ABBR_NM         || '%'
+          AND COALESCE(SOSOK_ENM       ,'') LIKE IN_SOSOK_ENM       || '%'
+          AND COALESCE(ABBR_ENM        ,'') LIKE IN_ABBR_ENM        || '%'
+          AND COALESCE(MUNSEO_SOSOK_NM ,'') LIKE IN_MUNSEO_SOSOK_NM || '%'
+          AND COALESCE(TEL_NO          ,'') LIKE IN_TEL_NO          || '%'
+          AND COALESCE(SEOLCHI_DT      ,'') LIKE IN_SEOLCHI_DT      || '%'
+          AND COALESCE(PYEJI_DT        ,'') LIKE IN_PYEJI_DT        || '%'
+          AND COALESCE(SAYONG_YN       ,'') LIKE IN_SAYONG_YN       || '%'
+        ;--
+END

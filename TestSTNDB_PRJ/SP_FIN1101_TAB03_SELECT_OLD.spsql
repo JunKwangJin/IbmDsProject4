@@ -1,0 +1,1288 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1101_TAB03_SELECT_OLD"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_PRE_FROMDATE VARCHAR(10), IN IN_PRE_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        ACC_CD          VARCHAR(20)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CU_AMT		    DECIMAL(20,5) DEFAULT 0,
+        CU_TOT          DECIMAL(20,5) DEFAULT 0,
+        BE_AMT          DECIMAL(20,5) DEFAULT 0,
+        BE_TOT          DECIMAL(20,5) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+    SELECT A.ACC_CD, '  '||A.ACC_NM AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+            --당기
+            SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+              FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+             WHERE 1 = 1
+               AND A.ACC_CD = B.ACC_CD
+               AND B.ACC_GB = '자산'
+               AND A.ACC_CD LIKE '1%'
+               AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+             GROUP BY A.ACC_CD, A.ACC_NM
+             UNION ALL
+             SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+              WHERE 1 = 1
+                AND A.ACC_CD = B.ACC_CD
+                AND A.DRCR_GB IN ('입금','출금')
+                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+              GROUP BY A.ACC_CD, A.ACC_NM
+              UNION ALL
+            SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+              FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+             WHERE 1 = 1
+               AND A.ACC_CD = B.ACC_CD
+               AND B.ACC_GB = '자산'
+               AND A.ACC_CD LIKE '1%'
+             GROUP BY A.ACC_CD, A.ACC_NM
+             UNION ALL
+            SELECT '3300909' AS ACC_CD, A.ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT
+              FROM GADMIN.EBUS_FIN_INCOME A
+             WHERE A.ACC_CD = '7300909'
+             UNION ALL
+             --전기
+            SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.DR_AMT - A.CR_AMT) AS BE_AMT, 0 AS BE_TOT
+              FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+             WHERE 1 = 1
+               AND A.ACC_CD = B.ACC_CD
+               AND B.ACC_GB = '자산'
+               AND A.ACC_CD LIKE '1%'
+               AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+             GROUP BY A.ACC_CD, A.ACC_NM
+             UNION ALL
+             SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+              WHERE 1 = 1
+                AND A.ACC_CD = B.ACC_CD
+                AND A.DRCR_GB IN ('입금','출금')
+               AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+              GROUP BY A.ACC_CD, A.ACC_NM
+              UNION ALL
+            SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.DR_AMT - A.CR_AMT) AS BE_AMT, 0 AS BE_TOT
+              FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+             WHERE 1 = 1
+               AND A.ACC_CD = B.ACC_CD
+               AND B.ACC_GB = '자산'
+               AND A.ACC_CD LIKE '1%'
+             GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD
+          AND NOT (CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)
+    GROUP BY A.ACC_CD, A.ACC_NM;--
+
+--자산   8,022,813,907
+    INSERT INTO SESSION.TEMP
+    SELECT  '1000000' AS ACC_CD, '(자        산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '1%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '1%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '1%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '1%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+ --(유 동  자 산)  1100000  1,653,196,746
+    INSERT INTO SESSION.TEMP
+    SELECT  '1100000' AS ACC_CD, '(유 동  자 산)' AS ACC_NM, SUM(CU_AMT) AS AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11%'
+                 GROUP BY A.ACC_CD, A.ACC_NM         ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+
+ --(당 좌  자 산)  1100000  1,200,164,450
+    INSERT INTO SESSION.TEMP
+    SELECT  '1110000' AS ACC_CD, '(당 좌  자 산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '111%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '111%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+            --전기
+            UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '111%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '111%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+--  현금및현금등가물  1100100  234,388,369
+    INSERT INTO SESSION.TEMP
+    SELECT  '1110100' AS ACC_CD, '  현금및현금등가물' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11101%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11101%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             UNION ALL
+             --전기
+             SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11101%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                 SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE 1 = 1
+                    AND A.ACC_CD = B.ACC_CD
+                    AND A.DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                  GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11101%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+--  매  출  채  권  1110400
+    INSERT INTO SESSION.TEMP
+    SELECT '1110400' AS ACC_CD, ' '||'매  출  채  권' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '1110400%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, SUM(A.DR_AMT - A.CR_AMT) AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '1110400%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '1110400%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '1110400%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+--  임원종업원단기대여금  1110800  271,527
+    INSERT INTO SESSION.TEMP
+    SELECT  '1110800' AS ACC_CD, ' '||'임원종업원단기대여금' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11108%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11108%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.DR_AMT - A.CR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11108%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, SUM(A.DR_AMT - A.CR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11108%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+--  (재 고  자 산)  1120000  453,032,296
+    INSERT INTO SESSION.TEMP
+    SELECT  '1120000' AS ACC_CD, '(재 고  자 산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '112%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '112%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '112%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '112%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+--  저    장    품  1120100
+    INSERT INTO SESSION.TEMP
+    SELECT  '1120100' AS ACC_CD, '  '||'저    장    품' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11201%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11201%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11201%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '11201%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+--  (고 정  자 산)  1200000  6,369,617,161
+    INSERT INTO SESSION.TEMP
+    SELECT  '1200000' AS ACC_CD, '(고 정  자 산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '12%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, SUM(A.DR_AMT - A.CR_AMT) AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '12%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '12%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '12%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+--  (투 자  자 산)  1210000  84,453,000
+    INSERT INTO SESSION.TEMP
+    SELECT  '1210000' AS ACC_CD, '(투 자  자 산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT,  SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+--    장기 금융 상품  1210100  84,453,000
+    INSERT INTO SESSION.TEMP
+    SELECT  '1210100' AS ACC_CD, '  '||'장기 금융 상품' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT,  SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CD와 CHULRYEOK_CD가 달라 ACC_CD를 사용못함(집계도 틀림)
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+--(유 형  자 산)  1200000  5,735,164,161
+    INSERT INTO SESSION.TEMP
+    SELECT  '1220000' AS ACC_CD, '(무 형  자 산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '122%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '122%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '122%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND A.ACC_CD LIKE '122%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+--   감가상각충당금(건물)  1220300
+    UPDATE SESSION.TEMP
+        SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220200','1220300') ),
+             BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220200','1220300') )
+      WHERE ACC_CD = '1220300';--
+
+-- 감가상각충당금(구축)  1220500
+    UPDATE SESSION.TEMP
+        SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220400','1220500') ),
+             BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220400','1220500') )
+      WHERE ACC_CD = '1220500';--
+
+-- 감가상각충당금(기공)  1220700
+    UPDATE SESSION.TEMP
+        SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220600','1220700') ),
+             BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220600','1220700') )
+      WHERE ACC_CD = '1220700';--
+
+-- 감가상각충당금(비품)  1220900
+    UPDATE SESSION.TEMP
+        SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220800','1220900') ),
+             BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220800','1220900') )
+      WHERE ACC_CD = '1220900';--
+
+-- 감가상각충당금(자가)  1221100
+    UPDATE SESSION.TEMP
+        SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221000','1221100') ),
+             BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221000','1221100') )
+      WHERE ACC_CD = '1221100';--
+
+-- 감가상각충당금(영업)  1221300
+    UPDATE SESSION.TEMP
+        SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221200','1221300') ),
+             BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221200','1221300') )
+      WHERE ACC_CD = '1221300';                               --
+
+--(무 형  자 산)  1200000  550,000,000
+    INSERT INTO SESSION.TEMP
+    SELECT  '1230000' AS ACC_CD, '(무 형  자 산)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '123%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '123%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '123%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자산'
+                   AND B.CHULRYEOK_CD LIKE '123%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+--((자 산 총 계))   8,022,813,907
+    INSERT INTO SESSION.TEMP
+    SELECT  '1999999' AS ACC_CD, '((자 산 총 계))' AS ACC_NM, SUM(CU_TOT) AS CU_AMT, SUM(CU_AMT) AS CU_TOT, SUM(BE_TOT) AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+      FROM SESSION.TEMP
+     WHERE ACC_CD = '1000000';--
+
+
+    INSERT INTO SESSION.TEMP
+    SELECT A.ACC_CD, A.ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS AMT, 0 AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD
+     GROUP BY A.ACC_CD, A.ACC_NM, B.CHULRYEOK_CD
+     ORDER BY B.CHULRYEOK_CD;--
+
+    --유동부채
+    INSERT INTO SESSION.TEMP
+    SELECT '2100000' AS ACC_CD, '(유 동  부 채)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, SUM(A.CR_AMT - A.DR_AMT) AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+    --  미  지  급  금
+    INSERT INTO SESSION.TEMP
+    SELECT '2100400' AS ACC_CD, '미  지  급  금' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21004%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, SUM(A.CR_AMT - A.DR_AMT) AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21004%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21004%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '21004%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+    --고정부채
+    INSERT INTO SESSION.TEMP
+    SELECT '2200000' AS ACC_CD, '(고 정  부 채)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '22%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '22%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '22%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '22%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+    --(부 채  총 계)
+    INSERT INTO SESSION.TEMP
+    SELECT '2999900' AS ACC_CD, '(부 채  총 계)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '부채'
+                   AND A.ACC_CD LIKE '2%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;       --
+
+
+    INSERT INTO SESSION.TEMP
+    SELECT A.ACC_CD, A.ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD
+       GROUP BY A.ACC_CD, A.ACC_NM, B.CHULRYEOK_CD
+       ORDER BY B.CHULRYEOK_CD;--
+
+    --(자   본   금)
+    INSERT INTO SESSION.TEMP
+    SELECT '3100000' AS ACC_CD, '(자   본   금)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '31%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, SUM(A.CR_AMT - A.DR_AMT) AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '31%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '31%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '31%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+
+    --(자 본 잉여금)
+    INSERT INTO SESSION.TEMP
+    SELECT '3200000' AS ACC_CD, '(자 본 잉여금)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '32%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, SUM(A.CR_AMT - A.DR_AMT) AS TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '32%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '32%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS AMT, 0 AS TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '32%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+     --(이 익 잉여금)
+    INSERT INTO SESSION.TEMP
+    SELECT '3300000' AS ACC_CD, '(이 익 잉여금)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33%'
+                   AND A.ACC_CD != '3300909'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, A.CU_TOT  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --당기순이익 포함 시킴
+                  FROM GADMIN.EBUS_FIN_INCOME A
+                 WHERE A.ACC_CD = '7300909'
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33%'
+                   AND A.ACC_CD != '3300909'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33%'
+                   AND A.ACC_CD != '3300909'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, A.BE_TOT AS BE_TOT   --당기순이익 포함 시킴
+                  FROM GADMIN.EBUS_FIN_INCOME A
+                 WHERE A.ACC_CD = '7300909'
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33%'
+                   AND A.ACC_CD != '3300909'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+     --  전기오류수정손익
+    INSERT INTO SESSION.TEMP
+    SELECT '3300200' AS ACC_CD, '전기오류수정손익' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33002%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33002%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33002%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33002%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+     --  당기말미처분이익잉여금
+    INSERT INTO SESSION.TEMP
+    SELECT '3300900' AS ACC_CD, '당기말미처분이익잉여금' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33009%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, A.CU_TOT AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --당기순이익 포함 시킴
+                  FROM GADMIN.EBUS_FIN_INCOME A
+                 WHERE A.ACC_CD = '7300909'
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33009%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33009%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , A.BE_TOT AS BE_AMT, 0 AS BE_TOT   --당기순이익 포함 시킴
+                  FROM GADMIN.EBUS_FIN_INCOME A
+                 WHERE A.ACC_CD = '7300909'
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '33009%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+    INSERT INTO SESSION.TEMP
+    SELECT '3999900' AS ACC_CD, '(자 본 총 계)' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, A.CU_TOT AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --당기순이익
+                  FROM GADMIN.EBUS_FIN_INCOME A
+                 WHERE A.ACC_CD = '7300909'
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                UNION ALL
+                --전기
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                   AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
+                 GROUP BY A.ACC_CD, A.ACC_NM
+                 UNION ALL
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , A.BE_TOT AS BE_AMT, 0 AS BE_TOT   --당기순이익
+                  FROM GADMIN.EBUS_FIN_INCOME A
+                 WHERE A.ACC_CD = '7300909'
+                  UNION ALL
+                SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+                  FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
+                 WHERE 1 = 1
+                   AND A.ACC_CD = B.ACC_CD
+                   AND B.ACC_GB = '자본'
+                   AND A.ACC_CD LIKE '3%'
+                 GROUP BY A.ACC_CD, A.ACC_NM
+             ) A, GADMIN.BSACC2 B
+        WHERE A.ACC_CD = B.ACC_CD;--
+
+    INSERT INTO SESSION.TEMP
+    SELECT '3999999' AS ACC_CD, '(부채자본총계)' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+      FROM (
+                SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT FROM SESSION.TEMP WHERE ACC_CD = '2999900' --총부채
+                UNION ALL
+                SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT FROM SESSION.TEMP WHERE ACC_CD = '3999900' --총자본
+            ) ;       --
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT,
+            (CU_AMT + CU_TOT) - (BE_AMT + BE_TOT) AS UPDOWN_AMT,
+            TRUNC( CASE BE_AMT + BE_TOT WHEN 0 THEN NULL
+                                 ELSE ((CU_AMT + CU_TOT) - (BE_AMT + BE_TOT)) / (BE_AMT + BE_TOT) * 100
+            END, 2) AS UPDOWN_RATE
+      FROM (
+                        SELECT A.*, B.CHULRYEOK_CD
+                          FROM SESSION.TEMP A, GADMIN.BSACC2 B
+                        WHERE 1 = 1
+                          AND A.ACC_CD = B.ACC_CD
+                          AND B.DAECHA_CHECK != 'N'
+
+                     )
+    WHERE NOT (CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)
+    ORDER BY CHULRYEOK_CD
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

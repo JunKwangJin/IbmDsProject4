@@ -1,0 +1,145 @@
+CREATE PROCEDURE GADMIN.USP_CS_TABCOLGET 
+(
+    IN IN_COLTYPE VARCHAR(128),
+    IN IN_VALUE VARCHAR(1000)
+)
+
+DYNAMIC RESULT SETS 1
+LANGUAGE SQL
+MAIN: BEGIN
+    DECLARE v_sql VARCHAR(1000);
+    DECLARE v_outvar VARCHAR(1000);
+    DECLARE v_indatatype VARCHAR(128); -- 찾고자 하는 특정 값
+    DECLARE v_value VARCHAR(1000); -- 찾고자 하는 특정 값
+    DECLARE v_resultcnt DECIMAL(9,0);
+    DECLARE v_getcnt DECIMAL(9,0);
+    DECLARE v_schema_name VARCHAR(128);
+    DECLARE v_table_name VARCHAR(128);
+    DECLARE v_column_name VARCHAR(128);
+    DECLARE v_data_type VARCHAR(128);
+    declare tempcnt decimal(9,0);
+    DECLARE SQLCODE INTEGER DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE tabcol_cursor CURSOR WITH RETURN FOR
+    SELECT C.TABSCHEMA, C.TABNAME, C.COLNAME, C.TYPENAME
+    FROM SYSCAT.COLUMNS AS C INNER JOIN SYSCAT.TABLES AS T ON C.TABSCHEMA = T.TABSCHEMA AND C.TABNAME = T.TABNAME
+    WHERE C.TABSCHEMA = 'GADMIN'
+    AND T.TYPE = 'T'
+    ORDER BY C.TABSCHEMA, C.TABNAME, C.COLNAME;  -- 특정 스키마 (예: GADMIN)로 제한
+
+    P1: BEGIN
+        DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP_RESULT (
+            SCHEMA_NAME VARCHAR(128),
+            TABLE_NAME VARCHAR(128),
+            COLUMN_NAME VARCHAR(128)
+        ) ON COMMIT PRESERVE ROWS
+        WITH REPLACE
+        NOT LOGGED
+        --ON COMMIT DELETE ROWS
+        ;
+
+        -- 찾고자 하는 값을 설정 (예: '특정값')
+        SET v_indatatype = IN_COLTYPE;
+        SET v_value = IN_VALUE; -- IN_VALUE을 사용하여 입력값을 설정
+
+    END P1;
+
+    P2: BEGIN
+        DECLARE result_cursor CURSOR WITH RETURN FOR
+        SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME
+        FROM SESSION.TEMP_RESULT
+        ORDER BY TABLE_NAME, COLUMN_NAME;
+
+        DECLARE get_cursor CURSOR FOR get_sql;
+
+        -- 커서를 선언하여 특정 스키마의 모든 테이블과 컬럼을 조회합니다.
+        OPEN tabcol_cursor;
+
+        -- 커서에서 데이터를 하나씩 가져와 처리합니다.
+        FETCH tabcol_cursor INTO v_schema_name, v_table_name, v_column_name, v_data_type;
+
+        -- 컬럼에 특정 값을 검색하는 동적 SQL 실행
+        WHILE SQLSTATE = '00000' DO
+            SELECT count(*) INTO v_resultcnt FROM SESSION.TEMP_RESULT WHERE SCHEMA_NAME = v_schema_name AND TABLE_NAME = v_table_name AND COLUMN_NAME = v_column_name;
+            SET v_sql = 'SELECT COUNT(*) FROM ' || TRIM(v_schema_name) || '.' || v_table_name;
+            IF v_data_type IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') AND v_indatatype IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') THEN
+                -- 문자형 데이터 타입인 경우
+                SET v_sql =  v_sql || ' WHERE ' || v_column_name || ' LIKE ''' ||'%' || v_value || '%' || '''';
+            ELSEIF v_data_type IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') AND v_indatatype IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') THEN
+                -- 숫자형 데이터 타입인 경우
+                SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DECIMAL(''' || v_value ||''',10,5)';
+            ELSEIF v_data_type IN ('DATE') AND v_indatatype IN ('DATE')  THEN
+                -- 날자형 데이터 타입인 경우
+                SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DATE(''' || v_value ||''')';
+            ELSEIF v_data_type IN ('TIMESTAMP') AND v_indatatype IN ('TIMESTAMP')  THEN
+                -- 날자형 데이터 타입인 경우
+                SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIMESTSAMP(''' || v_value ||''')';
+            ELSEIF v_data_type IN ('TIME') AND v_indatatype IN ('TIME')  THEN
+                -- 날자형 데이터 타입인 경우
+                SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIME(''' || v_value ||''')';
+            ELSE
+                SET v_sql = 'SELECT 0' || ' FROM SYSIBM.SYSDUMMY1';
+            END IF;
+
+	    	-- EXECUTE IMMEDIATE로 동적 SQL 실행 후 결과를 v_getcnt에 저장
+	    	-- 동적 SQL에서 SELECT 결과를 변수에 저장하는 방식은 커서를 사용하거나 다른 방식으로 처리해야 합니다.
+	    	    -- 동적 SQL 생성
+
+        	-- PREPARE 사용하여 동적 SQL을 실행 가능하도록 준비
+        	-- Dynamic Sql을 이용해 테이블의 데이터 카운트
+	        PREPARE get_sql FROM v_sql;
+
+	        -- OPEN을 통해 커서를 실행하고 결과를 FETCH
+	        OPEN get_cursor;
+
+	        -- 결과를 변수에 FETCH
+	        FETCH get_cursor INTO v_getcnt;
+
+	    	-- 커서 닫기
+	    	CLOSE get_cursor;
+
+
+            IF v_resultcnt = 0 AND v_getcnt > 0 THEN
+            	-- 데이터 타입에 맞는 조건을 생성합니다.
+            	SET v_sql = 'SELECT ''' || v_schema_name || ''', ''' || v_table_name || ''', ''' || v_column_name || ''' FROM ' || TRIM(v_schema_name) || '.' || v_table_name;
+	            IF v_data_type IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') AND v_indatatype IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') THEN
+	                -- 문자형 데이터 타입인 경우
+                    SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = ''' || v_value || ''' FETCH FIRST 1 ROWS ONLY';
+
+	            ELSEIF v_data_type IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') AND  v_indatatype IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') THEN
+                    -- 숫자형 데이터 타입인 경우
+                    SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DECIMAL(''' || v_value ||''',10,5) FETCH FIRST 1 ROWS ONLY';
+
+	            ELSEIF v_data_type IN ('DATE') AND v_indatatype IN ('DATE') THEN
+	                -- 낭자형 데이터 타입인 경우
+                    SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DATE(''' || v_value ||''') FETCH FIRST 1 ROWS ONLY';
+
+	            ELSEIF v_data_type IN ('TIMESTAMP') AND  v_indatatype IN ('TIMESTAMP') THEN
+	                -- 낭자형 데이터 타입인 경우
+                    SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIMESTSAMP(''' || v_value ||''') FETCH FIRST 1 ROWS ONLY';
+
+	            ELSEIF v_data_type IN ('TIME') THEN
+	                -- 낭자형 데이터 타입인 경우
+                    SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIME(''' || v_value ||''') FETCH FIRST 1 ROWS ONLY';
+
+                ELSE
+	                SET v_sql = null;
+                END IF;
+
+                -- 동적 SQL을 임시 테이블에 저장하는 방식으로 처리
+                -- 동적 SQL을 실행하여 결과를 임시 테이블에 삽입
+                SET v_sql = 'INSERT INTO SESSION.TEMP_RESULT (SCHEMA_NAME, TABLE_NAME, COLUMN_NAME) ' || v_sql;
+                EXECUTE IMMEDIATE v_sql;
+                select count(*) into tempcnt from SESSION.TEMP_RESULT;
+            END IF;
+
+                -- 다음 레코드로 이동
+                FETCH tabcol_cursor INTO v_schema_name, v_table_name, v_column_name, v_data_type;
+            END WHILE;
+
+            -- 커서 닫기
+            CLOSE tabcol_cursor;
+            OPEN result_cursor;
+    END P2;
+END MAIN 

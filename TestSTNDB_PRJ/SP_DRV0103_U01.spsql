@@ -1,0 +1,322 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0103_U01"
+(
+     IN IN_CK                VARCHAR(1)
+   , IN IN_USER_ID           VARCHAR(12)
+   , IN IN_ROUTE_CD          VARCHAR(3)
+   , IN IN_PYEON_GB          VARCHAR(2)
+   , IN IN_OLD_ROUTE_CD      VARCHAR(3)
+   , IN IN_OLD_PYEON_GB      VARCHAR(2)
+   , IN IN_DAESU             VARCHAR(5)
+   , IN IN_YEBI              VARCHAR(5)
+   , IN IN_PJ_CNT            VARCHAR(5)
+   , IN IN_PJ_TIME           VARCHAR(7)
+   , IN IN_PS_CNT            VARCHAR(5)
+   , IN IN_PS_TIME           VARCHAR(7)
+   , IN IN_TJ_CNT            VARCHAR(5)
+   , IN IN_TJ_TIME           VARCHAR(7)
+   , IN IN_TS_CNT            VARCHAR(5)
+   , IN IN_SJ_CNT            VARCHAR(5)
+   , IN IN_SJ_TIME           VARCHAR(7)
+   , IN IN_SS_CNT            VARCHAR(5)
+   , IN IN_ALLOC_PCONT       VARCHAR(5)
+   , IN IN_ALLOC_TCONT       VARCHAR(5)
+   , IN IN_ALLOC_SCONT       VARCHAR(5)
+   , IN IN_SEC_DIST          VARCHAR(7)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0103_U01
+생성일자	: 2021.04.9
+생성자	: 전광진
+내용	: 배차시간표 저장
+수정일자	:
+수정자	:
+수정내용
+    INPUT IN_CK             1 CRUD체크
+          IN_ROUTE_CD       2 노선
+          IN_PYEON_GB       3 편성구분
+          IN_OLD_ROUTE_CD   4 노선
+          IN_OLD_PYEON_GB   5 편성구분
+          IN_DAESU          6 인가대수
+          IN_YEBI           7 예비대수
+          IN_PJ_CNT         8 정상대수
+          IN_PJ_TIME        9 정상회수
+          IN_PS_CNT        10 단축대수
+          IN_PS_TIME       11 단축회수
+          IN_TJ_CNT        12 정상대수
+          IN_TJ_TIME       13 정상회수
+          IN_TS_CNT        14 단축대수
+          IN_SJ_CNT        15 정상대수
+          IN_SJ_TIME       16 정상회수
+          IN_SS_CNT        17 단축대수
+          IN_ALLOC_PCONT   18 평일배차조정
+          IN_ALLOC_TCONT   19 토요배차조정
+          IN_ALLOC_SCONT   20 일요배차조정
+          IN_SEC_DIST      21 구간거리
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_CNT  INTEGER    DEFAULT 0;--
+    DECLARE V_SAVE INTEGER    DEFAULT 0;--
+    DECLARE V_KEY_MSG VARCHAR(100) DEFAULT '';--
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0; --
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000'; --
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']' || CHR(13) || 'WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: '||V_KEY_MSG||'변수의 길이가 너무 작습니다..'
+                                                                            ELSE              'WRR99: '||V_KEY_MSG||'실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = OUT_MSG ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: '||V_KEY_MSG||'존재하지 않는 테이블 입니다...'
+                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: '||V_KEY_MSG||'NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR03: '||V_KEY_MSG||'저장중 중복되었습니다.'
+                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: '||V_KEY_MSG||'저장될 문자열 길이가 너무 깁니다..'
+                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: '||V_KEY_MSG||'실행중 알수없는 오류로 종료되었습니다.'
+                                   END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0; --
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+ -- CRUD가 발생하는 KEY
+    SELECT '[노선 ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][편성구분 : '||GADMIN.SF_EBUS_COMMON_CD('DRV04',IN_PYEON_GB,'')||'] ' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
+    -- 문자로 넘어온 데이터를 숫자 데이터로 변환
+
+     SET IN_DAESU       =  CASE WHEN COALESCE(IN_DAESU,'0')         = '' THEN '0' ELSE COALESCE(IN_DAESU,'0')       END;--
+     SET IN_YEBI        =  CASE WHEN COALESCE(IN_YEBI,'0')          = '' THEN '0' ELSE COALESCE(IN_YEBI,'0')        END;--
+     SET IN_SEC_DIST    =  CASE WHEN COALESCE(IN_SEC_DIST,'0')      = '' THEN '0' ELSE COALESCE(IN_SEC_DIST,'0')    END;--
+     SET IN_PJ_CNT      =  CASE WHEN COALESCE(IN_PJ_CNT,'0')        = '' THEN '0' ELSE COALESCE(IN_PJ_CNT,'0')      END;--
+     SET IN_PJ_TIME     =  CASE WHEN COALESCE(IN_PJ_TIME,'0')       = '' THEN '0' ELSE COALESCE(IN_PJ_TIME,'0')     END;--
+     SET IN_PS_CNT      =  CASE WHEN COALESCE(IN_PS_CNT,'0')        = '' THEN '0' ELSE COALESCE(IN_PS_CNT,'0')      END;--
+     SET IN_PS_TIME     =  CASE WHEN COALESCE(IN_PS_TIME,'0')       = '' THEN '0' ELSE COALESCE(IN_PS_TIME,'0')     END;--
+     SET IN_TJ_CNT      =  CASE WHEN COALESCE(IN_TJ_CNT,'0')        = '' THEN '0' ELSE COALESCE(IN_TJ_CNT,'0')      END;--
+     SET IN_TJ_TIME     =  CASE WHEN COALESCE(IN_TJ_TIME,'0')       = '' THEN '0' ELSE COALESCE(IN_TJ_TIME,'0')     END;--
+     SET IN_TS_CNT      =  CASE WHEN COALESCE(IN_TS_CNT,'0')        = '' THEN '0' ELSE COALESCE(IN_TS_CNT,'0')      END;--
+     SET IN_SJ_CNT      =  CASE WHEN COALESCE(IN_SJ_CNT,'0')        = '' THEN '0' ELSE COALESCE(IN_SJ_CNT,'0')      END;--
+     SET IN_SJ_TIME     =  CASE WHEN COALESCE(IN_SJ_TIME,'0')       = '' THEN '0' ELSE COALESCE(IN_SJ_TIME,'0')     END;--
+     SET IN_SS_CNT      =  CASE WHEN COALESCE(IN_SS_CNT,'0')        = '' THEN '0' ELSE COALESCE(IN_SS_CNT,'0')      END;--
+     SET IN_ALLOC_PCONT =  CASE WHEN COALESCE(IN_ALLOC_PCONT,'0')   = '' THEN '0' ELSE COALESCE(IN_ALLOC_PCONT,'0') END;--
+     SET IN_ALLOC_TCONT =  CASE WHEN COALESCE(IN_ALLOC_TCONT,'0')   = '' THEN '0' ELSE COALESCE(IN_ALLOC_TCONT,'0') END;--
+     SET IN_ALLOC_SCONT =  CASE WHEN COALESCE(IN_ALLOC_SCONT,'0')   = '' THEN '0' ELSE COALESCE(IN_ALLOC_SCONT,'0') END;--
+
+
+	 --DATA	insert
+
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA3_M
+        WHERE EXC_GB     = '00001'
+          AND ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND PYEON_GB   = IN_OLD_PYEON_GB
+        ;--
+    END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA3_M
+          SET EXC_GB = '00001'
+             , ROUTE_CD = IN_ROUTE_CD
+             , PYEON_GB = IN_PYEON_GB
+             , ALLOC_DT = NULL
+             , INGA_CNT = DECFLOAT_FORMAT(IN_DAESU)
+             , YEBI_CNT = DECFLOAT_FORMAT(IN_YEBI)
+             , SEC_DIST = DECFLOAT_FORMAT(IN_SEC_DIST)
+             , M_DATE   = CURRENT TIMESTAMP
+             , M_USER   = IN_USER_ID
+        WHERE EXC_GB   = '00001'
+          AND ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND PYEON_GB   = IN_OLD_PYEON_GB
+       ;--
+       SET V_SAVE  = V_SAVE + 100000;--
+   ELSE
+      INSERT INTO BSUNHA3_M VALUES
+             ( '00001'
+             , IN_ROUTE_CD
+             , IN_PYEON_GB
+             , NULL
+             , DECFLOAT_FORMAT(IN_DAESU)
+             , DECFLOAT_FORMAT(IN_YEBI)
+             , 0
+             , DECFLOAT_FORMAT(IN_SEC_DIST)
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE + 2000000;--
+   END IF;--
+
+   -- 데이터 테이블 저장
+   -- WEEK_GB(주중구분) = '10' 평일 저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA3_D
+        WHERE EXC_GB     = '00001'
+          AND ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND PYEON_GB   = IN_OLD_PYEON_GB
+          AND WEEK_GB    = '10'
+        ;--
+   END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA3_D
+          SET EXC_GB = '00001'
+             , ROUTE_CD   =  IN_ROUTE_CD
+             , PYEON_GB   =  IN_PYEON_GB
+             , JUNG_CNT   =  DECFLOAT_FORMAT(IN_PJ_CNT)
+             , JUNG_TIME  =  DECFLOAT_FORMAT(IN_PJ_TIME)
+             , SHORT_CNT  =  DECFLOAT_FORMAT(IN_PS_CNT)
+             , SHORT_TIME =  DECFLOAT_FORMAT(IN_PS_TIME)
+             , ALLOC_CONT =  DECFLOAT_FORMAT(IN_ALLOC_PCONT)
+             , M_DATE     =  CURRENT TIMESTAMP
+             , M_USER     =  IN_USER_ID
+        WHERE EXC_GB   = '00001'
+          AND ROUTE_CD   = IN_ROUTE_CD
+          AND PYEON_GB   = IN_PYEON_GB
+          AND WEEK_GB    = '10'
+       ;--
+       SET V_SAVE  = V_SAVE +  100000;--
+   ELSE
+      INSERT INTO BSUNHA3_D VALUES
+             ( '00001'
+             , IN_ROUTE_CD
+             , IN_PYEON_GB
+             , '10'
+             , DECFLOAT_FORMAT(IN_PJ_CNT)
+             , DECFLOAT_FORMAT(IN_PJ_TIME)
+             , DECFLOAT_FORMAT(IN_PS_CNT)
+             , DECFLOAT_FORMAT(IN_PS_TIME)
+             , DECFLOAT_FORMAT(IN_ALLOC_PCONT)
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE +  200000;--
+   END IF;--
+
+   -- WEEK_GB(주중구분) = '20' 토요일 저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA3_D
+        WHERE EXC_GB     = '00001'
+          AND ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND PYEON_GB   = IN_OLD_PYEON_GB
+          AND WEEK_GB    = '20'
+        ;--
+   END IF;     --
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA3_D
+          SET EXC_GB      = '00001'
+             , ROUTE_CD   =  IN_ROUTE_CD
+             , PYEON_GB   =  IN_PYEON_GB
+             , JUNG_CNT   =  DECFLOAT_FORMAT(IN_TJ_CNT)
+             , JUNG_TIME  =  DECFLOAT_FORMAT(IN_TJ_TIME)
+             , SHORT_CNT  =  DECFLOAT_FORMAT(IN_TS_CNT)
+             , ALLOC_CONT =  DECFLOAT_FORMAT(IN_ALLOC_TCONT)
+             , M_DATE     =  CURRENT TIMESTAMP
+             , M_USER     =  IN_USER_ID
+        WHERE EXC_GB   = '00001'
+          AND ROUTE_CD   = IN_ROUTE_CD
+          AND PYEON_GB   = IN_PYEON_GB
+          AND WEEK_GB    = '20'
+       ;--
+       SET V_SAVE  = V_SAVE +  10000;--
+   ELSE
+      INSERT INTO BSUNHA3_D VALUES
+             ( '00001'
+             , IN_ROUTE_CD
+             , IN_PYEON_GB
+             , '20'
+             , DECFLOAT_FORMAT(IN_TJ_CNT)
+             , DECFLOAT_FORMAT(IN_TJ_TIME)
+             , DECFLOAT_FORMAT(IN_TS_CNT)
+             , 0
+             , DECFLOAT_FORMAT(IN_ALLOC_TCONT)
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  =  V_SAVE + 20000;--
+   END IF;--
+    -- WEEK_GB(주중구분) = '20' 토요일 저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA3_D
+        WHERE EXC_GB     = '00001'
+          AND ROUTE_CD   = IN_ROUTE_CD
+          AND PYEON_GB   = IN_PYEON_GB
+          AND WEEK_GB    = '20'
+        ;--
+   END IF;    --
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA3_D
+          SET EXC_GB      = '00001'
+             , ROUTE_CD   =  IN_ROUTE_CD
+             , PYEON_GB   =  IN_PYEON_GB
+             , JUNG_CNT   =  DECFLOAT_FORMAT(IN_SJ_CNT)
+             , JUNG_TIME  =  DECFLOAT_FORMAT(IN_SJ_TIME)
+             , SHORT_CNT  =  DECFLOAT_FORMAT(IN_SS_CNT)
+             , ALLOC_CONT =  DECFLOAT_FORMAT(IN_ALLOC_SCONT)
+             , M_DATE     =  CURRENT TIMESTAMP
+             , M_USER     =  IN_USER_ID
+        WHERE EXC_GB   = '00001'
+          AND ROUTE_CD   = IN_ROUTE_CD
+          AND PYEON_GB   = IN_PYEON_GB
+          AND WEEK_GB    = '30'
+       ;--
+       SET V_SAVE  = V_SAVE +  1000;--
+   ELSE
+      INSERT INTO BSUNHA3_D VALUES
+             ( '00001'
+             , IN_ROUTE_CD
+             , IN_PYEON_GB
+             , '30'
+             , DECFLOAT_FORMAT(IN_SJ_CNT)
+             , DECFLOAT_FORMAT(IN_SJ_TIME)
+             , DECFLOAT_FORMAT(IN_SS_CNT)
+             , 0
+             , DECFLOAT_FORMAT(IN_ALLOC_SCONT)
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE +  2000;--
+   END IF;--
+
+
+
+   SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'저장되었습니다.');--
+
+END MAIN 

@@ -1,0 +1,103 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0901_TAB02_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_ACC_CD VARCHAR(10)
+, IN IN_MANAGE_CD_1 VARCHAR(9)
+, IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DATE           VARCHAR(10),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        MANAGE_1        VARCHAR(9),
+        ITEM_1          VARCHAR(100),
+        MANAGE_2        VARCHAR(9),
+        ITEM_2          VARCHAR(100),
+        DR_AMT         DECIMAL(20,0),
+        CR_AMT         DECIMAL(20,0),
+        JAN_AMT         DECIMAL(20,0)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;	--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+    SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, A.DR_AMT, A.CR_AMT, SUM(JAN_AMT) OVER(ORDER BY A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1,ROWNUMBER()OVER()) AS JAN_AMT
+       FROM (
+                SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT, B.DRCR_GB
+                        , CASE B.DRCR_GB WHEN '차변' THEN (SUM(A.DR_AMT) - SUM(A.CR_AMT)) + (SUM(A.BE_DR_AMT) - SUM(A.BE_CR_AMT)) ELSE (SUM(A.CR_AMT) - SUM(A.DR_AMT)) + (SUM(A.BE_CR_AMT) - SUM(A.BE_DR_AMT)) END AS JAN_AMT
+                  FROM (
+                            SELECT TO_CHAR(A.DATE,'YYYY-MM-DD') AS DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT, 0 AS BE_DR_AMT, 0 AS BE_CR_AMT
+                              FROM GADMIN.ACCOU1 A
+                             WHERE 1 = 1
+                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                --AND LENGTH(COALESCE(A.MANAGE_CD_1,'')) > 1
+                                AND ACC_CD = IN_ACC_CD
+                                AND MANAGE_CD_1 = IN_MANAGE_CD_1
+                            GROUP BY TO_CHAR(A.DATE,'YYYY-MM-DD'), A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2
+                            UNION ALL
+                            SELECT SUBSTRING(IN_FROMDATE,1,7)||'-00' AS DATE, ACC_CD, '전기이월' AS ACC_NM, '' AS MANAGE_1, '' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, 0 AS DR_AMT, 0 AS CR_AMT, SUM(B.DR_AMT) AS BE_DR_AMT, SUM(B.CR_AMT) AS BE_CR_AMT
+                              FROM (
+                                        SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, CASE C.DRCR_GB WHEN '차변' THEN B.DR_AMT ELSE B.CR_AMT END AS DR_AMT
+                                                , CASE C.DRCR_GB WHEN '차변' THEN B.CR_AMT ELSE B.DR_AMT END AS CR_AMT
+                                           FROM TABLE(GADMIN.SF_FIN_PRE_MANAGE_SELECT(IN_FROMDATE)) B, GADMIN.BSACC2 C
+                                          WHERE B.ACC_CD = C.ACC_CD
+                                    ) B
+                             WHERE ACC_CD = IN_ACC_CD
+                               AND MANAGE_1 = IN_MANAGE_CD_1
+                            GROUP BY SUBSTRING(IN_FROMDATE,1,7), ACC_CD
+                        ) A
+                 LEFT OUTER JOIN GADMIN.BSACC2 B ON ( A.ACC_CD = B.ACC_CD)
+                 GROUP BY A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, B.DRCR_GB
+             ) A
+     WHERE 1 = 1
+--       AND NOT (JAN_AMT = 0 AND PRE_AMT = 0)
+    ORDER BY A.ACC_CD, A.MANAGE_CD_1;    --
+
+    INSERT INTO SESSION.TEMP
+    SELECT SUBSTRING(DATE,1,7)||'-88' AS DATE, '' AS ACC_CD, '' AS ACC_NM, '' AS MANAGE_1, ' 월  계 ' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
+      FROM SESSION.TEMP
+    GROUP BY SUBSTRING(DATE,1,7);--
+
+
+    INSERT INTO SESSION.TEMP
+    SELECT SUBSTRING(DATE,1,7)||'-99' AS DATE, '' AS ACC_CD, '' AS ACC_NM, '' AS MANAGE_1, ' 누  계 ' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2
+           , SUM(DR_AMT) OVER(ORDER BY ACC_CD, ROWNUMBER()OVER()) AS DR_AMT
+           , SUM(CR_AMT) OVER(ORDER BY ACC_CD, ROWNUMBER()OVER()) AS CR_AMT
+           , 0 AS JAN_AMT
+      FROM SESSION.TEMP
+     WHERE DATE =  SUBSTRING(DATE,1,7)||'-88'
+--    GROUP BY SUBSTRING(DATE,1,7)
+    ;--
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT CASE WHEN SUBSTRING(DATE,9,2) = '88' OR SUBSTRING(DATE,9,2) = '99' THEN '' ELSE DATE END AS DATE,  ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DR_AMT, CR_AMT, JAN_AMT
+      FROM (
+                SELECT *
+                  FROM SESSION.TEMP
+                ORDER BY DATE, ACC_CD
+             )
+                ;--
+
+    /*
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT *
+      FROM SESSION.TEMP
+    ORDER BY DATE, ACC_CD;--
+    */
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

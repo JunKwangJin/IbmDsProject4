@@ -1,0 +1,70 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0402_TAB05_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_EWOL_MONTH VARCHAR(10) DEFAULT '';--
+
+    P1: BEGIN
+
+        -- 폭스프로 화면의 컬럼 수 보다 더 넣어 생성시킴
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                SELECT A.ROUTE
+--                      , 'A' AS GUBUN
+                      , A.CAR_NO
+                      , B.CAR_TYPE
+                      , SUM(MON_01) AS M01
+                      , SUM(MON_02) AS M02
+                      , SUM(MON_03) AS M03
+                      , SUM(MON_04) AS M04
+                      , SUM(MON_05) AS M05
+                      , SUM(MON_06) AS M06
+                      , SUM(MON_07) AS M07
+                      , SUM(MON_08) AS M08
+                      , SUM(MON_09) AS M09
+                      , SUM(MON_10) AS M10
+                      , SUM(MON_11) AS M11
+                      , SUM(MON_12) AS M12
+                      , SUM(AVR) AS AVR
+                  FROM (
+                         SELECT ROUTE, CAR_NO
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '01' THEN SUM(A.CHARGE) END, 0) AS MON_01
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '02' THEN SUM(A.CHARGE) END, 0) AS MON_02
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '03' THEN SUM(A.CHARGE) END, 0) AS MON_03
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '04' THEN SUM(A.CHARGE) END, 0) AS MON_04
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '05' THEN SUM(A.CHARGE) END, 0) AS MON_05
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '06' THEN SUM(A.CHARGE) END, 0) AS MON_06
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '07' THEN SUM(A.CHARGE) END, 0) AS MON_07
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '08' THEN SUM(A.CHARGE) END, 0) AS MON_08
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '09' THEN SUM(A.CHARGE) END, 0) AS MON_09
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '10' THEN SUM(A.CHARGE) END, 0) AS MON_10
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '11' THEN SUM(A.CHARGE) END, 0) AS MON_11
+                              , COALESCE(CASE SUBSTRING(A.DATE, 6,2) WHEN '12' THEN SUM(A.CHARGE) END, 0) AS MON_12
+                              , COALESCE(SUM(A.CHARGE)/12 , 0) AS AVR
+                           FROM GADMIN.UNHANG07 A
+                          WHERE 1 = 1
+                            AND SUBSTRING(A.DATE, 1, 7) BETWEEN SUBSTRING(IN_FROMDATE,1,7) AND SUBSTRING(IN_TODATE,1,7)
+                            AND A.ROUTE != ''
+                          GROUP BY ROUTE, CAR_NO, SUBSTRING(A.DATE, 6,2)
+                        ) A
+                        LEFT OUTER JOIN GADMIN.BSCAR B ON (A.CAR_NO = B.CAR_NO)
+                 WHERE 1 = 1
+                 GROUP BY A.ROUTE, A.CAR_NO, B.CAR_TYPE
+
+
+               )
+        ORDER BY 1,2,3
+
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

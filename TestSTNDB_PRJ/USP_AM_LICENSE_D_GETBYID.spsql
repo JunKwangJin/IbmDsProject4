@@ -1,0 +1,37 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_AM_LICENSE_D_GETBYID"
+(
+    IN IN_iNSA_NO VARCHAR(12),
+    OUT OUT_CNT INTEGER, 
+    OUT OUT_MSG VARCHAR(1000)  
+)
+  DYNAMIC RESULT SETS 1 
+ LANGUAGE SQL
+P1: BEGIN
+------------------------------------------------------------------------
+-- SQL Stored Procedure 
+------------------------------------------------------------------------
+DECLARE CURSOR_AM_LICENSE_D CURSOR WITH RETURN FOR 
+	SELECT INSA_NO AS InsaNo
+	       , LICENSE_GBCD AS LicenseGbCd
+	       , GYOBU_DT AS GyobuDt
+	       , LICENSE_NO AS LicenseNo
+	       , JUKSUNG_GUMSA_DT AS JuksungGumsaDt
+	       , INSERT_DT AS InsertDt
+	       , INSERT_ID AS InsertId
+	       , INSERT_NM AS InsertNm
+	       , INSERT_IP AS InsertIp
+	       , INSERT_PGM AS InsertPgm
+	       , UPDATE_DT AS UdateDt
+	       , UPDATE_ID AS UdateId
+	       , UPDATE_NM AS UdateNm
+	       , UPDATE_IP AS UdateIp
+	       , UPDATE_PGM AS UpdatePgm
+	FROM GADMIN.AM_LICENSE_D
+   WHERE INSA_NO = IN_INSA_NO
+	ORDER BY INSA_NO
+	       , LICENSE_GBCD
+	       , LICENSE_NO;
+    
+    OPEN CURSOR_AM_LICENSE_D ;--
+
+END P1 

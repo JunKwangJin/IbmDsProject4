@@ -1,0 +1,284 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0501_TAB01_02_SELECT"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5)    DEFAULT '00000';--
+    DECLARE   V_YEAR      VARCHAR(4) DEFAULT '';--
+    DECLARE   V_MONTH     VARCHAR(2) DEFAULT '';--
+    DECLARE   V_DAY       VARCHAR(2) DEFAULT '';--
+    DECLARE   V_LAST_DAY  VARCHAR(10) DEFAULT ''; --
+    DECLARE   V_GISU      VARCHAR(3) DEFAULT '';--
+
+    DECLARE   V_DR_TOT_AMT   DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_DR_DAE_AMT   DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_DR_AMT       DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_ACC_CD       VARCHAR(10) DEFAULT '';--
+    DECLARE   V_ACC_NM       VARCHAR(60) DEFAULT '';--
+    DECLARE   V_CR_AMT       DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_CR_DAE_AMT   DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_CR_TOT_AMT   DECIMAL(20,0) DEFAULT 0.0;--
+
+    DECLARE   V_AFTER_AMT    DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_AFTER_DAY_DR_AMT DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_AFTER_DAY_CR_AMT DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_AFTER_ACC_DR_AMT DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_AFTER_ACC_CR_AMT DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_AFTER_DAY        VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_BEFOR_AMT        DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_BEFOR_DR_AMT     DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_BEFOR_CR_AMT     DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_DR_00            DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_CR_00            DECIMAL(20,0) DEFAULT 0.0;--
+    DECLARE   V_LASTDAY        VARCHAR(20)   DEFAULT '';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DR_TOT_AMT      DECIMAL(20,0) DEFAULT 0,
+        DR_DAE_AMT      DECIMAL(20,0) DEFAULT 0,
+        DR_OUT_AMT      DECIMAL(20,0) DEFAULT 0,
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CR_IN_AMT		DECIMAL(20,0) DEFAULT 0,
+        CR_DAE_AMT      DECIMAL(20,0) DEFAULT 0,
+        CR_TOT_AMT      DECIMAL(20,0) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+  DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP_TOT
+    (
+        DR_TOT_AMT      DECIMAL(20,0) DEFAULT 0,
+        DR_DAE_AMT      DECIMAL(20,0) DEFAULT 0,
+        DR_OUT_AMT      DECIMAL(20,0) DEFAULT 0,
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CR_IN_AMT		DECIMAL(20,0) DEFAULT 0,
+        CR_DAE_AMT      DECIMAL(20,0) DEFAULT 0,
+        CR_TOT_AMT      DECIMAL(20,0) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+  DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP_RESLT
+    (
+        DR_TOT_AMT      DECIMAL(20,0) DEFAULT 0,
+        DR_DAE_AMT      DECIMAL(20,0) DEFAULT 0,
+        DR_OUT_AMT      DECIMAL(20,0) DEFAULT 0,
+        ACC_CD          VARCHAR(10)   DEFAULT '',
+        ACC_NM          VARCHAR(60)   DEFAULT '',
+        CR_IN_AMT		DECIMAL(20,0) DEFAULT 0,
+        CR_DAE_AMT      DECIMAL(20,0) DEFAULT 0,
+        CR_TOT_AMT      DECIMAL(20,0) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+P1: BEGIN
+
+/*
+    INSERT INTO SESSION.TEMP
+        WITH HAP_ACC AS
+            (
+            SELECT CASE WHEN B.DRCR_GB  = '차변' OR B.DRCR_GB = '출금' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_TOT_AMT,
+                    CASE WHEN B.DRCR_GB  = '차변' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_DAE_AMT,
+                    CASE WHEN B.DRCR_GB  = '출금' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_OUT_AMT,
+                    A.ACC_CD, B.ACC_NM,
+                    CASE WHEN B.DRCR_GB  = '입금' THEN SUM(A.CR_AMT) ELSE 0 END AS DR_IN_AMT,
+                    CASE WHEN B.DRCR_GB  = '대변' THEN SUM(A.CR_AMT) ELSE 0 END AS CR_DAE_AMT,
+                    CASE WHEN B.DRCR_GB  = '대변' OR B.DRCR_GB = '입금' THEN SUM(CR_AMT) ELSE 0 END AS CR_TOT_AMT
+               FROM (
+                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT   --일반계정 집계
+                                  FROM (
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
+                                               FROM GADMIN.ACCOU1
+                                              WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                             UNION ALL
+                                             SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, SUM(A.CR_AMT) AS DR_AMT, SUM(A.DR_AMT) AS CR_AMT   --현금계정 집계
+                                               FROM GADMIN.ACCOU1 A
+                                              WHERE DRCR_GB IN ('입금','출금')
+                                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                        ) A
+                                GROUP BY A.ACC_CD
+                        ) A , GADMIN.BSACC2 B
+                         WHERE 1 = 1
+                           AND A.ACC_CD = B.ACC_CD
+                        GROUP BY A.ACC_CD, B.ACC_NM, B.DRCR_GB
+            )
+        SELECT * FROM HAP_ACC A
+        ;--
+*/
+    INSERT INTO SESSION.TEMP
+                    WITH HAP_ACC AS (
+                                        SELECT SUM(DR_TOT_AMT) AS DR_TOT_AMT, SUM(DR_DAE_AMT) AS DR_DAE_AMT, SUM(DR_OUT_AMT) AS DR_OUT_AMT, ACC_CD, ACC_NM, SUM(CR_IN_AMT) AS CR_IN_AMT, SUM(CR_DAE_AMT) AS CR_DAE_AMT, SUM(CR_TOT_AMT) AS CR_TOT_AMT, sign, levelup_cd
+                                         FROM (
+                                                SELECT CASE WHEN A.DRCR_GB = '차변' OR A.DRCR_GB = '출금' THEN (A.DR_AMT) ELSE 0 END AS DR_TOT_AMT,
+                                                        CASE WHEN A.DRCR_GB = '차변' THEN (A.DR_AMT) ELSE 0 END AS DR_DAE_AMT,
+                                                        CASE WHEN A.DRCR_GB = '출금' THEN (A.DR_AMT) ELSE 0 END AS DR_OUT_AMT,
+                                                        B.ACC_CD, B.ACC_NM,
+                                                        CASE WHEN A.DRCR_GB = '입금' THEN (A.CR_AMT) ELSE 0 END AS CR_IN_AMT,
+                                                        CASE WHEN A.DRCR_GB = '대변' THEN (A.CR_AMT) ELSE 0 END AS CR_DAE_AMT,
+                                                        CASE WHEN A.DRCR_GB = '대변' OR A.DRCR_GB = '입금' THEN (A.CR_AMT) ELSE 0 END AS CR_TOT_AMT,
+                                                        (case when CHAGAM_GB = '차감' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+                                                   FROM (
+                                                                    SELECT A.ACC_CD, A.DRCR_GB, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --일반계정 집계
+                                                                      FROM (
+                                                                                 SELECT ACC_CD, ACC_NM, DRCR_GB, DR_AMT, CR_AMT
+                                                                                   FROM GADMIN.ACCOU1
+                                                                                  WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                                  /*
+                                                                                 UNION ALL
+                                                                                 SELECT '1110101' AS ACC_CD, '현          금 ' AS ACC_NM, DRCR_GB, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --현금계정 집계
+                                                                                   FROM GADMIN.ACCOU1
+                                                                                  WHERE DRCR_GB IN ('입금','출금')
+                                                                                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+
+                                                                                 UNION ALL
+                                                                                 SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --전기이월 포함
+                                                                                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
+                                                                                    */
+                                                                            ) A, GADMIN.BSACC2 B
+                                                                       WHERE 1 = 1
+                                                                         AND A.ACC_CD = B.ACC_CD
+                                                                      GROUP BY A.ACC_CD, A.DRCR_GB
+                                                        ) A RIGHT OUTER JOIN GADMIN.BSACC2 B ON A.ACC_CD = B.ACC_CD
+                                          )
+                                          GROUP BY ACC_CD, ACC_NM,sign, levelup_cd
+                                )
+
+                SELECT (SELECT coalesce(SUM(sign * DR_TOT_AMT),0)
+                          FROM HAP_ACC
+                         START WITH acc_cd = main.acc_cd
+                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                       ) as DR_TOT_AMT
+                       ,(SELECT coalesce(SUM(sign * DR_DAE_AMT),0)
+                          FROM HAP_ACC
+                         START WITH acc_cd = main.acc_cd
+                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                       ) as DR_DAE_AMT
+                       ,(SELECT coalesce(SUM(sign * DR_OUT_AMT),0)
+                          FROM HAP_ACC
+                         START WITH acc_cd = main.acc_cd
+                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                       ) as DR_OUT_AMT
+                     , ACC_CD, ACC_NM
+                     , (SELECT coalesce(SUM(sign * CR_IN_AMT),0)
+                          FROM HAP_ACC
+                         START WITH acc_cd = main.acc_cd
+                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                       ) as CR_IN_AMT
+                       ,(SELECT coalesce(SUM(sign * CR_DAE_AMT),0)
+                          FROM HAP_ACC
+                         START WITH acc_cd = main.acc_cd
+                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                       ) as CR_DAE_AMT
+                       ,(SELECT coalesce(SUM(sign * CR_TOT_AMT),0)
+                          FROM HAP_ACC
+                         START WITH acc_cd = main.acc_cd
+                       CONNECT BY PRIOR acc_cd = LEVELUP_CD
+                       ) as CR_TOT_AMT
+                  FROM HAP_ACC main
+                 START WITH coalesce(LEVELUP_CD,'') = ''
+                CONNECT BY PRIOR acc_cd = LEVELUP_CD order by acc_cd
+        ;--
+
+        -----------------------------------------------------------------------------------------
+        -- 합계,잔고,누계 구하기
+        -----------------------------------------------------------------------------------------
+        INSERT INTO SESSION.TEMP_TOT
+        SELECT SUM(DR_TOT_AMT) AS DR_TOT_AMT, SUM(DR_DAE_AMT) AS DR_DAE_AMT, SUM(DR_OUT_AMT) AS DR_OUT_AMT, '' AS ACC_CD, '합계' AS ACC_NM, SUM(CR_IN_AMT) AS CR_IN_AMT, SUM(CR_DAE_AMT) AS CR_DAE_AMT, SUM(CR_TOT_AMT) AS CR_TOT_AMT
+          FROM (
+                    SELECT SUM(DR_AMT) AS DR_TOT_AMT, SUM(DR_AMT) AS DR_DAE_AMT, 0 AS DR_OUT_AMT, ACC_CD, ACC_NM, 0 AS CR_IN_AMT, SUM(CR_AMT) AS CR_DAE_AMT, SUM(CR_AMT) AS CR_TOT_AMT
+                      FROM GADMIN.ACCOU1
+                     WHERE 1 = 1
+                       AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                       AND DRCR_GB IN ('차변','대변')
+                       GROUP BY ACC_CD, ACC_NM
+                    UNION ALL
+                    SELECT SUM(DR_AMT) AS DR_TOT_AMT, 0 AS DR_DAE_AMT, SUM(DR_AMT) AS DR_OUT_AMT, ACC_CD, ACC_NM, SUM(CR_AMT) AS CR_IN_AMT, 0 AS CR_DAE_AMT, SUM(CR_AMT) AS CR_TOT_AMT
+                      FROM GADMIN.ACCOU1
+                     WHERE 1 = 1
+                       AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                       AND DRCR_GB IN ('입금','출금')
+                   GROUP BY ACC_CD, ACC_NM
+                ) A
+          WHERE 1 = 1
+        ;--
+
+		--개수 찾기
+		SELECT GISU INTO V_GISU
+		  FROM GADMIN.BSACC9
+		 WHERE START <= IN_FROMDATE
+		   AND TERMINATION >= IN_FROMDATE;--
+
+        SET V_MONTH = SUBSTRING(IN_FROMDATE,6,2);		   --
+
+		--전월이월 금액 찾기
+
+		--전월잔고(현금) 금액 계산 V_AFTER_DAY_DR_AMT
+		SELECT DR_00, CR_00 INTO V_DR_00, V_CR_00
+		  FROM GADMIN.HAPJAN
+		 WHERE YEAR = V_GISU
+		   AND ACC_CD = '1110101';--;--
+
+		SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --해당년도 전기이월 금액(현금)
+
+        IF SUBSTRING(IN_FROMDATE,6,2) = '01' THEN
+            --01월이면 전기 이월금액
+        ELSE
+            -- 조회기간의 TODATE 전날 구하기
+            SELECT SUBSTRING(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') - 1,1,10) INTO V_LASTDAY
+              FROM SYSIBM.SYSDUMMY1;--
+
+            -- 01-01부터 조회시작 전일까지 현금입출납금 계산  (전기이월 금액 + 입금 - 출금) : 합잔금액 사용 안함 - 전표 수정시 누락 우려 있음
+            SELECT COALESCE(SUM(CR_AMT) - SUM(DR_AMT),0) + V_AFTER_DAY_DR_AMT INTO V_AFTER_DAY_DR_AMT
+              FROM GADMIN.ACCOU1 A
+             WHERE DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDAY
+                AND A.DRCR_GB IN ('입금','출금');--
+        END IF;--
+
+		--금월잔고(현금) 금액 계산 V_BEFOR_AMT
+		SELECT DR_OUT_AMT , CR_IN_AMT INTO V_DR_AMT, V_CR_AMT
+		  FROM SESSION.TEMP_TOT
+		 WHERE ACC_NM = '합계';--
+
+		SET V_CR_AMT = V_CR_AMT - V_DR_AMT; -- 입출금 합계 차액 계산
+		SET V_BEFOR_AMT = V_CR_AMT + V_AFTER_DAY_DR_AMT;-- 입출금 차액 + 전월이월금액
+
+                		 --금월잔고/전월잔고 저장
+                         /*
+                        INSERT INTO SESSION.TEMP_TOT
+                        SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', '금월잔고/전월잔고', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
+                          FROM SESSION.TEMP_TOT
+                         WHERE ACC_NM = '합계';--
+                         */
+		INSERT INTO SESSION.TEMP_TOT
+		SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', '금월잔고/전월잔고', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
+		  FROM SYSIBM.SYSDUMMY1
+		;--
+
+		 -- 합계 계산
+		INSERT INTO SESSION.TEMP_TOT
+		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_OUT_AMT), '', '누계', SUM(CR_IN_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
+		  FROM SESSION.TEMP_TOT
+		 WHERE ACC_NM IN ('합계','금월잔고/전월잔고');--
+
+		 --결과
+		 INSERT INTO SESSION.TEMP_RESLT
+         SELECT * FROM SESSION.TEMP_TOT     --먼저 수행한게 아래로 내려감 , 변경하지말것
+          UNION ALL
+		 SELECT * FROM SESSION.TEMP
+		 WHERE 1 = 1
+           AND NOT ( DR_TOT_AMT = 0 AND DR_DAE_AMT = 0 AND DR_OUT_AMT = 0 AND CR_IN_AMT = 0 AND CR_DAE_AMT = 0 AND CR_TOT_AMT = 0 )
+
+;--
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT * FROM SESSION.TEMP_RESLT
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

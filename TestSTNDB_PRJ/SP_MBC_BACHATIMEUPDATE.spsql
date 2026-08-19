@@ -1,0 +1,175 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_BACHATIMEUPDATE"
+(
+      IN IN_TEMP_DAT        VARCHAR(5000)
+)
+
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_TEMP_DAT  VARCHAR(5000)  DEFAULT '';--
+    DECLARE V_CELLPHONE VARCHAR(11);--
+    DECLARE V_BACHA_DT  VARCHAR(8);--
+    DECLARE V_BACHA_TM  VARCHAR(5);--
+    DECLARE V_ROUTE     VARCHAR(10);--
+    DECLARE V_CAR_NO    VARCHAR(20);--
+    DECLARE V_AMPM      VARCHAR(6);--
+    DECLARE V_BACHA_ST  VARCHAR(6);--
+    DECLARE V_INSA_NM   VARCHAR(20);--
+    DECLARE V_SEQ       VARCHAR(3);--
+    DECLARE V_INSA_NO   VARCHAR(10);--
+    DECLARE V_APPLICATION_ID
+                        VARCHAR(50);--
+    DECLARE V_APPLICATION_NAME
+                        VARCHAR(250);--
+    DECLARE V_CLIENT_HOSTNAME
+                        VARCHAR(250);--
+    DECLARE V_CNT       INTEGER;--
+    DECLARE V_KEY_MSG   VARCHAR(100)  DEFAULT '';--
+    DECLARE V_USER_CHK  VARCHAR(1);--
+
+
+    DECLARE SQLCODE     INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE  CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER   CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER    CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL    CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO     CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE    CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+--*    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+--*    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+--*    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+
+
+    SET V_TEMP_DAT  = IN_TEMP_DAT;-- 전체 데이터
+    SET V_CELLPHONE = SUBSTR(V_TEMP_DAT, 1, INSTR(V_TEMP_DAT, '\', 1, 1) -1); -- 휴대폰번호
+    SET V_BACHA_DT  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1);-- 일자
+    SET V_ROUTE     = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1);-- 노선
+    SET V_CAR_NO    = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1);-- 차량번호
+    SET V_AMPM      = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 4)+1, INSTR(V_TEMP_DAT, '\', 1, 5) - INSTR(V_TEMP_DAT, '\', 1, 4)-1);-- 오전오후
+    SET V_BACHA_ST  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 5)+1, INSTR(V_TEMP_DAT, '\', 1, 6) - INSTR(V_TEMP_DAT, '\', 1, 5)-1);-- 상태
+    SET V_BACHA_TM  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 6)+1, INSTR(V_TEMP_DAT, '\', 1, 7) - INSTR(V_TEMP_DAT, '\', 1, 6)-1);-- 시간
+    SET V_INSA_NM   = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 7)+1, INSTR(V_TEMP_DAT, '\', 1, 8) - INSTR(V_TEMP_DAT, '\', 1, 7)-1);-- 기사명
+    SET V_INSA_NO   = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 8)+1, INSTR(V_TEMP_DAT, '\', 1, 9) - INSTR(V_TEMP_DAT, '\', 1, 8)-1);-- 사번
+
+    SELECT RIGHT(VARCHAR_FORMAT(COALESCE(MAX(INTEGER(SEQ)),0)+1,'000'),3) INTO V_SEQ
+      FROM GADMIN.MBC_BACHATIME
+     WHERE CELLPHONE = V_CELLPHONE
+       AND BACHA_DT  = V_BACHA_DT
+       AND ROUTE     = V_ROUTE
+       AND CAR_NO    = V_CAR_NO
+       AND AMPM      = V_AMPM
+       AND BACHA_ST  = V_BACHA_ST
+       AND BACHA_TM  = V_BACHA_TM
+       AND INSA_NM   = V_INSA_NM
+       AND INSA_NO   = V_INSA_NO;--
+
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME을 가져온다
+    SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
+    SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
+            = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
+                 FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2))
+                WHERE APPLICATION_ID = V_APPLICATION_ID);--
+
+
+--  데이터를 저장한다.
+
+    SET V_SQLSTATE = '00000';--
+
+    SET V_KEY_MSG = '[전화번호]:'||V_CELLPHONE||'[일자]:'||V_BACHA_DT||'[시간]:'||V_BACHA_TM;--
+    SET V_CNT = 0;--
+          SET V_CNT = V_CNT + 1;--
+        -- 데이터 UPDATE
+          INSERT INTO GADMIN.MBC_BACHATIME(
+                        CELLPHONE
+                      , BACHA_DT
+                      , BACHA_TM
+                      , ROUTE
+                      , CAR_NO
+                      , AMPM
+                      , BACHA_ST
+                      , INSA_NM
+                      , SEQ
+                      , INSA_NO
+                      , APPLICATION_ID
+                      , APPLICATION_NAME
+                      , CLIENT_HOSTNAME
+                      , C_DATE
+                      )
+               VALUES (
+                        V_CELLPHONE
+                      , V_BACHA_DT
+                      , V_BACHA_TM
+                      , V_ROUTE
+                      , V_CAR_NO
+                      , V_AMPM
+                      , V_BACHA_ST
+                      , V_INSA_NM
+                      , V_SEQ
+                      , V_INSA_NO
+                      , V_APPLICATION_ID
+                      , V_APPLICATION_NAME
+                      , V_CLIENT_HOSTNAME
+                      , CURRENT TIMESTAMP
+                      )
+                      ;--
+
+          SET V_USER_CHK = 0;--
+          SELECT '1' INTO V_USER_CHK FROM GADMIN.MBC_USERS WHERE INSA_NO = V_INSA_NO;--
+
+          IF COALESCE(V_USER_CHK,'') = '1' THEN
+--  (1) 정상
+             UPDATE GADMIN.MBC_USERS
+                SET CELLPHONE = V_CELLPHONE
+                  , INSA_NM = V_INSA_NM
+                  , JAEJIK_YN = '1'
+                  , APPLICATION_ID = V_APPLICATION_ID
+                  , APPLICATION_NAME = V_APPLICATION_NAME
+                  , CLIENT_HOSTNAME = V_CLIENT_HOSTNAME
+                  , M_DATE = CURRENT TIMESTAMP
+              WHERE INSA_NO = V_INSA_NO
+                AND (INSA_NM <> V_INSA_NM
+                 OR  CELLPHONE <> V_CELLPHONE
+                 OR  COALESCE(JAEJIK_YN,'') <> '1'
+                    );--
+--  (6) 추가
+          ELSEIF COALESCE(V_USER_CHK,'') <> '1' THEN
+                 INSERT INTO GADMIN.MBC_USERS( CELLPHONE
+                                             , INSA_NO
+                                             , INSA_NM
+                                             , JAEJIK_YN
+                                             , APPLICATION_ID
+                                             , APPLICATION_NAME
+                                             , CLIENT_HOSTNAME
+                                             , C_DATE )
+                                      VALUES ( V_CELLPHONE
+                                             , V_INSA_NO
+                                             , V_INSA_NM
+                                             , '1'
+                                             , V_APPLICATION_ID
+                                             , V_APPLICATION_NAME
+                                             , V_CLIENT_HOSTNAME
+                                             , CURRENT TIMESTAMP
+                                             );--
+          END IF;--
+
+--    SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'저장되었습니다.');--
+
+END MAIN 

@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_SMSAUTH_LST_S01"
+/*******************************************************************************
+파일명	: "GADMIN"."MBC_SMSAUTH_LST_S01"
+생성일자	: 2022.5.15
+생성자	: 전광진
+내용	    : 문자인증인증내역 조회
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM "GADMIN"."MBC_SMSAUTH_LST_S01"(휴대폰번호)
+*******************************************************************************/
+(
+    IN IN_CELLPHONE  VARCHAR(11)   -- 휴대폰번호
+)
+RETURNS
+    TABLE
+    (
+      SMS_AUTH_ID    INTEGER
+    , USER_ID        VARCHAR(10)
+    , CHECK_DIGIT    VARCHAR(6)
+    , EXPIRE_DT      TIMESTAMP
+    , CONFIRM_YN     VARCHAR(1)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_CELLPHONE   VARCHAR(11);-- 휴대폰번호
+   DECLARE V_USER_ID     VARCHAR(10);-- 사용자 ID
+
+   SET V_CELLPHONE  = COALESCE(IN_CELLPHONE,'');--
+
+  RETURN
+    SELECT SMS_AUTH_ID, USER_ID, CHECK_DIGIT, EXPIRE_DT, CONFIRM_YN
+      FROM GADMIN.MBC_SMSAUTH
+     WHERE SMS_AUTH_ID
+         = ( SELECT MAX(SMS_AUTH_ID)
+               FROM GADMIN.MBC_SMSAUTH
+              WHERE CELLPHONE = V_CELLPHONE
+           );--
+END

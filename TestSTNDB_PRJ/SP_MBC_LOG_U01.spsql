@@ -1,0 +1,69 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_LOG_U01"
+(
+      IN IN_LOG_TIMEID       VARCHAR(20)
+   ,  IN IN_PGM_NM           VARCHAR(100)
+   ,  IN IN_LOG_SEQ          VARCHAR(20)
+   ,  IN IN_LOG_DATA         VARCHAR(2000)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_MBC_LOG_U01
+생성일자	: 2022.2.23
+생성자	: 전광진
+내용    	: 처리되는 데이터를 로긍에 저장
+수정일자	:
+수정자	:
+수정내용    :
+ INPUT  : IN_LOG_TIMEID     1. TIME id
+        : IN IN_PGM_NM      2. 프로그램 명
+        : IN IN_LOG_SEQ     3. 처리되는 순서
+        : IN IN_LOG_DATA    4. 저장되는 데이터
+OUTPUT	: OUT_CNT	    	A. 처리COUNT
+	    : OUT_MSG	        B. 처리결과메시지
+*******************************************************************************/
+
+  LANGUAGE SQL
+
+MAIN: BEGIN --ATOMIC
+
+-- 일반변수
+    DECLARE V_KEY_MSG   VARCHAR(1000)  DEFAULT '';--
+    DECLARE V_SEQ       VARCHAR(4)  DEFAULT '0000';--
+
+
+    DECLARE SQLCODE     INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE  CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER   CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER    CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL    CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO     CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE    CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+--
+   SELECT COALESCE(MAX(CAST(LOG_SEQ AS INT)),0) + 1 INTO V_SEQ
+     FROM GADMIN.MBC_LOGDATA01
+    WHERE LOG_TIMEID = IN_LOG_TIMEID
+      AND PGM_NM=IN_PGM_NM;--
+
+   INSERT INTO GADMIN.MBC_LOGDATA01 VALUES
+          (IN_LOG_TIMEID, IN_PGM_NM, V_SEQ, IN_LOG_DATA);--
+   COMMIT WORK;       --
+
+END MAIN 

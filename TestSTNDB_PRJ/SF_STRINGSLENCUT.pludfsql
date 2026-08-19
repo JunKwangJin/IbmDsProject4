@@ -1,0 +1,136 @@
+CREATE OR REPLACE FUNCTION GADMIN.SF_STRINGSLENCUT
+/*****************************************************************************************************
+T01SF       명: SF_STRINGSLENCUT
+[T02]SF     기능:
+                  IN_STRING   -- 포맷변경 문자열
+                  IN_LENGTH  -- 가져올 자리수
+                  IN_RETURN  받고자하는 값(STRING, ROWS)
+
+[T03]입력   변수:
+[T04]반  환   값:
+[T05]작성   일자: 2021.06.24 전광진
+[T06]작   성  자: 전광진
+[T07]최종 수정일:
+[T08]최종 수정자: 1.
+[T09]수정   이력:
+[T10]실행   예제: 1.
+
+                    SELECT  GADMIN.SF_STRINGSLENCUT('현장실습비,실습교육비,실습교통비,현장지도자비,실습사물함설치',20,'STRING')
+                    FROM    SYSIBM.SYSDUMMY1
+                    ;-- STRING, ROWS
+
+[T11]비       고:
+*****************************************************************************************************/
+(
+    IN_STRING         IN  VARCHAR    ,
+    IN_LENGTH         IN  INTEGER    ,
+    IN_RETURN         IN  VARCHAR
+)
+RETURN VARCHAR
+IS
+    V_STRING        VARCHAR(500);-- 문자열
+    V_LSTRING       VARCHAR(500);-- 1라인 문자열
+    V_CLENGTH       INTEGER;--문자열 문자개수
+    V_TWOBYTELENGTH INTEGER;-- 한글2바이트 길이
+    V_RETURN        VARCHAR(500);-- STRING RETURN값
+    V_CNT           INTEGER;--문자열 1자씩 COUNT
+    V_LCNT           INTEGER;--문자열 라인수 COUNT
+    V_CHR           VARCHAR(2);--1문자 가져오기
+    V_RET           VARCHAR(10);--RETERN TYPE
+
+BEGIN
+    V_STRING    :=   '' ;--
+    V_LSTRING    :=   '' ;--
+
+    -----------------------------------------------------------------------------------------------------
+    --
+    -----------------------------------------------------------------------------------------------------
+    V_CNT := 0;--
+    V_TWOBYTELENGTH := CHARACTER_LENGTH(IN_STRING,CODEUNITS32) + (LENGTH(IN_STRING) - CHARACTER_LENGTH(IN_STRING,CODEUNITS32))/2;--
+    V_CLENGTH := CHARACTER_LENGTH(IN_STRING,CODEUNITS32); --
+    V_LCNT := 1;--
+    IF IN_RETURN = '' THEN
+       V_RET := 'STRING';--
+     ELSE
+       V_RET := IN_RETURN; --
+    END IF;--
+    IF  V_TWOBYTELENGTH <= IN_LENGTH THEN
+        IF V_RET = 'STRING' THEN
+            V_RETURN := IN_STRING;--
+        ELSIF V_RET = 'ROWS' THEN
+            V_RETURN := '1';--
+        ELSE
+           V_RETURN := 'ERROR';--
+       END IF;--
+    ELSE
+        V_TWOBYTELENGTH := 0;--
+        V_CNT := 0;--
+--        WHILE V_CNT < V_CLENGTH LOOP
+        WHILE V_TWOBYTELENGTH < IN_LENGTH LOOP
+--        WHILE V_CNT < IN_LENGTH LOOP
+            V_CNT := V_CNT + 1;--
+            IF ASCII(SUBSTR(IN_STRING,V_CNT,1)) >= 192 THEN
+               IF    ASCII(SUBSTR(IN_STRING,V_CNT,1)) >= 224 THEN
+                     IF V_TWOBYTELENGTH + 2 > IN_LENGTH THEN
+                        V_CNT := V_CNT - 1;--
+                        V_TWOBYTELENGTH := IN_LENGTH;--
+                      ELSE
+                        V_LSTRING := V_LSTRING || SUBSTR(IN_STRING,V_CNT,3);--
+                        V_CNT := V_CNT + 2;--
+                        V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING,CODEUNITS32) + (LENGTH(V_LSTRING) - CHARACTER_LENGTH(V_LSTRING,CODEUNITS32))/2;--
+                     END IF;--
+               ELSIF ASCII(SUBSTR(IN_STRING,V_CNT,1)) >= 192 THEN
+                     IF V_TWOBYTELENGTH + 2 > IN_LENGTH THEN
+                        V_CNT := V_CNT - 1;--
+                        V_TWOBYTELENGTH := IN_LENGTH;--
+                      ELSE
+                        V_LSTRING := V_LSTRING || SUBSTR(IN_STRING,V_CNT,2);--
+                        V_CNT := V_CNT + 1;--
+                        V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING,CODEUNITS32) + (LENGTH(V_LSTRING) - CHARACTER_LENGTH(V_LSTRING,CODEUNITS32))/2;--
+                     END IF;--
+               END IF;--
+             ELSE
+                     IF V_TWOBYTELENGTH + 1 > IN_LENGTH THEN
+                        V_CNT := V_CNT - 1;--
+                        V_TWOBYTELENGTH := IN_LENGTH;--
+                      ELSE
+                        V_LSTRING := V_LSTRING || SUBSTR(IN_STRING,V_CNT,1);--
+                        V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING,CODEUNITS32) + (LENGTH(V_LSTRING) - CHARACTER_LENGTH(V_LSTRING,CODEUNITS32))/2;--
+                     END IF;--
+            END IF;--
+--            V_STRING := V_STRING || V_LSTRING;  --
+--            V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING,CODEUNITS32) + (LENGTH(V_LSTRING) - CHARACTER_LENGTH(V_LSTRING,CODEUNITS32))/2;--
+--
+--            IF V_TWOBYTELENGTH >= IN_LENGTH - 1 OR V_CNT = V_CLENGTH THEN  -- 2BYTE문자열길이가 자르기한 길이보다 1작은것보다 크거나 같다면 30이라면 29보다 크거나 같을때 (1문자의 길이가 1자 아니면 2자이니) 29아니면 30일 것이다
+--                V_CHR := SUBSTRING(IN_STRING,V_CNT+1,1,CODEUNITS32);--
+--                V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING||V_CHR,CODEUNITS32) + (LENGTH(V_LSTRING||V_CHR) - CHARACTER_LENGTH(V_LSTRING||V_CHR,CODEUNITS32))/2;--
+--                IF V_TWOBYTELENGTH < IN_LENGTH + 1 THEN -- (30자리 일때) 29이거나 30자리인 문자열에 1글자를 더하면 30,31,32중 에 하나일건데 31보다 크거나 같으면 원래 스트링으로 하고 30보다 작거나 같으면 한자 더한 값으로 한다
+--                    V_CNT := V_CNT + 1;--
+--                    V_STRING := V_STRING || V_LSTRING || V_CHR;--
+--                ELSE
+--                    V_STRING := V_STRING || V_LSTRING;--
+--                END IF;--
+--                V_TWOBYTELENGTH := CHARACTER_LENGTH(V_STRING,CODEUNITS32) + (LENGTH(V_STRING) - CHARACTER_LENGTH(V_STRING,CODEUNITS32))/2;--
+
+--                IF V_CNT < V_CLENGTH THEN
+--                    V_STRING := V_STRING || IN_DELIMITER;--
+--                    V_LCNT := V_LCNT + 1;--
+--                END IF;--
+--                V_LSTRING := '';--
+--            END IF;--
+            IF V_TWOBYTELENGTH >= IN_LENGTH  THEN
+                IF V_RET = 'STRING' THEN
+                    V_RETURN := V_LSTRING;--
+                ELSIF V_RET = 'ROWS' THEN
+                   V_RETURN := TRIM(TO_CHAR(V_LCNT,'99'));--
+                ELSE
+                  V_RETURN :='ERROR';--
+                END IF;--
+            END IF;--
+        END LOOP;--
+    END IF;--
+    RETURN V_RETURN  ;--
+
+
+
+END MAIN

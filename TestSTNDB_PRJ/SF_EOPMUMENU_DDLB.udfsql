@@ -1,0 +1,43 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_EOPMUMENU_DDLB"
+(
+    IN IN_MENU_LVL   DECIMAL(5,0)  --메뉴ID
+)
+
+
+RETURNS
+    TABLE
+    (
+      UP_MENU_ID     VARCHAR(10 )
+    , DATA          VARCHAR(10 )
+    , LABEL         VARCHAR(100)
+    , PGM_PATH       VARCHAR(200 )
+    , MENU_ID        VARCHAR(10 )
+    , MENU_NM        VARCHAR(100 )
+    , SORT           DECIMAL
+    , SAYONG_YN      VARCHAR(1  )
+    , MENU_LVL       DECIMAL (5,0  )
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+	SELECT -- 엄무메뉴
+			   NVL(M.UP_MENU_ID, '0') AS UP_MENU_ID,
+			   M.MENU_ID AS DATA,
+			   M.MENU_NM AS LABEL,
+			   PGM_PATH ,
+			   MENU_ID,
+			   MENU_NM,
+			   SORT,
+			   SAYONG_YN,
+			   MENU_LVL
+		 FROM GADMIN.EBUS_MENU_M M
+		 WHERE 1 = 1
+		   AND M.SAYONG_YN = '1'
+		   AND M.MENU_LVL <= NVL(IN_MENU_LVL,0)
+		 ORDER BY M.SORT
+    ;--
+
+END

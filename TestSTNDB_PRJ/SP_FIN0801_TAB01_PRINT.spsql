@@ -1,0 +1,106 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0801_TAB01_PRINT"
+(IN IN_FROMDATE VARCHAR(10),
+ IN IN_TODATE VARCHAR(10),
+ IN IN_FROMACCCD VARCHAR(7),
+ IN IN_TOACCCD VARCHAR(7),
+ IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+        DECLARE   FROM_PRE_DAY       VARCHAR(10) DEFAULT '';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        LEVELUP_CD      VARCHAR(10),
+        LEVELUP_ACC     VARCHAR(60),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        YI_AMT          DECIMAL(15,0),
+        DR_AMT          DECIMAL(15,0),
+        CR_AMT          DECIMAL(15,0),
+        JAN_AMT         DECIMAL(15,0)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+P1: BEGIN
+
+
+    IF SUBSTRING(IN_FROMDATE,6,5) > '01-01' THEN
+        SELECT TO_CHAR(TO_DATE(IN_FROMDATE, 'YYYY-MM-DD') -1, 'YYYY-MM-DD') INTO FROM_PRE_DAY FROM SYSIBM.SYSDUMMY1;--
+    ELSE
+        SET FROM_PRE_DAY = IN_FROMDATE;--
+    END IF;--
+
+    INSERT INTO SESSION.TEMP
+    SELECT A.LEVELUP_CD, A.LEVELUP_ACC, A.ACC_CD, B.ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT,
+            CASE B.DRCR_GB WHEN '차변' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN '입금' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN '출금' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN '대변' THEN SUM(YI_AMT + CR_AMT - DR_AMT)
+                            END AS JAN_AMT
+      FROM (
+                SELECT '1110100' AS LEVELUP_CD, '현금및현금성자산' AS LEVELUP_ACC, '1110101' AS ACC_CD, '현          금' AS ACC_NM, 0 AS YI_AMT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT
+                  FROM GADMIN.ACCOU1
+                 WHERE DRCR_GB IN ('입금','출금')
+                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                UNION ALL
+                SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, 0 AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
+                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                  WHERE A.ACC_CD = B.ACC_CD
+                     AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                  GROUP BY B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM
+                UNION ALL
+                SELECT LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM, SUM(YI_AMT) AS YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                  FROM (
+                            SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, CASE B.DRCR_GB  WHEN '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                              FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(SUBSTRING((FROM_PRE_DAY),1,4)||'-01-01')) A, GADMIN.BSACC2 B
+                             WHERE A.ACC_CD = B.ACC_CD
+                               AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
+                            UNION ALL
+                            SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, CASE B.DRCR_GB  WHEN '차변' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                              FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                             WHERE A.ACC_CD = B.ACC_CD
+                               AND DATE BETWEEN SUBSTRING((FROM_PRE_DAY),1,4)||'-01-01' AND FROM_PRE_DAY
+                               AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
+                            UNION ALL
+                            SELECT '1110100', '현금및현금성자산', '1110101', '현          금', COALESCE(SUM(CR_AMT) - SUM(DR_AMT),0) AS YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                              FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                             WHERE A.ACC_CD = B.ACC_CD
+                               AND DATE BETWEEN SUBSTRING((FROM_PRE_DAY),1,4)||'-01-01' AND FROM_PRE_DAY
+                               AND A.DRCR_GB IN ('출금','입금')
+                               AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
+                         )
+                GROUP BY LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM
+            ) A, GADMIN.BSACC2 B
+      WHERE A.ACC_CD = B.ACC_CD
+        AND A.ACC_CD >= IN_FROMACCCD
+        AND A.ACC_CD <= IN_TOACCCD
+    GROUP BY A.LEVELUP_CD, A.LEVELUP_ACC, A.ACC_CD, B.ACC_NM, B.DRCR_GB
+    ORDER BY 3,4
+    ;--
+
+
+
+END P1;--
+
+P2: BEGIN
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT CASE WHEN LEVELUP_CD ='9999999' THEN '' ELSE LEVELUP_CD END  AS LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM, YI_AMT, DR_AMT, CR_AMT, JAN_AMT
+      FROM (
+                SELECT *
+                  FROM SESSION.TEMP
+                ORDER BY LEVELUP_CD
+            );--
+/*
+    SELECT *
+      FROM SESSION.TEMP
+    ORDER BY LEVELUP_CD
+    ;--
+  */
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

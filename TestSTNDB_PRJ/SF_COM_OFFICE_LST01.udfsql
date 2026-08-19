@@ -1,0 +1,50 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_COM_OFFICE_LST01"
+/*******************************************************************************
+파일명	: GADMIN.VW_DRV_OFFICE_LST01
+생성일자	: 2021.11.03
+생성자	: 전광진
+내용	: 영업소 LIST
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.VW_COM_OFFICE_DDLB WHERE MENU_ID = 'DRV0101' AND USER_ID='admin'
+MENU_ID와 USER_ID를 제어 하뎌 사용자별로 권한에 따른 영업소를 선택적으로 나타낸다.
+*******************************************************************************/
+(
+)
+
+
+RETURNS
+    TABLE
+    (
+      DATA          VARCHAR(10)
+    , LABEL         VARCHAR(100)
+    , SORT           DECIMAL(5,0)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+   WITH GH_TB AS
+                 (
+                SELECT DISTINCT EM.SOSOK_CD AS DATA
+                      , SS.SOSOK_NM AS LABEL
+                      , EM.SORT     AS SORT
+                  FROM GADMIN.EBUS_EOPMUSOSOK_M EM
+                 INNER JOIN
+                        GADMIN.EBUS_SOSOK_M SS
+                    ON SS.SOSOK_CD = EM.SOSOK_CD
+                 WHERE SOSOK_LVL=2
+                )
+   SELECT DATA, LABEL, SORT
+     FROM
+       (
+        SELECT *
+          FROM GH_TB
+        ORDER BY SORT, DATA
+      )
+    ;--
+
+END

@@ -1,0 +1,63 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0302_TAB07_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_CNT INT DEFAULT 0;--
+
+	SELECT days (IN_TODATE) - days (date(IN_FROMDATE)) + 1 INTO V_CNT
+	  FROM sysibm.sysdummy1;--
+
+    P1: BEGIN
+
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                    SELECT A.ROUTE
+                          , A.CAR_NO
+                          , COALESCE(SUM(B.CNG),0) + SUM(SAGO) + SUM(BUSOK) + SUM(SURI) + SUM(SOMO) + SUM(TIRE) + SUM(JABYU) + 0 AS TOT
+                          , COALESCE(SUM(B.CNG),0) AS CNG
+                          , SUM(SAGO) AS SAGO
+                          , SUM(BUSOK) AS BUSOK
+                          , SUM(SURI) AS SURI
+                          , SUM(SOMO) AS SOMO
+                          , SUM(TIRE) AS TIRE
+                          , SUM(JABYU) AS JABYU
+                          , 0 AS ETC  --ETC는 어떤것일까?
+                      FROM (
+                                SELECT A.ROUTE
+                                      , A.CAR_NO
+                                      , COALESCE(CASE A.EVENT_GB WHEN 'Y' THEN SUM(A.PRICE) END,0)  AS SAGO
+                                      , COALESCE(CASE B.CLASS WHEN '부속품' THEN SUM(A.PRICE) END,0)  AS BUSOK
+                                      , COALESCE(CASE B.CLASS WHEN '수리품' THEN SUM(A.PRICE) END,0)  AS SURI
+                                      , COALESCE(CASE B.CLASS WHEN '소모품' THEN SUM(A.PRICE) END,0)  AS SOMO
+                                      , COALESCE(CASE B.CLASS WHEN '타이어' THEN SUM(A.PRICE) END,0)  AS TIRE
+                                      , COALESCE(CASE B.CLASS WHEN '잡  유' THEN SUM(A.PRICE) END,0)  AS JABYU
+                                   FROM GADMIN.JACHUL1 A
+                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                  WHERE 1 = 1
+                                    AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                GROUP BY A.ROUTE, A.CAR_NO, A.EVENT_GB, B.CLASS
+                            ) A
+                            LEFT OUTER JOIN (
+                                                SELECT A.ROUTE, A.CAR_NO, COALESCE(SUM(A.PRICE),0) AS CNG
+                                                   FROM GADMIN.UNHANG07 A
+                                                  WHERE 1 = 1
+                                                    AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                GROUP BY A.ROUTE, A.CAR_NO
+                                              ) B ON (A.ROUTE = B.ROUTE AND A.CAR_NO = B.CAR_NO)
+                     GROUP BY A.ROUTE, A.CAR_NO
+
+          )
+        ORDER BY 1,2
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

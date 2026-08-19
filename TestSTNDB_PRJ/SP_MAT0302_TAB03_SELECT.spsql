@@ -1,0 +1,52 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0302_TAB03_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_CNT INT DEFAULT 0;--
+
+	SELECT days (IN_TODATE) - days (date(IN_FROMDATE)) + 1 INTO V_CNT
+	  FROM sysibm.sysdummy1;--
+
+    P1: BEGIN
+
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+
+        SELECT A.ROUTE, COALESCE(MAX(B.CNT),0) AS CNT, COALESCE(SUM(A.PRICE),0) AS TOT_AMT
+              , CASE COALESCE(COUNT(A.CAR_NO),0) WHEN 0 THEN 0 ELSE COALESCE(SUM(A.PRICE),0) / COALESCE(MAX(B.CNT),0) END AS ONE_AMT
+              , CASE COALESCE(COUNT(A.CAR_NO),0) WHEN 0 THEN 0 ELSE COALESCE(SUM(A.PRICE),0) / 31 END AS DAY_AMT
+              , COALESCE(MAX(C.SA_AMT),0) AS SA_AMT
+              , '' AS BIGO
+          FROM JACHUL1 A
+                LEFT OUTER JOIN (
+                                    SELECT ROUTE, COUNT(*) AS CNT
+                                      FROM (
+                                                SELECT ROUTE, CAR_NO
+                                                   FROM GADMIN.JACHUL1
+                                                  WHERE 1 = 1
+                                                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                GROUP BY ROUTE, CAR_NO
+                                            )
+                                    GROUP BY ROUTE
+                                  ) B ON (A.ROUTE = B.ROUTE)
+                 LEFT OUTER JOIN (
+                                       SELECT ROUTE, SUM(A.PRICE) AS SA_AMT
+                                         FROM GADMIN.JACHUL1 A
+                                        WHERE 1 = 1
+                                          AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                          AND A.EVENT_GB = 'Y'
+                                       GROUP BY ROUTE
+                                    ) C ON (A.ROUTE = C.ROUTE)
+        WHERE A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+        GROUP BY A.ROUTE
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

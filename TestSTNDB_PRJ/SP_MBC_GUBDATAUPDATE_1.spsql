@@ -1,0 +1,360 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_GUBDATAUPDATE"
+(
+      IN IN_TIMEID          VARCHAR(20)
+ , INOUT IO_INSA_NO         VARCHAR(10)
+ ,   OUT OUT_CNT            VARCHAR(4)
+ ,   OUT OUT_MSG            VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+--  TEMP TABLE 변수
+    DECLARE V_TEMP_DAT      VARCHAR(5000)  DEFAULT '';--
+
+-- DB DATA변수
+    DECLARE V_CELLPHONE     VARCHAR(11);--
+    DECLARE V_JIKJONG       VARCHAR(25);--
+    DECLARE V_GUB_YYMM      VARCHAR(6);--
+    DECLARE V_GUB_GB        VARCHAR(25);--
+--    DECLARE V_GUB_DT        VARCHAR(10);--
+    DECLARE V_INSA_NO       VARCHAR(10);--
+    DECLARE V_INSA_NM       VARCHAR(20);--
+    DECLARE V_HANGMOK_CD    VARCHAR(3);--
+    DECLARE V_PAY           VARCHAR(500);--
+    DECLARE V_INSA_CNT      INT;--
+    DECLARE V_JIGEUP_DT     VARCHAR(8);--
+    DECLARE V_MAX_INSA_NO   VARCHAR(10);--
+
+--V1변수
+    DECLARE V1_CELLPHONE    VARCHAR(11);--
+    DECLARE V1_INSA_NO      VARCHAR(10);--
+    DECLARE V1_JIKJONG      VARCHAR(25);--
+    DECLARE V1_INSA_NM      VARCHAR(20);--
+    DECLARE V1_USER_CHK     INT;--
+
+--CLIENT정보 변수
+    DECLARE V_APPLICATION_ID
+                            VARCHAR(50);--
+    DECLARE V_APPLICATION_NAME
+                            VARCHAR(250);--
+    DECLARE V_CLIENT_HOSTNAME
+                            VARCHAR(250);--
+
+
+-- 일반변수
+--    DECLARE I           INTEGER;--
+
+
+    DECLARE V_CNT           INTEGER;--
+    DECLARE V_DELIM_CNT     INTEGER;--
+    DECLARE V_KEY_MSG       VARCHAR(1000)  DEFAULT '';--
+    DECLARE V_EXE_CNT       INTEGER  DEFAULT 10;--
+
+
+    DECLARE SQLCODE         INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE        CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE      CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+    DECLARE C_GUBTEMP       CURSOR FOR
+     WITH V_TEMP AS
+        ( SELECT REPLACE(TEMP_DAT||'\','~r',CHR(13)||CHR(10)) AS DAT
+            FROM GADMIN.MBC_GUBTEMP
+           WHERE TIMEID = IN_TIMEID
+             AND SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 5)+1, INSTR(TEMP_DAT, '\', 1, 6) - INSTR(TEMP_DAT, '\', 1, 5)-1) > IO_INSA_NO
+           ORDER BY SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 5)+1, INSTR(TEMP_DAT, '\', 1, 6) - INSTR(TEMP_DAT, '\', 1, 5)-1)
+           FETCH FIRST V_EXE_CNT ROWS ONLY
+
+        )
+     SELECT DAT
+       FROM V_TEMP;--
+
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMPINSA
+--    (
+--       INSA_NO VARCHAR(10)
+--     , JIKJONG VARCHAR(25)
+--    )  ON COMMIT PRESERVE ROWS
+--    WITH REPLACE
+--    NOT LOGGED;--
+
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+--  저장할 데이터와같은 노선 데이터를 저장하기전레 삭제한다.
+    SELECT MAX(SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 5)+1, INSTR(TEMP_DAT, '\', 1, 6) - INSTR(TEMP_DAT, '\', 1, 5)-1)) INTO V_MAX_INSA_NO
+     FROM GADMIN.MBC_GUBTEMP
+    WHERE TIMEID = IN_TIMEID
+    ;--
+
+
+   IF TRIM(COALESCE(IO_INSA_NO,'')) = '' THEN
+      DELETE GADMIN.MBC_GUBDATA
+       WHERE (GUB_YYMM, JIKJONG, GUB_GB)
+          IN (
+             SELECT DISTINCT
+                    SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 2)+1, INSTR(TEMP_DAT, '\', 1, 3) - INSTR(TEMP_DAT, '\', 1, 2)-1)   -- 금여년원
+                  , SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 1)+1, INSTR(TEMP_DAT, '\', 1, 2) - INSTR(TEMP_DAT, '\', 1, 1)-1)   -- 직종
+                  , SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 3)+1, INSTR(TEMP_DAT, '\', 1, 4) - INSTR(TEMP_DAT, '\', 1, 3)-1)   -- 급여구분
+
+               FROM GADMIN.MBC_GUBTEMP
+              WHERE TIMEID = IN_TIMEID
+             )
+      ;--
+    END IF;--
+
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME을 가져온다
+    SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
+    SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
+            = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
+                 FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2))
+                WHERE APPLICATION_ID = V_APPLICATION_ID);--
+
+--    DELETE SESSION.TEMPINSA;-- 인사 TEMP TABLE 삭제
+
+
+--  데이터를 저장한다.
+
+    SET V_SQLSTATE = '00000';--
+
+    OPEN C_GUBTEMP;--
+
+
+    FETCH FROM C_GUBTEMP
+          INTO
+               V_TEMP_DAT
+             ;--
+          SET V_JIGEUP_DT = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 4)+1, INSTR(V_TEMP_DAT, '\', 1, 5) - INSTR(V_TEMP_DAT, '\', 1, 4)-1),'');-- 급여지급일
+
+           SET V_KEY_MSG = '[전화번호]:'||V_CELLPHONE||'[급여년월]:'||V_GUB_YYMM||'[성명]:'||V_INSA_NM;--
+    SET V_CNT = 0;--
+    WHILE (V_SQLSTATE = '00000' ) DO
+          SET V_CNT = V_CNT + 1;--
+
+          SET V_CELLPHONE  = COALESCE(SUBSTR(V_TEMP_DAT, 1, INSTR(V_TEMP_DAT, '\', 1, 1) -1),'');--                                       -- 휴대폰번호
+          SET V_JIKJONG    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1),'');-- 직종(관리직, 정비직, 운전기사)
+          SET V_GUB_YYMM   = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1),'');-- 급여년월
+          SET V_GUB_GB     = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1),'');-- 급여구분
+-- 지급일자
+          SET V_INSA_NO    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 5)+1, INSTR(V_TEMP_DAT, '\', 1, 6) - INSTR(V_TEMP_DAT, '\', 1, 5)-1),'');-- 사번
+          SET V_INSA_NM    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 6)+1, INSTR(V_TEMP_DAT, '\', 1, 7) - INSTR(V_TEMP_DAT, '\', 1, 6)-1),'');-- 성명
+          SET V_KEY_MSG = '[전화번호]:'||V_CELLPHONE||'[급여년월]:'||V_GUB_YYMM||'[성명]:'||V_INSA_NM;--
+
+-- 인사항목 저장 급여항목의 금액이 열의 방향으로 5열 부터 5번열부터 5개 들어옮
+/************************************************************************************
+          SET I = 0;--
+          WHILE (I < 5) DO
+                SET I = I + 1;--
+                SET V_HANGMOK_CD = 'A'||TRIM(VARCHAR_FORMAT(I,'00'));--
+                SET V_PAY = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, I + 3) + 1, (INSTR(V_TEMP_DAT, '\', 1, I + 4) - INSTR(V_TEMP_DAT, '\', 1, I + 3)) - 1);--
+        -- 데이터 UPDATE
+                SET V_KEY_MSG = V_KEY_MSG||VARCHAR_FORMAT(I,'000');--
+                INSERT INTO GADMIN.MBC_GUBDATA(
+                       GUB_YYMM
+                     , GUB_GB
+                     , JIKJONG
+                     , INSA_NO
+                     , HANGMOK_CD
+                     , PAY
+                     , APPLICATION_ID
+                     , APPLICATION_NAME
+                     , CLIENT_HOSTNAME
+                     , C_DATE
+                     )
+               VALUES (
+                        V_GUB_YYMM
+                      , V_GUB_GB
+                      , V_JIKJONG
+                      , V_INSA_NO
+                      , V_HANGMOK_CD
+                      , V_PAY
+                      , V_APPLICATION_ID
+                      , V_APPLICATION_NAME
+                      , V_CLIENT_HOSTNAME
+                      , CURRENT TIMESTAMP
+                      )
+                      ;--
+          END WHILE;--
+***********************************************************************************/
+-- 급여함옥 저장 급여항목의 금액이 열의 방향으로 11열부터 150개 들어옮
+/***********************************************************************************
+
+          SET I = 0;--
+          SET V_DELIM_CNT = LENGTH(V_TEMP_DAT) - LENGTH(REPLACE(V_TEMP_DAT,'\','')) - 10;--
+          WHILE (I < V_DELIM_CNT) DO
+                SET I = I + 1;--
+                SET V_HANGMOK_CD = TRIM(VARCHAR_FORMAT(I,'000'));--
+                SET V_PAY = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, I + 9) + 1, (INSTR(V_TEMP_DAT, '\', 1, I + 10) - INSTR(V_TEMP_DAT, '\', 1, I + 9)) - 1);--
+                SET V_PAY = CASE WHEN V_HANGMOK_CD BETWEEN '031' AND '090' THEN TRIM(VARCHAR_FORMAT(CAST((CASE WHEN COALESCE(V_PAY,'') ='' THEN '0' ELSE '' END)||COALESCE(V_PAY,'') AS INT),'9999999999')) ELSE V_PAY END;--
+        -- 데이터 UPDATE
+                SET V_KEY_MSG = V_KEY_MSG||VARCHAR_FORMAT(I,'000');--
+                INSERT INTO GADMIN.MBC_GUBDATA(
+                       GUB_YYMM
+                     , GUB_GB
+                     , JIKJONG
+                     , INSA_NO
+                     , HANGMOK_CD
+                     , PAY
+                     , APPLICATION_ID
+                     , APPLICATION_NAME
+                     , CLIENT_HOSTNAME
+                     , C_DATE
+                     )
+               VALUES (
+                        V_GUB_YYMM
+                      , V_GUB_GB
+                      , V_JIKJONG
+                      , V_INSA_NO
+                      , V_HANGMOK_CD
+                      , V_PAY
+                      , V_APPLICATION_ID
+                      , V_APPLICATION_NAME
+                      , V_CLIENT_HOSTNAME
+                      , CURRENT TIMESTAMP
+                      )
+                      ;--
+          END WHILE;--
+***********************************************************************************/
+
+          SET V_DELIM_CNT = LENGTH(V_TEMP_DAT) - LENGTH(REPLACE(V_TEMP_DAT,'\',''));--
+
+                INSERT INTO GADMIN.MBC_GUBDATA(
+                       GUB_YYMM
+                     , GUB_GB
+                     , JIKJONG
+                     , INSA_NO
+                     , HANGMOK_CD
+                     , PAY
+                     , APPLICATION_ID
+                     , APPLICATION_NAME
+                     , CLIENT_HOSTNAME
+                     , C_DATE
+                     )
+                     (
+                       SELECT V_GUB_YYMM
+                            , V_GUB_GB
+                            , V_JIKJONG
+                            , V_INSA_NO
+                            , CASE WHEN TOK.SEQ BETWEEN 5 AND 9 THEN 'A'||TRIM(VARCHAR_FORMAT(TOK.SEQ - 4,'00'))
+                                   WHEN TOK.SEQ BETWEEN 11 AND V_DELIM_CNT THEN TRIM(VARCHAR_FORMAT(TOK.SEQ - 10,'000'))
+                                   ELSE 'eee' END HANGMOK_CD
+                            , TOK.TOKEN V_PAY
+                            , V_APPLICATION_ID
+                            , V_APPLICATION_NAME
+                            , V_CLIENT_HOSTNAME
+                            , CURRENT TIMESTAMP
+                         FROM
+                         (VALUES V_TEMP_DAT) TAB (COL)
+                       , XMLTABLE
+                       (
+                         'for $id in tokenize($s, "\\") return <i>{string($id)}</i>' PASSING TAB.COL AS "s"
+                         COLUMNS
+                           SEQ   FOR ORDINALITY
+                         , TOKEN VARCHAR(500) PATH '.'
+                       ) TOK
+                       where TOK.SEQ between 5 and V_DELIM_CNT
+                         AND TOK.SEQ <>10
+                       ORDER BY TOK.SEQ
+                     )
+                       ;--
+
+
+
+          SET V1_USER_CHK = 0;--
+          SELECT CELLPHONE, INSA_NO, INSA_NM, JIKJONG, '1' INTO V1_CELLPHONE,V1_INSA_NO, V1_INSA_NM, V1_JIKJONG, V1_USER_CHK FROM GADMIN.MBC_USERS WHERE INSA_NO = V_INSA_NO ;--
+
+          IF COALESCE(V1_USER_CHK,'')   = '1' THEN
+             UPDATE GADMIN.MBC_USERS
+                SET CELLPHONE           = V1_CELLPHONE
+                  , INSA_NM             = V1_INSA_NM
+                  , JIKJONG             = V1_JIKJONG
+                  , JAEJIK_YN           = '1'
+                  , APPLICATION_ID      = V_APPLICATION_ID
+                  , APPLICATION_NAME    = V_APPLICATION_NAME
+                  , CLIENT_HOSTNAME     = V_CLIENT_HOSTNAME
+                  , M_DATE              = CURRENT TIMESTAMP
+              WHERE INSA_NO = V1_INSA_NO
+                AND ( CELLPHONE <> V1_CELLPHONE
+                    OR COALESCE(INSA_NM, '')    <> V1_INSA_NM
+                    OR COALESCE(JIKJONG, '')    <> V1_JIKJONG
+                    OR COALESCE(JAEJIK_YN, '')  <> '1'
+                    )
+                ;--
+          ELSE
+             INSERT INTO GADMIN.MBC_USERS
+                         (   CELLPHONE
+                           , INSA_NO
+                           , INSA_NM
+                           , JIKJONG
+                           , JAEJIK_YN
+                           , APPLICATION_ID
+                           , APPLICATION_NAME
+                           , CLIENT_HOSTNAME
+                           , C_DATE
+                         )
+                         VALUES
+                         (  V_CELLPHONE
+                          , V_INSA_NO
+                          , V_INSA_NM
+                          , V_JIKJONG
+                          , '1' -- 재직상태
+                          , V_APPLICATION_ID
+                          , V_APPLICATION_NAME
+                          , V_CLIENT_HOSTNAME
+                          , CURRENT TIMESTAMP
+                         )
+                 ;--
+          END IF;--
+
+          -- TEMP TABLE에 인사번호를 저장한다.
+--          INSERT INTO SESSION.TEMPINSA(INSA_NO, JIKJONG) VALUES (V_INSA_NO, V_JIKJONG);--
+
+          SET V_SQLSTATE = '00000';--
+          FETCH FROM C_GUBTEMP
+                INTO V_TEMP_DAT
+                    ;--
+           SET V_KEY_MSG = '[전화번호]:'||V_CELLPHONE||'[급여년월]:'||V_GUB_YYMM||'[성명]:'||V_INSA_NM;--
+    END WHILE;--
+       IF V_GUB_GB = '급여' AND V_INSA_NO = V_MAX_INSA_NO THEN
+          UPDATE GADMIN.MBC_USERS
+             SET JAEJIK_YN          = '0'
+               , APPLICATION_ID     = V_APPLICATION_ID
+               , APPLICATION_NAME   = V_APPLICATION_NAME
+               , CLIENT_HOSTNAME    = V_CLIENT_HOSTNAME
+               , M_DATE             = CURRENT TIMESTAMP
+           WHERE INSA_NO NOT IN (SELECT DISTINCT INSA_NO
+                                   FROM GADMIN.MBC_GUBDATA
+                                  WHERE GUB_YYMM = V_GUB_YYMM
+                                    AND GUB_GB = V_GUB_GB
+                                    AND JIKJONG = V_JIKJONG)
+             AND JIKJONG = V_JIKJONG
+             AND COALESCE(C_DATE, CURRENT TIMESTAMP) < LAST_DAY(DATE(GADMIN.SF_SETFORMAT(V_GUB_YYMM||'01','DATE')))
+             AND COALESCE(JAEJIK_YN,'') <> '0';--
+          SET V_INSA_NO = '9999999999';--
+       END IF;--
+    CLOSE C_GUBTEMP;--
+
+    SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'저장되었습니다.');--
+    SET (IO_INSA_NO, OUT_MSG) = (V_INSA_NO, OUT_MSG);--
+
+END MAIN 

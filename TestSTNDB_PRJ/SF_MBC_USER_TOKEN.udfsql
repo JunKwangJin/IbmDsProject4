@@ -1,0 +1,53 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_USER_TOKEN"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_USER_TOKEN
+생성일자	: 2022.6.13
+생성자	: 전광진
+내용	    : USER TOKEN
+수정일자	:
+수정자	:
+수정내용    :
+수정일자	:
+수정자	:
+수정내용    :
+
+예제
+SELECT * FROM GADMIN.SF_MBC_USER_TOKEN(사용자ID, 휴대폰번호)
+*******************************************************************************/
+(
+    IN IN_USER_NO    VARCHAR(10)  -- 사용자ID
+  , IN IN_CELLPHONE  VARCHAR(11)  -- 휴대폰번호
+)
+
+
+RETURNS
+    TABLE
+    (
+      CELLPHONE         VARCHAR(11)
+    , USER_NO           VARCHAR(10)
+    , JIKJONG           VARCHAR(25)
+    , USER_NM           VARCHAR(20)
+    , JAEJIK_YN         VARCHAR(1)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_USER_NO    VARCHAR(10);-- 사용자ID
+   DECLARE V_CELLPHONE  VARCHAR(11);-- 휴대폰번호
+
+
+   SET V_USER_NO      = COALESCE(IN_USER_NO,'');--
+   SET V_CELLPHONE    = COALESCE(IN_CELLPHONE,'');--
+
+   RETURN
+   SELECT CELLPHONE
+        , INSA_NO
+        , JIKJONG
+        , INSA_NM
+        , JAEJIK_YN
+     FROM GADMIN.MBC_USERS
+            WHERE CELLPHONE  = V_CELLPHONE
+              AND INSA_NO    = V_USER_NO
+              AND JAEJIK_YN = '1'
+   ;--
+END

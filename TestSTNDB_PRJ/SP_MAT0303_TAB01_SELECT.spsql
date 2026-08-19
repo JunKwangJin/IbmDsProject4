@@ -1,0 +1,67 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0303_TAB01_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_EWOL_FROMDATE VARCHAR(10) DEFAULT '1900-01-01';--
+    DECLARE V_EWOL_TODATE VARCHAR(10) DEFAULT '1900-01-31';--
+
+       IF (SUBSTR(IN_FROMDATE,6,2) <> '01') THEN
+            SELECT SUBSTR(TO_CHAR(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') -1,'YYYY-MM-DD'),1,4)||'-01-01' INTO  V_EWOL_FROMDATE FROM SYSIBM.SYSDUMMY1;--
+            SELECT TO_CHAR(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') -1,'YYYY-MM-DD') INTO V_EWOL_TODATE FROM SYSIBM.SYSDUMMY1;--
+       END IF;--
+
+    P1: BEGIN
+
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT A.PRODUC_NO, A.PRODUC_NM, EWOL_QTY, EWOL_AMT, IN_QTY, IN_AMT, OUT_QTY, OUT_AMT, (EWOL_QTY + IN_QTY - OUT_QTY) AS JAE_QTY,(EWOL_AMT + IN_AMT - OUT_AMT) AS JAE_AMT, B.CLASS, B.JAJAE_GB, B.SPEC
+           FROM (
+                SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_QTY) AS EWOL_QTY, SUM(EWOL_AMT) AS EWOL_AMT, SUM(IN_QTY) AS IN_QTY, SUM(IN_AMT) AS IN_AMT, SUM(OUT_QTY) AS OUT_QTY, SUM(OUT_AMT) AS OUT_AMT
+                  FROM (
+                        -- 전기이월
+                        SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_QTY) AS EWOL_QTY, SUM(EWOL_AMT) AS EWOL_AMT, 0 AS IN_QTY, 0 AS IN_AMT, 0 AS OUT_QTY, 0 AS OUT_AMT
+                          FROM (
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_01) AS EWOL_QTY, SUM(UNIT_PRICE_01) AS EWOL_AMT
+                                      FROM GADMIN.JAGUJAGO -- 재고 이월
+                                     WHERE YEAR = SUBSTRING(IN_FROMDATE,1,4)
+                                     GROUP BY PRODUC_NO, PRODUC_NM
+                                    UNION ALL
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN '반품'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN '반품'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
+                                      FROM GADMIN.JAGUMA1
+                                     WHERE DATE BETWEEN V_EWOL_FROMDATE AND V_EWOL_TODATE
+                                     GROUP BY PRODUC_NO, PRODUC_NM
+                                    UNION ALL
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN '취소' THEN QTY * -1 ELSE QTY END ) * -1 AS QTY, SUM(CASE GUBUN WHEN '취소' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
+                                      FROM GADMIN.JACHUL1
+                                     WHERE DATE BETWEEN V_EWOL_FROMDATE AND V_EWOL_TODATE
+                                     GROUP BY PRODUC_NO, PRODUC_NM
+                                )
+                        GROUP BY PRODUC_NO, PRODUC_NM
+                        UNION ALL
+                        --입고
+                        SELECT PRODUC_NO, PRODUC_NM, 0 AS EWOL_QTY, 0 AS EWOL_AMT, SUM(CASE GUBUN WHEN '반품'THEN QTY * -1 ELSE  QTY END) AS IN_QTY, SUM(CASE GUBUN WHEN '반품'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS IN_AMT, 0 AS OUT_QTY, 0 AS OUT_AMT
+                          FROM GADMIN.JAGUMA1
+                         WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         GROUP BY PRODUC_NO, PRODUC_NM
+                        UNION ALL
+                        --출고
+                        SELECT PRODUC_NO, PRODUC_NM, 0 AS EWOL_QTY, 0 AS EWOL_AMT, 0 AS IN_QTY, 0 AS IN_AMT, SUM(CASE GUBUN WHEN '취소' THEN QTY * -1 ELSE QTY END ) AS OUT_QTY, SUM(CASE GUBUN WHEN '취소' THEN PRICE * -1 ELSE PRICE END )  AS OUT_AMT
+                          FROM GADMIN.JACHUL1
+                         WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         GROUP BY PRODUC_NO, PRODUC_NM
+                    )
+                GROUP BY PRODUC_NO, PRODUC_NM
+            ) A
+            LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+        ORDER BY 1, 2
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

@@ -1,0 +1,215 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_COM_BSCAR_M"
+/*******************************************************************************
+파일명	: GADMIN.SF_COM_BSCAR_M
+생성일자	: 2021.12.17
+생성자	: 전광진
+내용	    : 노선
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_COM_BSCAR_M('','','')
+*******************************************************************************/
+(
+    IN IN_ROUTE_CD    VARCHAR(3)   -- 배차시간
+  , IN IN_CAR_CD      VARCHAR(5)  -- 기사전화번호
+  , IN IN_CARBODY_CD  VARCHAR(6)  -- 기사전화번호
+)
+
+
+RETURNS
+    TABLE
+    (
+      ROUTE_CD             VARCHAR(3)
+    , ROUTE                VARCHAR(10)
+    , CAR_CD               VARCHAR(5)
+    , CAR_NO               VARCHAR(20)
+--    , ROUTE_CD             VARCHAR(3)
+    , CARBODY_CD           VARCHAR(6)
+--    , ROUTE_CD             VARCHAR(3)
+    , CHASSIS_NUM          VARCHAR(30)
+--    , CAR_CD               VARCHAR(18)
+    , CAR_GB_CD            VARCHAR(2)
+    , CAR_ALLOC_YN         VARCHAR(1)
+    , HUMU                 VARCHAR(3)
+    , YONGDO_CD            VARCHAR(2)
+    , CAR_TYPE_CD          VARCHAR(3)
+    , CAR_PRODUCT_NM       VARCHAR(60)
+    , FORMAT               VARCHAR(30)
+    , REG_DATE             DATE
+    , GOOUT_DAY            DATE
+    , YEONSIK              VARCHAR(9)
+    , PRODUCT              VARCHAR(15)
+    , SOSOK                VARCHAR(15)
+--    , DTG_INST_DT          DATE
+--    , DTG_REUSE_GB         VARCHAR(10)
+--    , WIFI_INST_DT         DATE
+--    , WIFI_REUSE_GB        VARCHAR(10)
+--    , GPS_INST_DT          DATE
+--    , GPS_REUSE_GB         VARCHAR(10)
+--    , WONDONGGI            VARCHAR(30)
+--    , BUY_DATE             DATE
+--    , BUY_PRICE            DECIMAL(100)
+--    , SEUNGIN_NO           VARCHAR(37)
+--    , LENGTH               DECIMAL(82)
+--    , WIDTH                DECIMAL(72)
+--    , HEIGHT               DECIMAL(72)
+--    , TOT_WEIGHT           DECIMAL(72)
+--    , DISPLACEMENT         DECIMAL(50)
+--    , JEONGGYEOK_POWER     VARCHAR(15)
+--    , RIDE_MAX             DECIMAL(30)
+--    , MAX_LOAD             DECIMAL(72)
+--    , CYLINDER_NUM         DECIMAL(20)
+--    , USAGE_FUEL           VARCHAR(15)
+--    , YEONBI               DECIMAL(41)
+--    , GAS_CYLINDER         VARCHAR(3)
+--    , YONGGI_PRODUCT       VARCHAR(15)
+--    , YONGGI_AMOUNT        VARCHAR(3)
+--    , TOT_YONGRYANG        DECIMAL(50)
+--    , VALVE_TYPE           VARCHAR(6)
+--    , FIRST_RENEWAL_DT     DATE
+--    , SECOND_RENEWAL_DT    DATE
+--    , THIRD_RENEWAL_DT     DATE
+--    , COLOR                VARCHAR(18)
+--    , GU_REG_NUM           VARCHAR(18)
+--    , USED_BASE            VARCHAR(60)
+--    , TEL_NO               VARCHAR(21)
+--    , CAR_OWNER            VARCHAR(18)
+--    , OWNER_JUMIN          VARCHAR(19)
+--    , COM_REG_NUM          VARCHAR(18)
+--    , OWNER_TEL            VARCHAR(21)
+--    , HOUSEHEAD_NM         VARCHAR(15)
+--    , HOUSEHEAD_JUMIN      VARCHAR(19)
+--    , OWNER_ADDRESS        VARCHAR(60)
+--    , ADD_TEL_NO           VARCHAR(21)
+--    , SINCHUNG_DATE        DATE
+--    , SINCHUNGIN_ADDRESS   VARCHAR(60)
+--    , SINCHUNGIN_NM        VARCHAR(15)
+--    , SINCHUNGIN_JUMIN     VARCHAR(19)
+--    , REG_USE              VARCHAR(15)
+--    , MALSOWONIN_1         VARCHAR(1)
+--    , MALSOWONIN_2         VARCHAR(1)
+--    , MALSOWONIN_3         VARCHAR(1)
+--    , MALSOWONIN_4         VARCHAR(1)
+--    , MALSOWONIN_5         VARCHAR(1)
+--    , MALSOWONIN_6         VARCHAR(1)
+--    , MALSOWONIN_7         VARCHAR(1)
+--    , MALSOWONIN_8         VARCHAR(1)
+--    , MALSOWONIN_9         VARCHAR(1)
+--    , MALSOWONIN_10        VARCHAR(1)
+--    , MALSOWONIN_11        VARCHAR(1)
+--    , MALSOWONIN_12        VARCHAR(1)
+--    , MALSOWONIN_13        VARCHAR(1)
+--    , INSURE_BIZ           VARCHAR(30)
+--    , JEONGMYUNG_NO        VARCHAR(30)
+--    , YUHYO_GIGAN          DATE
+--    , GYOBU_PIL            VARCHAR(1)
+--    , GYOBUBUL             VARCHAR(1)
+--    , BIGO                 CLOB
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+SELECT
+        N.CD           AS ROUTE_CD
+      , N.CD_NM        AS ROUTE
+      , R.CD           AS CAR_NO_CD
+      , R.CD_NM        AS CAR_NO
+      --, R.CD1          AS ROUTE_CD
+      , C.CARBODY_CD
+      --, C.ROUTE_CD
+      , C.CHASSIS_NUM
+      --, C.CAR_CD
+      , C.CAR_GB_CD
+      , C.CAR_ALLOC_YN
+      , C.HUMU
+      , C.YONGDO_CD
+      , C.CAR_TYPE_CD
+      , C.CAR_PRODUCT_NM
+      , C.FORMAT
+      , C.REG_DATE
+      , C.GOOUT_DAY
+      , C.YEONSIK
+      , C.PRODUCT
+      , C.SOSOK
+--      , C.DTG_INST_DT
+--      , C.DTG_REUSE_GB
+--      , C.WIFI_INST_DT
+--      , C.WIFI_REUSE_GB
+--      , C.GPS_INST_DT
+--      , C.GPS_REUSE_GB
+--      , C.WONDONGGI
+--      , C.BUY_DATE
+--      , C.BUY_PRICE
+--      , C.SEUNGIN_NO
+--      , C.LENGTH
+--      , C.WIDTH
+--      , C.HEIGHT
+--      , C.TOT_WEIGHT
+--      , C.DISPLACEMENT
+--      , C.JEONGGYEOK_POWER
+--      , C.RIDE_MAX
+--      , C.MAX_LOAD
+--      , C.CYLINDER_NUM
+--      , C.USAGE_FUEL
+--      , C.YEONBI
+--      , C.GAS_CYLINDER
+--      , C.YONGGI_PRODUCT
+--      , C.YONGGI_AMOUNT
+--      , C.TOT_YONGRYANG
+--      , C.VALVE_TYPE
+--      , C.FIRST_RENEWAL_DT
+--      , C.SECOND_RENEWAL_DT
+--      , C.THIRD_RENEWAL_DT
+--      , C.COLOR
+--      , C.GU_REG_NUM
+--      , C.USED_BASE
+--      , C.TEL_NO
+--      , C.CAR_OWNER
+--      , C.OWNER_JUMIN
+--      , C.COM_REG_NUM
+--      , C.OWNER_TEL
+--      , C.HOUSEHEAD_NM
+--      , C.HOUSEHEAD_JUMIN
+--      , C.OWNER_ADDRESS
+--      , C.ADD_TEL_NO
+--      , C.SINCHUNG_DATE
+--      , C.SINCHUNGIN_ADDRESS
+--      , C.SINCHUNGIN_NM
+--      , C.SINCHUNGIN_JUMIN
+--      , C.REG_USE
+--      , C.MALSOWONIN_1
+--      , C.MALSOWONIN_2
+--      , C.MALSOWONIN_3
+--      , C.MALSOWONIN_4
+--      , C.MALSOWONIN_5
+--      , C.MALSOWONIN_6
+--      , C.MALSOWONIN_7
+--      , C.MALSOWONIN_8
+--      , C.MALSOWONIN_9
+--      , C.MALSOWONIN_10
+--      , C.MALSOWONIN_11
+--      , C.MALSOWONIN_12
+--      , C.MALSOWONIN_13
+--      , C.INSURE_BIZ
+--      , C.JEONGMYUNG_NO
+--      , C.YUHYO_GIGAN
+--      , C.GYOBU_PIL
+--      , C.GYOBUBUL
+--      , C.BIGO
+FROM    GADMIN.BSCAR_M C
+INNER JOIN GADMIN.EBUS_COMMON_C R
+        ON R.UP_CD='DRV15'    -- 차량등록번호
+       AND R.CD = C.CAR_CD
+INNER JOIN GADMIN.EBUS_COMMON_C N
+        ON N.UP_CD = 'DRV06'  -- 버스노선
+       AND N.CD = R.CD1
+WHERE  N.CD         LIKE IN_ROUTE_CD||'%'
+  AND  R.CD         LIKE IN_CAR_CD||'%'
+  AND  C.CARBODY_CD LIKE IN_CARBODY_CD||'%'
+
+;--
+END

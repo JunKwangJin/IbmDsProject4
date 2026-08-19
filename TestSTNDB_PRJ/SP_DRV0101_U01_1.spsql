@@ -1,0 +1,398 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0101_U01"
+(
+     IN IN_USER_ID           VARCHAR(12)
+   , IN IN_MENU_ID           VARCHAR(10)
+   , IN IN_SSID              VARCHAR(70)
+   , IN IN_CK                VARCHAR(1)
+   , IN IN_ROUTE_CD          VARCHAR(3)
+   , IN IN_SUNBUN            VARCHAR(3)
+   , IN IN_OLD_ROUTE_CD      VARCHAR(3)
+   , IN IN_OLD_SUNBUN        VARCHAR(4)
+   , IN IN_CAR_CD            VARCHAR(5)
+   , IN IN_HOLY_CD           VARCHAR(1)
+   , IN IN_SHIFT_CD          VARCHAR(1)
+   , IN IN_YEBI_YN           VARCHAR(1)
+   , IN IN_SABUN_A           VARCHAR(12)
+   , IN IN_NM_A              VARCHAR(15)
+   , IN IN_ONE_TIME_CD_A     VARCHAR(1)
+   , IN IN_SABUN_B           VARCHAR(12)
+   , IN IN_NM_B              VARCHAR(15)
+   , IN IN_ONE_TIME_CD_B     VARCHAR(1)
+   , IN IN_SABUN_C           VARCHAR(12)
+   , IN IN_NM_C              VARCHAR(15)
+   , IN IN_SABUN_D           VARCHAR(12)
+   , IN IN_NM_D              VARCHAR(15)
+   , IN IN_YEBI_HOLY_CD      VARCHAR(1)
+   , IN IN_YEBI_SHIFT_CD     VARCHAR(1)
+   , IN IN_ROTATE            VARCHAR(2)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0101_U01
+생성일자	: 2021.04.19
+생성자	: 전광진
+내용	: 배차시간표 저장
+수정일자	:
+수정자	:
+수정내용
+    INPUT IN_CK             1.  CRUD체크
+          IN_ROUTE_CD       2. 노선
+          IN_SUNBUN         3. 순번
+          IN_OLD_ROUTE_CD   4. OLD 노선
+          IN_OLD_SUNBUN     5. OLD 순번
+          IN_CAR_CD         6. 차량번호코드
+          IN_HOLY_CD        7. 휴무요일
+          IN_SHIFT_CD       8. SHIFT요일
+          IN_YEBI_YN        9. 예비구분
+          IN_SABUN_A       10. 사번 A
+          IN_NM_A          11. 성명 A
+          IN_ONE_TIME_CD_A 12. 1회 요일
+          IN_SABUN_B       13. 사번 B
+          IN_NM_B          14. 성명 B
+          IN_ONE_TIME_CD_B 15. 1회
+          IN_SABUN_C       16. 사번 B.
+          IN_NM_C          17. 성명 B
+          IN_SABUN_D       18. 사번 B
+          IN_NM_D          19. 성명 B
+          IN_YEBI_HOLY_CD  20. 예비휴무
+          IN_YEBI_SHIFT_CD 21. 예비SHIFT
+          IN_ROTATE        22. 기사변환
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_CNT  INTEGER    DEFAULT 0;--
+    DECLARE V_SAVE INTEGER    DEFAULT 0;--
+    DECLARE V_KEY_MSG VARCHAR(100) DEFAULT '';--
+    DECLARE V_AMPM_GB_AC VARCHAR(2) DEFAULT '';--
+    DECLARE V_AMPM_GB_BD VARCHAR(2) DEFAULT '';--
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0; --
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000'; --
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||'][V_SAVE='||V_SAVE||']'|| CHR(13) || 'WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: '||V_KEY_MSG||'변수의 길이가 너무 작습니다..'
+                                                                            ELSE              'WRR99: '||V_KEY_MSG||'실행중 경고 오류가 발생하였습니다.' END;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = OUT_MSG ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: '||V_KEY_MSG||'존재하지 않는 테이블 입니다...'
+                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: '||V_KEY_MSG||'NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||'][V_SAVE='||V_SAVE||']'|| CHR(13) || 'ERR03: '||V_KEY_MSG||'저장중 중복되었습니다.'
+                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: '||V_KEY_MSG||'저장될 문자열 길이가 너무 깁니다..'
+                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: '||V_KEY_MSG||'실행중 알수없는 오류로 종료되었습니다.'
+                                   END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+ -- CRUD가 발생하는 KEY
+    SELECT '[노선 ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][순번 : '||IN_SUNBUN||'] ' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
+	 --DATA	insert
+
+ -- 오전오후 심야 구분값 넣기
+    SELECT MAX(CD) INTO V_AMPM_GB_AC
+      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'L','','','','','','')); --오전/오후구분 : 오전
+    SELECT MAX(CD) INTO V_AMPM_GB_BD
+      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'R','','','','','','')); --오전/오후구분 : 오후
+
+
+
+
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA1_M
+        WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND SUNBUN     = IN_OLD_SUNBUN
+        ;--
+    END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA1_M
+          SET  ROUTE_CD      = IN_ROUTE_CD
+             , SUNBUN        = IN_SUNBUN
+             , CAR_CD        = IN_CAR_CD
+             , HOLY_CD       = IN_HOLY_CD
+             , SHIFT_CD      = IN_SHIFT_CD
+             , YEBI_HOLY_CD  = IN_YEBI_HOLY_CD
+             , YEBI_SHIFT_CD = IN_YEBI_SHIFT_CD
+             , YEBI_YN       = IN_YEBI_YN
+             , M_DATE   = CURRENT TIMESTAMP
+             , M_USER   = IN_USER_ID
+       WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
+         AND SUNBUN     = IN_OLD_SUNBUN
+       ;--
+       SET V_SAVE  = 6000000;--
+   ELSE
+      INSERT INTO BSUNHA1_M
+              ( ROUTE_CD
+              , SUNBUN
+              , CAR_CD
+              , HOLY_CD
+              , SHIFT_CD
+              , YEBI_HOLY_CD
+              , YEBI_SHIFT_CD
+              , YEBI_YN
+--              , FIX
+--              , DRIVERFIX
+              , ROTATE
+--              , JUKYONG_DT
+              , C_DATE
+              , C_USER
+              , M_DATE
+              , M_USER)
+       VALUES
+             ( IN_ROUTE_CD
+             , IN_SUNBUN
+             , IN_CAR_CD
+             , IN_HOLY_CD
+             , IN_SHIFT_CD
+             , IN_YEBI_HOLY_CD
+             , IN_YEBI_SHIFT_CD
+             , IN_YEBI_YN
+             , IN_ROTATE
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = 1000000;--
+   END IF;--
+
+   -- 데이터 테이블 저장
+   -- 고정기사 데이터
+   -- FIX_GB ='1' 고정   AMPM_GB(오전오후구분) = '10' 오전  저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA1_D
+        WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND SUNBUN     = IN_OLD_SUNBUN
+          AND FIX_GB     = '1'                 -- 고정구분 고정
+          AND AMPM_GB    = V_AMPM_GB_AC        --  오전
+        ;--
+   END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA1_D
+          SET ROUTE_CD      = IN_ROUTE_CD
+             , SUNBUN        = IN_SUNBUN
+             , ONETIME_CD    = IN_ONE_TIME_CD_A
+             , SABUN         = IN_SABUN_A
+             , M_DATE        =  CURRENT TIMESTAMP
+             , M_USER        =  IN_USER_ID
+        WHERE ROUTE_CD      =  IN_OLD_ROUTE_CD
+          AND SUNBUN        =  IN_SUNBUN
+          AND FIX_GB        =  '1'
+          AND AMPM_GB       =  V_AMPM_GB_AC;--
+
+       SET V_SAVE  = V_SAVE +  600000;--
+   ELSE
+      INSERT INTO BSUNHA1_D
+              ( ROUTE_CD
+              , SUNBUN
+              , FIX_GB
+              , AMPM_GB
+              , ONETIME_CD
+              , SABUN
+              , C_DATE
+              , C_USER
+              , M_DATE
+              , M_USER )
+       VALUES
+              ( IN_ROUTE_CD
+             , IN_SUNBUN
+             , '1'    -- 고정구분 :고정
+             , V_AMPM_GB_AC --오전/오후구분 : 오전
+             , IN_ONE_TIME_CD_A
+             , IN_SABUN_A
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE +  100000;--
+   END IF;--
+
+   -- FIX_GB ='1' 고정   AMPM_GB(오전오후구분) = '20' 오후  저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA1_D
+        WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND SUNBUN     = IN_OLD_SUNBUN
+          AND FIX_GB     = '1'                 -- 고정구분 고정
+          AND AMPM_GB    = V_AMPM_GB_BD        --  오후
+        ;--
+   END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA1_D
+          SET ROUTE_CD      = IN_ROUTE_CD
+             , SUNBUN        = IN_SUNBUN
+             , ONETIME_CD    = IN_ONE_TIME_CD_B
+             , SABUN         = IN_SABUN_B
+             , M_DATE        =  CURRENT TIMESTAMP
+             , M_USER        =  IN_USER_ID
+        WHERE ROUTE_CD      =  IN_OLD_ROUTE_CD
+          AND SUNBUN        =  IN_SUNBUN
+          AND FIX_GB        =  '1'
+          AND AMPM_GB       =  V_AMPM_GB_BD;--
+
+       SET V_SAVE  = V_SAVE +  60000;--
+   ELSE
+      INSERT INTO BSUNHA1_D
+              ( ROUTE_CD
+              , SUNBUN
+              , FIX_GB
+              , AMPM_GB
+              , ONETIME_CD
+              , SABUN
+              , C_DATE
+              , C_USER
+              , M_DATE
+              , M_USER )
+       VALUES
+              ( IN_ROUTE_CD
+             , IN_SUNBUN
+             , '1'    -- 고정구분 ; 고정
+             , V_AMPM_GB_BD --오전/오후구분 : 오후
+             , IN_ONE_TIME_CD_B
+             , IN_SABUN_B
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE +  10000;--
+   END IF;--
+
+---------------------------------------------------------------
+   -- 유동기사 데이터
+   -- FIX_GB ='0' 유동   AMPM_GB(오전오후구분) = '10' 오전  저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA1_D
+        WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND SUNBUN     = IN_OLD_SUNBUN
+          AND FIX_GB     = '2'                 -- 고정구분 고정
+          AND AMPM_GB    = V_AMPM_GB_AC        --  오전
+        ;--
+   END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA1_D
+          SET ROUTE_CD      = IN_ROUTE_CD
+             , SUNBUN        = IN_SUNBUN
+             , SABUN         = IN_SABUN_C
+             , M_DATE        =  CURRENT TIMESTAMP
+             , M_USER        =  IN_USER_ID
+        WHERE ROUTE_CD      =  IN_OLD_ROUTE_CD
+          AND SUNBUN        =  IN_SUNBUN
+          AND FIX_GB        =  '2'
+          AND AMPM_GB       =  V_AMPM_GB_AC;--
+
+       SET V_SAVE  = V_SAVE +  6000;--
+   ELSE
+      INSERT INTO BSUNHA1_D
+              ( ROUTE_CD
+              , SUNBUN
+              , FIX_GB
+              , AMPM_GB
+              , SABUN
+              , C_DATE
+              , C_USER
+              , M_DATE
+              , M_USER )
+       VALUES
+              ( IN_ROUTE_CD
+             , IN_SUNBUN
+             , '2'    -- 고정구분 :유동
+             , V_AMPM_GB_AC --오전/오후구분 : 오전
+             , IN_SABUN_C
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE +  1000;--
+   END IF;--
+
+   -- FIX_GB ='2' 유동   AMPM_GB(오전오후구분) = '20' 오후  저장
+   IF IN_CK = 'I' THEN
+      SET V_CNT = 0;--
+    ELSE
+       SELECT
+              COUNT(*) INTO V_CNT
+         FROM GADMIN.BSUNHA1_D
+        WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
+          AND SUNBUN     = IN_OLD_SUNBUN
+          AND FIX_GB     = '2'                 -- 고정구분 고정
+          AND AMPM_GB    = V_AMPM_GB_BD        --  오후
+        ;--
+   END IF;--
+         -- 추가 입력된 데이터 었으면 INSERT
+   IF  V_CNT > 0 THEN
+       UPDATE BSUNHA1_D
+          SET ROUTE_CD      = IN_ROUTE_CD
+             , SUNBUN        = IN_SUNBUN
+             , SABUN         = IN_SABUN_D
+             , M_DATE        =  CURRENT TIMESTAMP
+             , M_USER        =  IN_USER_ID
+        WHERE ROUTE_CD      =  IN_OLD_ROUTE_CD
+          AND SUNBUN        =  IN_SUNBUN
+          AND FIX_GB        =  '2'
+          AND AMPM_GB       =  V_AMPM_GB_BD;--
+
+       SET V_SAVE  = V_SAVE +  600;--
+   ELSE
+      INSERT INTO BSUNHA1_D
+              ( ROUTE_CD
+              , SUNBUN
+              , FIX_GB
+              , AMPM_GB
+              , SABUN
+              , C_DATE
+              , C_USER
+              , M_DATE
+              , M_USER )
+       VALUES
+              ( IN_ROUTE_CD
+             , IN_SUNBUN
+             , '2'    -- 고정구분 ; 유동
+             , V_AMPM_GB_BD --오전/오후구분 : 오후
+             , IN_SABUN_D
+             , CURRENT TIMESTAMP
+             , IN_USER_ID
+             , NULL
+             , NULL);--
+       SET V_SAVE  = V_SAVE +  100;--
+   END IF;--
+
+
+   SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'저장되었습니다.['||V_SAVE||']');--
+
+END MAIN 

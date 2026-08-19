@@ -1,0 +1,201 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0801_TAB03_SELECT"
+(IN IN_FROMDATE VARCHAR(10), IN IN_TODATE VARCHAR(10),IN IN_FROMACCCD VARCHAR(7), IN IN_TOACCCD VARCHAR(7), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+    DECLARE   V_YEAR            VARCHAR(4) DEFAULT '';--
+    DECLARE   V_MONTH           VARCHAR(2) DEFAULT '';--
+    DECLARE   V_DAY             VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_GISU            VARCHAR(3) DEFAULT '';--
+    DECLARE   V_CUR_ACC_CD      VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_CUR_ACC_NM      VARCHAR(60)   DEFAULT '';--
+    DECLARE   V_CUR_DRCR_GB     VARCHAR(6)   DEFAULT '';--
+
+    DECLARE   V_YIWOL_AMT       DECIMAL(15,0) DEFAULT 0.0;--
+    DECLARE   V_JAN_TOT_AMT     DECIMAL(15,0) DEFAULT 0.0;--
+
+    DECLARE   V_DATE            VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_ACC_NO          VARCHAR(4)    DEFAULT '';--
+    DECLARE   V_ACC_CD          VARCHAR(10)   DEFAULT '';--
+    DECLARE   V_ACC_NM          VARCHAR(60)   DEFAULT '';--
+    DECLARE   V_ACC_CONT        VARCHAR(300)  DEFAULT '';--
+    DECLARE   V_IN_AMT          DECIMAL(15,0) DEFAULT 0.0;--
+    DECLARE   V_OUT_AMT         DECIMAL(15,0) DEFAULT 0.0;--
+    DECLARE   V_JAN_AMT         DECIMAL(15,0) DEFAULT 0.0;--
+
+    DECLARE   V_DR_AMT          DECIMAL(15,0) DEFAULT 0.0;--
+    DECLARE   V_CR_AMT          DECIMAL(15,0) DEFAULT 0.0;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        DATE		    VARCHAR(10),
+        DATE_T		    VARCHAR(10),
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        ACC_CD_T        VARCHAR(10),
+        ACC_NM_T        VARCHAR(60),
+        ACC_NO          VARCHAR(4),
+        ACC_CONT        VARCHAR(300),
+        DR_AMT          DECIMAL(20,5),
+        CR_AMT          DECIMAL(20,5),
+        JAN_AMT         DECIMAL(20,5)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+--개수 찾기
+SELECT GISU INTO V_GISU
+  FROM GADMIN.BSACC9
+ WHERE START <= IN_FROMDATE
+   AND TERMINATION >= IN_FROMDATE;--
+
+    SET V_MONTH = SUBSTRING(IN_FROMDATE,6,2);		   --
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+    SELECT DATE, DATE AS DATE_T, ACC_CD, ACC_NM, ACC_CD AS ACC_CD_T, ACC_NM AS ACC_NM_T, ACC_NO, ACC_CONT, DR_AMT, CR_AMT,
+           SUM(CASE WHEN DRCR_GB = '차변' OR DRCR_GB = '출금' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  OVER(PARTITION BY ACC_CD ORDER BY ACC_CD, DATE, ACC_NO, ROWNUMBER()OVER()) JAN_AMT
+      FROM (
+		    SELECT A.DRCR_GB, C.ACC_CD, C.ACC_NM, C.DATE, C.ACC_NO, C.ACC_CONT, COALESCE(C.DR_AMT,0) AS DR_AMT, COALESCE(C.CR_AMT,0) AS CR_AMT,
+		    	CASE WHEN A.DRCR_GB = '차변' OR A.DRCR_GB = '출금'  THEN COALESCE(C.JAN_AMT,0) + COALESCE(C.DR_AMT,0) - COALESCE(C.CR_AMT,0)
+		    			ELSE COALESCE(C.JAN_AMT,0) + COALESCE(C.CR_AMT,0) - COALESCE(C.DR_AMT,0) END AS JAN_AMT
+		      FROM
+		            (
+		              SELECT  LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM, DRCR_GB
+		                FROM GADMIN.BSACC2
+		               WHERE 1 = 1
+		                 AND ACC_INPUT != 'N'
+		                 --AND HAPJAN_DISP != 'N'
+		               ORDER BY LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM
+		            ) A
+             		 LEFT OUTER JOIN (
+                                SELECT Y.ACC_CD, Y.ACC_NM, SUBSTRING(IN_FROMDATE,1,7)||'-00' AS DATE, '000' AS ACC_NO, '전기이월' AS ACC_CONT, Y.DR_AMT, Y.CR_AMT,
+                                    CASE WHEN Y.DRCR_GB = '차변' OR Y.DRCR_GB = '출금' THEN Y.DR_AMT - Y.CR_AMT ELSE Y.CR_AMT - Y.DR_AMT END AS JAN_AMT
+                                  FROM (
+                                        SELECT A.ACC_CD, A.ACC_NM, A.DRCR_GB,
+                                                  CASE WHEN V_MONTH = '01' THEN DR_00
+                                                        WHEN V_MONTH = '02' THEN DR_01
+                                                        WHEN V_MONTH = '03' THEN DR_02
+                                                        WHEN V_MONTH = '04' THEN DR_03
+                                                        WHEN V_MONTH = '05' THEN DR_04
+                                                        WHEN V_MONTH = '06' THEN DR_05
+                                                        WHEN V_MONTH = '07' THEN DR_06
+                                                        WHEN V_MONTH = '08' THEN DR_07
+                                                        WHEN V_MONTH = '09' THEN DR_08
+                                                        WHEN V_MONTH = '10' THEN DR_09
+                                                        WHEN V_MONTH = '11' THEN DR_10
+                                                        WHEN V_MONTH = '12' THEN DR_11
+                                                    END AS DR_AMT,
+                                                  CASE WHEN V_MONTH = '01' THEN CR_00
+                                                        WHEN V_MONTH = '02' THEN CR_01
+                                                        WHEN V_MONTH = '03' THEN CR_02
+                                                        WHEN V_MONTH = '04' THEN CR_03
+                                                        WHEN V_MONTH = '05' THEN CR_04
+                                                        WHEN V_MONTH = '06' THEN CR_05
+                                                        WHEN V_MONTH = '07' THEN CR_06
+                                                        WHEN V_MONTH = '08' THEN CR_07
+                                                        WHEN V_MONTH = '09' THEN CR_08
+                                                        WHEN V_MONTH = '10' THEN CR_09
+                                                        WHEN V_MONTH = '11' THEN CR_10
+                                                        WHEN V_MONTH = '12' THEN CR_11
+                                                    END AS CR_AMT
+                                          FROM GADMIN.HAPJAN A
+                                                INNER JOIN
+                                                ( SELECT *
+                                                    FROM GADMIN.BSACC2
+                                                   WHERE 1 = 1
+                                                     AND ACC_GB IN ('자산','부채','자본')
+                                                ) B ON ( A.ACC_CD = B.ACC_CD )
+                                         WHERE YEAR = V_GISU
+                                           AND A.ACC_CD >= IN_FROMACCCD
+                                           AND A.ACC_CD <= IN_TOACCCD
+                                           AND A.ACC_CD != '1110101'   --현금 제외
+                            ) Y
+      				  UNION ALL
+                      SELECT A.ACC_CD, A.ACC_NM, VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, A.ACC_NO, A.ACC_CONT, A.DR_AMT, A.CR_AMT,
+                      		CASE WHEN B.DRCR_GB = '차변' OR B.DRCR_GB = '출금' THEN A.DR_AMT - A.CR_AMT ELSE A.CR_AMT - A.DR_AMT END AS JAN_AMT
+                        FROM GADMIN.ACCOU1 A LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
+                       WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                         AND A.ACC_CD IS NOT NULL
+                         AND A.ACC_CD >= IN_FROMACCCD
+                         AND A.ACC_CD <= IN_TOACCCD
+                      /*
+                      UNION ALL
+                      SELECT '1110101' AS ACC_CD, '현          금' AS ACC_NM, VARCHAR_FORMAT(B.DATE, 'YYYY-MM-DD') AS DATE, B.ACC_NO, B.ACC_CONT, B.CR_AMT AS DR_AMT, B.DR_AMT AS CR_AMT, B.CR_AMT - B.DR_AMT AS JAN_AMT
+                        FROM GADMIN.ACCOU1 B
+                        WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                          AND DRCR_GB IN ('입금','출금')
+                          AND ACC_CD IS NOT NULL
+                      */
+            ) C ON ( A.ACC_CD = C.ACC_CD )
+    WHERE 1 = 1
+      AND A.ACC_CD IS NOT NULL )
+      A
+	WHERE 1 = 1
+	  AND NOT( DR_AMT = 0 AND CR_AMT = 0 )
+	  AND A.ACC_CD >= IN_FROMACCCD
+      AND A.ACC_CD <= IN_TOACCCD
+      AND A.ACC_CD IS NOT NULL;--
+
+     --월계
+    INSERT INTO SESSION.TEMP
+    SELECT SUBSTRING(DATE,1,7)||'-88' AS DATE, '월계' AS DATE_T,  ACC_CD, ACC_NM,  '' AS ACC_CD_T, '' AS ACC_NM_T, '' AS ACC_NO, '' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
+      FROM SESSION.TEMP
+     WHERE ACC_CONT != '전기이월'
+    GROUP BY SUBSTRING(DATE,1,7),  ACC_CD, ACC_NM;--
+
+
+    -- 누계
+    INSERT INTO SESSION.TEMP
+    SELECT SUBSTRING(DATE,1,7)||'-99' AS DATE,  '누계' AS DATE_T, A.ACC_CD, A.ACC_NM, '' AS ACC_CD_T, '' AS ACC_NM_T, '' AS ACC_NO, ''  AS ACC_CONT, SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE) AS DR_AMT,
+                                                                                                           SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE) AS CR_AMT,
+           CASE WHEN B.DRCR_GB = '차변' OR B.DRCR_GB = '출금'
+                 THEN  (SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) - (SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE))
+                 ELSE  (SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) - (SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) END  AS JAN_AMT
+       FROM  (
+                SELECT DATE, ACC_CD, ACC_NM, '' AS ACC_NO, '' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
+                  FROM (
+                            SELECT SUBSTRING(DATE,1,7) AS DATE,  ACC_CD, ACC_NM, '' AS ACC_NO, '' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
+                              FROM SESSION.TEMP
+                             WHERE DATE_T != '월계'
+                            GROUP BY SUBSTRING(DATE,1,7),  ACC_CD, ACC_NM
+                         )
+                GROUP BY DATE, ACC_CD, ACC_NM
+              )   A  LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
+      WHERE 1 = 1
+        --AND SUBSTRING(ACC_CONT,4,4) = '월계'
+      ;--
+
+END P1;--
+
+P2: BEGIN
+
+
+    /*
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT *
+      FROM SESSION.TEMP
+    WHERE 1 = 1
+      --AND ACC_CD != '1110101'
+    ORDER BY ACC_CD,DATE ;--
+    */
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT CASE WHEN SUBSTRING(DATE,9,2) = '88' OR SUBSTRING(DATE,9,2) = '99' OR SUBSTRING(DATE,9,2) = '00' THEN '' ELSE DATE END AS DATE,
+            CASE WHEN SUBSTRING(DATE,9,2) = '88' OR SUBSTRING(DATE,9,2) = '99' OR SUBSTRING(DATE,9,2) = '00'THEN '' ELSE DATE END AS DATE_T,
+            ACC_CD, ACC_NM, ACC_CD_T, ACC_NM_T, ACC_NO, ACC_CONT, DR_AMT, CR_AMT, JAN_AMT
+       FROM  (
+                    SELECT *
+                      FROM SESSION.TEMP
+                    WHERE 1 = 1
+                      --AND ACC_CD != '1110101'
+                    ORDER BY ACC_CD, DATE
+               )
+               ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

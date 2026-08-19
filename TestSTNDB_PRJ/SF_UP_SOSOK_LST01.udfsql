@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_UP_SOSOK_LST01"
+(
+        IN IN_SOSOK_CD      VARCHAR(10)             --소속코드
+      , IN IN_SAYONG_YN     VARCHAR(10) DEFAULT '1' --사용여부(% : 전체, 1 : 사용, 0 : 미사용)
+      , IN IN_TMP01_FG      VARCHAR(10) DEFAULT '0' --여분파라미터1
+      , IN IN_TMP02_FG      VARCHAR(10) DEFAULT '0' --여분파라미터2
+      , IN IN_TMP03_FG      VARCHAR(10) DEFAULT '0' --여분파라미터3
+      , IN IN_TMP04_FG      VARCHAR(10) DEFAULT '0' --여분파라미터4
+)
+
+RETURNS
+      TABLE (
+                 SOSOK_CD           VARCHAR(10)
+                ,SOSOK_NM           VARCHAR(200)
+                ,SOSOK_ENM          VARCHAR(100)
+                ,ABBR_NM            VARCHAR(100)
+                ,SOSOK_LVL          DECIMAL(1)
+                ,SOSOK_SORT         DECIMAL(4)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+    SELECT    A.SOSOK_CD            AS SOSOK_CD
+            , A.SOSOK_NM            AS SOSOK_NM
+            , A.SOSOK_ENM           AS SOSOK_ENM
+            , A.ABBR_NM             AS ABBR_NM
+            , B.SOSOK_LVL           AS SOSOK_LVL
+            , ROW_NUMBER() OVER()   AS SOSOK_SORT
+    FROM       GADMIN.EBUS_SOSOK_M    A
+    INNER JOIN GADMIN.EBUS_EOPMUSOSOK_M B
+            ON A.SOSOK_CD    =   B.SOSOK_CD
+    START WITH      B.SOSOK_CD    =   IN_SOSOK_CD
+    CONNECT BY PRIOR    B.UP_SOSOK_CD   =   B.SOSOK_CD
+                    AND B.SAYONG_YN     =   DECODE(IN_SAYONG_YN,'%',B.SAYONG_YN,IN_SAYONG_YN)
+    ORDER SIBLINGS BY B.SORT;--
+
+
+END

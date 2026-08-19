@@ -1,0 +1,302 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MAT_JACHULOFFER1"
+/*******************************************************************************
+파일명	: GADMIN.SF_MAT_JACHULOFFER1
+생성일자	: 2022.4.8
+생성자	: 전광진
+내용	    : 일반 출고(Jachul1)의 현 픔목의 재고 향을 보여주는 함수
+수정일자	:
+수정자	:
+수정내용      :
+예제
+SELECT * FROM GADMIN.SF_MAT_JACHULOFFER1(Application ID, 출고일자, 구분코드(10), 영업소코드, 입력순서, 품목코드, 수량)
+*******************************************************************************/
+                         ( IN_IPADDR VARCHAR(50)
+                         , IN_CHULGO_DT DATE
+                         , IN_GUBUN_CD VARCHAR(2)
+                         , IN_CHANGGO_CD VARCHAR(6)
+                         , IN_SEQ VARCHAR(3)
+                         , IN_PRODUC_NO VARCHAR(13)
+                         , IN_QTY DECIMAL(12,2)
+                         )
+  RETURNS TABLE(
+                 ST_GB VARCHAR(1)
+               , IPADDR VARCHAR(15)
+               , CHULGO_DT DATE
+               , CHANGGO_CD VARCHAR(6)
+               , SEQ VARCHAR(3)
+               , PRODUC_NO VARCHAR(13)
+               , JAGO_QTY DECIMAL(12,2)
+               , QTY DECIMAL(12,2)
+               , UNIT_PRICE DECIMAL(12,2)
+               , AMT DECIMAL(12,2)
+               , MESSAGE VARCHAR(100)
+--  , EWOL_QTY DECIMAL(12,2), GUMA_QTY DECIMAL(12,2), CHULGO_QTY DECIMAL(12,2), CHULGO_TEMP_QTY DECIMAL(12,2)
+--  , CF_GB VARCHAR(10), JAGUMA_DT DATE, QTY1  DECIMAL(12,2), NUJUK DECIMAL(12,2), UNIT_PRICE2 DECIMAL(12,2)
+--  , ROWNUM DECIMAL(12,0)
+              )
+BEGIN
+  DECLARE TYPE JAGUMA_ROW AS
+     ROW(
+          CF_GB             VARCHAR(1),
+          GUMA_DT           DATE,
+          OFFICE_CD         VARCHAR(6),
+          PRODUC_NO         VARCHAR(13),
+          PRODUC_NM         VARCHAR(60),
+          QTY               DECIMAL(12,2),
+          NUJUK             DECIMAL(12,2),
+          UNIT_PRICE        DECIMAL(12,2),
+          AMT               DECIMAL(12,2),
+          ROWNUM            INT
+        );--
+
+  DECLARE JAGUMA            JAGUMA_ROW;--
+--  DECLARE V_STAQTY        DEC(12,2);--
+--  DECLARE V_STADANGA      DEC(12,2);--
+--  DECLARE V_ENDQTY        DEC(12,2);--
+--  DECLARE V_ENDDANGA      DEC(12,2);--
+  DECLARE EOF               INT DEFAULT 0;--
+  DECLARE V_EWOL_GB         VARCHAR(1);--
+  DECLARE V_EWOL_QTY        DEC(12,2); -- 이월수형
+  DECLARE V_EWOL_AMT        DEC(12,2); -- 이월금액
+  DECLARE V_QTY             DEC(12,2); -- 수량
+  DECLARE V_UNIT_PRICE      DEC(12,2); -- 단가
+  DECLARE V_AMT             DEC(12,2); -- 금액
+  DECLARE V_BE_MAX          DEC(12,2); -- 이뤌전입수회수
+  DECLARE V_CHULGO_QTY      DEC(12,2); -- 출고수량
+  DECLARE V_CHULGO_AMT      DEC(12,2); -- 출고금액
+  DECLARE V_CHULGO_TEMP_QTY DEC(12,2); -- 출고TEMP수량
+  DECLARE V_CHULGO_TEMP_AMT DEC(12,2); -- 출고TEMP금액
+  DECLARE V_JAGO_QTY        DEC(12,2); -- 재고수량
+  DECLARE V_GUMA_QTY        DEC(12,2); -- 구매수량
+  DECLARE SQLSTATE CHAR(5)  DEFAULT '00000';--
+  DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+
+
+  DECLARE JAGUMA_CURSOR CURSOR FOR
+     WITH VT_EWOL AS
+         (
+             SELECT EWOL_01 AS QTY, UNIT_PRICE_01 AS AMT
+               FROM GADMIN.JAGUJAGO
+              WHERE YEAR = SUBSTR(IN_CHULGO_DT,1,4)
+                AND CHANGGO_CD = IN_CHANGGO_CD
+                AND PRODUC_NO=IN_PRODUC_NO
+         )
+        , VT_BEJAGUMA AS
+         (
+             SELECT '1' AS CF_GB
+                  , DATE
+                  , CHANGGO_CD
+                  , PRODUC_NO
+                  , PRODUC_NM
+                  , QTY
+                  , SUM(QTY) OVER(/*PARTITION BY CHANGGO_CD, PRODUC_NO*/ ORDER BY DATE DESC, ROW_NUMBER()OVER()) AS NUJUK
+                  , UNIT_PRICE
+                  , SUPPLY_PRICE
+                  , ROW_NUMBER() OVER() AS ROWNUM
+               FROM GADMIN.JAGUMA1
+              WHERE PRODUC_NO = IN_PRODUC_NO
+                AND CHANGGO_CD = IN_CHANGGO_CD
+                AND DATE < TRUNC(IN_CHULGO_DT, 'YYYY' )
+         )
+        , VT_AFJAGUMA AS
+         (   SELECT '2' AS CF_GB
+                  , DATE
+                  , CHANGGO_CD
+                  , PRODUC_NO
+                  , PRODUC_NM
+                  , QTY
+                  , UNIT_PRICE
+                  , SUPPLY_PRICE
+               FROM GADMIN.JAGUMA1
+              WHERE PRODUC_NO  = IN_PRODUC_NO
+                AND CHANGGO_CD = IN_CHANGGO_CD
+                AND DATE BETWEEN TRUNC(IN_CHULGO_DT, 'YYYY' ) AND IN_CHULGO_DT
+         )
+    SELECT CF_GB, DATE, CHANGGO_CD, PRODUC_NO, PRODUC_NM, QTY
+         , SUM(QTY) OVER(/*PARTITION BY CHANGGO_CD, PRODUC_NO*/ ORDER BY DATE, ROW_NUMBER()OVER()) AS NUJUK
+         , UNIT_PRICE
+         , SUPPLY_PRICE
+         , ROW_NUMBER()OVER(ORDER BY DATE, ROW_NUMBER()OVER()) AS ROWNUM
+      FROM (
+             SELECT CF_GB
+                  , DATE
+                  , CHANGGO_CD
+                  , PRODUC_NO
+                  , PRODUC_NM
+                  , (CASE WHEN NUJUK > (SELECT QTY FROM VT_EWOL) THEN QTY - (NUJUK - (SELECT QTY FROM VT_EWOL)) ELSE QTY END) AS QTY   -- 2021.11.15 누적값이 QTY수량보다 적을때(많은것이 없을때) 이월수량보다 적을떄 문제 발생
+                  , NUJUK
+                  , UNIT_PRICE
+                  , (CASE WHEN NUJUK > (SELECT QTY FROM VT_EWOL) THEN SUPPLY_PRICE - ((NUJUK - (SELECT QTY FROM VT_EWOL)) * UNIT_PRICE) ELSE QTY END) AS SUPPLY_PRICE
+                  , ROWNUM
+               FROM VT_BEJAGUMA
+              WHERE NUJUK <= (SELECT MIN(NUJUK) FROM VT_BEJAGUMA WHERE NUJUK >= (SELECT QTY FROM VT_EWOL)
+              )
+            UNION ALL
+             SELECT CF_GB
+                  , DATE
+                  , CHANGGO_CD
+                  , PRODUC_NO
+                  , PRODUC_NM
+                  , QTY
+                  , 0 AS NUJUK
+                  , UNIT_PRICE
+                  , SUPPLY_PRICE
+                  , 0 AS ROWNUM
+               FROM VT_AFJAGUMA
+             )
+    ORDER BY DATE, ROW_NUMBER()OVER();--
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET EOF = 1;--
+--  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN ('DB오류가 발생했습니다. SQLCODE= '||VARCHAR_FORMAT(SQLCODE,'9999999')||', SQLSTATE= '||SQLSTATE); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+--  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+
+
+
+
+  -- V_EWOL_GB 1 : 전년도, 2 : 이월시점, 3 : 당해년도
+  IF JAGUMA.CF_GB = 1 THEN
+     SET V_EWOL_GB = 1;--
+  ELSE
+     SET V_EWOL_GB = 3;--
+  END IF;--
+
+-- 이월 전 데이터의 갯수 COUNT
+  SELECT COUNT(*) INTO V_BE_MAX
+    FROM GADMIN.JAGUMA1
+   WHERE PRODUC_NO  = IN_PRODUC_NO
+     AND CHANGGO_CD = IN_CHANGGO_CD
+     AND DATE < TRUNC(IN_CHULGO_DT, 'YYYY' );--
+
+-- 이월 데이터
+  SELECT EWOL_01, UNIT_PRICE_01
+    INTO V_EWOL_QTY, V_EWOL_AMT
+    FROM GADMIN.JAGUJAGO
+   WHERE YEAR       =  SUBSTR(IN_CHULGO_DT, 1,4)
+     AND CHANGGO_CD =  IN_CHANGGO_CD
+     AND PRODUC_NO  =  IN_PRODUC_NO;--
+
+
+-- 출고일 현재까지 당해에 출고된 수량 합계를 구함
+  SELECT SUM(QTY)
+       , SUM(PRICE)
+    INTO V_CHULGO_QTY
+       , V_CHULGO_AMT
+    FROM GADMIN.JACHUL1
+   WHERE ( DATE BETWEEN TRUNC(IN_CHULGO_DT,'YYYY') AND IN_CHULGO_DT )
+     AND (DATE <> IN_CHULGO_DT OR (DATE = IN_CHULGO_DT AND GUBUN_CD <> IN_GUBUN_CD))
+     AND CHANGGO_CD = IN_CHANGGO_CD
+     AND PRODUC_NO = IN_PRODUC_NO;--
+
+-- TEMP출고
+  SELECT SUM(QTY)
+       , SUM(PRICE)
+    INTO V_CHULGO_TEMP_QTY, V_CHULGO_TEMP_AMT
+    FROM GADMIN.JACHUL1_TEMP
+   WHERE IPADDR     = IN_IPADDR
+     AND DATE       = IN_CHULGO_DT
+     AND CHANGGO_CD = IN_CHANGGO_CD
+     AND PRODUC_NO  = IN_PRODUC_NO
+     AND SEQ        < IN_SEQ;--
+
+
+-- 구매 수량 파악
+  SELECT SUM(QTY)
+    INTO V_GUMA_QTY
+    FROM GADMIN.JAGUMA1
+   WHERE (DATE BETWEEN TRUNC(IN_CHULGO_DT,'YYYY') AND IN_CHULGO_DT)
+     AND CHANGGO_CD = IN_CHANGGO_CD
+     AND PRODUC_NO = IN_PRODUC_NO;--
+--
+
+  SET V_EWOL_QTY        = COALESCE(V_EWOL_QTY,0.0);          --
+  SET V_EWOL_AMT        = COALESCE(V_EWOL_AMT,0.0);          --
+  SET V_CHULGO_QTY      = COALESCE(V_CHULGO_QTY,0.0);        --
+  SET V_CHULGO_AMT      = COALESCE(V_CHULGO_AMT,0.0);        --
+  SET V_CHULGO_TEMP_QTY = COALESCE(V_CHULGO_TEMP_QTY,0.0);   --
+  SET V_CHULGO_TEMP_AMT = COALESCE(V_CHULGO_TEMP_AMT,0.0);   --
+  SET V_GUMA_QTY        = COALESCE(V_GUMA_QTY,0.0);--
+
+  SET V_JAGO_QTY = V_EWOL_QTY + V_GUMA_QTY - V_CHULGO_QTY - V_CHULGO_TEMP_QTY
+  ;--
+
+-- 현재 출고일까지 수량을 구매에서 일자순으로 데이터를 일어들인다.
+  OPEN  JAGUMA_CURSOR;--
+  SET   EOF = 0;--
+  SET   V_QTY = 0;--
+  SET   V_AMT = 0;--
+  FETCH FROM JAGUMA_CURSOR INTO JAGUMA;--
+  WHILE EOF = 0 AND V_QTY < V_CHULGO_QTY DO
+--        PIPE('C', 0.0, 0.0, 0.0,'', JAGUMA.CF_GB, JAGUMA.GUMA_DT, JAGUMA.QTY, JAGUMA.NUJUK, JAGUMA.UNIT_PRICE, JAGUMA.ROWNUM);--
+        SET V_QTY = V_QTY + JAGUMA.QTY;--
+
+        IF  V_QTY >= V_CHULGO_QTY THEN
+         -- 출고수량을 일자별 구매수량에서 순차로 차감하여 차감수량이 출고수량보다  많거나 같을때
+            SET JAGUMA.QTY = V_QTY - V_CHULGO_QTY;--
+            SET JAGUMA.AMT = V_AMT - V_CHULGO_AMT;--
+        ELSE
+            FETCH FROM JAGUMA_CURSOR INTO JAGUMA;--
+        END IF;--
+
+  END   WHILE;--
+  IF  EOF = 1 THEN
+      PIPE('E', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,'재고가 없습니다.'/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
+      GOTO P1; --
+  END IF;--
+
+
+P0:
+  SET V_QTY = 0;--
+  SET V_AMT = 0;--
+  WHILE EOF = 0 DO
+--    PIPE('H', 0.0, 0.0, 0.0,'', JAGUMA.CF_GB, JAGUMA.GUMA_DT, JAGUMA.QTY, JAGUMA.NUJUK, JAGUMA.UNIT_PRICE, JAGUMA.ROWNUM);--
+    IF JAGUMA.CF_GB = 2 AND V_EWOL_GB = 1 THEN
+       SET V_EWOL_GB = 2;--
+       ELSEIF JAGUMA.CF_GB = 2 AND V_EWOL_GB = 2 THEN
+       SET V_EWOL_GB = 3;--
+    END IF;--
+--    IF V_QTY + JAGUMA.QTY <= IN_QTY THEN
+--       IF V_QTY + JAGUMA.QTY = JAGUMA.NUJUK THEN
+    IF JAGUMA.CF_GB = 1 AND V_BE_MAX = JAGUMA.ROWNUM THEN
+       IF V_QTY + JAGUMA.QTY < IN_QTY THEN
+--          PIPE('1', 0.0, 0.0, 0.0,'', JAGUMA.CF_GB, JAGUMA.GUMA_DT, JAGUMA.QTY, JAGUMA.NUJUK, JAGUMA.UNIT_PRICE, JAGUMA.ROWNUM);--
+          SET V_QTY = V_QTY + JAGUMA.QTY;--
+          SET V_AMT = V_EWOL_AMT;--
+       ELSE
+          SET V_AMT = V_EWOL_AMT;--
+          SET V_QTY = V_EWOL_QTY;--
+          IF  V_QTY = 0 THEN
+              SET V_UNIT_PRICE = 0;--
+          ELSE
+              SET V_UNIT_PRICE = V_AMT / V_QTY;--
+          END IF;--
+          SET EOF = 1;--
+          PIPE('N', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,''/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
+          GOTO P1;--
+       END IF;--
+    ELSE
+       IF V_QTY + JAGUMA.QTY < IN_QTY THEN
+--          PIPE('2', 0.0, 0.0, 0.0,'', JAGUMA.CF_GB, JAGUMA.GUMA_DT, JAGUMA.QTY, JAGUMA.NUJUK, JAGUMA.UNIT_PRICE, JAGUMA.ROWNUM);--
+          SET V_QTY = V_QTY + JAGUMA.QTY;--
+          SET V_AMT = V_AMT + JAGUMA.QTY * JAGUMA.UNIT_PRICE;--
+       ELSE
+          SET V_AMT = V_AMT + (IN_QTY - V_QTY) * JAGUMA.UNIT_PRICE;--
+          SET V_QTY = IN_QTY;--
+          IF  V_QTY = 0 THEN
+              SET V_UNIT_PRICE = 0;--
+          ELSE
+              SET V_UNIT_PRICE = V_AMT / V_QTY;--
+          END IF;--
+          SET EOF = 1;--
+          PIPE('N', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,''/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
+          GOTO P1;--
+       END IF;--
+    END IF;--
+       FETCH FROM JAGUMA_CURSOR INTO JAGUMA;--
+  END WHILE;--
+P1:
+       IF V_QTY < IN_QTY THEN
+          PIPE('E', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,'재고가 '||VARCHAR_FORMAT(V_QTY,'9999999.99')||' 있습니다. '||'출고수량에서 '||VARCHAR_FORMAT(IN_QTY - V_QTY,'9999999.99')||' 부족합니다.'/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
+       END IF;--
+  CLOSE JAGUMA_CURSOR;--
+  RETURN;--
+END

@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_SOSOK_FULLNM_LST01"
+(
+        IN IN_SOSOK_CD      VARCHAR(10)             --소속코드
+)
+
+RETURNS
+      TABLE (
+
+                 FULL_NM1           VARCHAR(300)
+                ,FULL_NM2           VARCHAR(300)
+                ,SOSOK_CD           VARCHAR(10)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+        SELECT    TRIM(B.JOJIK_FULL_NM1)                                     AS FULL_NM1
+                , SUBSTR(B.JOJIK_FULL_NM1,INSTR(B.JOJIK_FULL_NM1,'>')+1,300) AS FULL_NM2
+                , IN_SOSOK_CD                                                AS SOSOK_CD
+        FROM    (
+                SELECT  REPLACE(JOJIK_NM,',','>') AS JOJIK_FULL_NM1
+                FROM    (
+                        SELECT    LISTAGG(A.SOSOK_NM, '>') WITHIN GROUP(ORDER BY A.SOSOK_LVL) AS JOJIK_NM
+                        FROM    (
+                                SELECT  DISTINCT B.SOSOK_NM,B.SOSOK_CD,A.UP_SOSOK_CD,A.SOSOK_LVL
+                                FROM    GADMIN.EBUS_EOPMUSOSOK_M     A   ,
+                                        GADMIN.EBUS_SOSOK_M        B
+                                WHERE       A.SOSOK_CD  =   B.SOSOK_CD
+                                START WITH      A.SOSOK_CD  = IN_SOSOK_CD
+--                                            AND A.SOSOKGB_CD  = IN_SOSOKGB_CD
+                                CONNECT BY PRIOR    A.UP_SOSOK_CD   =   A.SOSOK_CD
+                                ORDER BY A.SOSOK_LVL
+                                )       A
+                        )       A
+                )       B
+                ;--
+
+
+END

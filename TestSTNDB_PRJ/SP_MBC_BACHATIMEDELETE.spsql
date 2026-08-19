@@ -1,0 +1,70 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_BACHATIMEDELETE"
+(
+      IN IN_TEMP_DAT        VARCHAR(5000)
+)
+/*******************************************************************************
+파일명 : GADMIN.SP_MBC_BACHATIMEUPDATE
+생성일자    : 2021.12.10
+생성자 : 전광진
+내용      : 모바일용 배차시간표 모바일 매차 테이블에저장
+수정일자    : 2022.03.18
+수정자 : 전광진
+수정내용      : 배차 데이터에 사번을 추가한다.
+Compile ; 2022.4.13
+    INPUT IN_TIMEID         1 TIME id
+          IN_TEMP_DAT       2 DATA
+OUTPUT  : OUT_CNT           A.처리COUNT
+        : OUT_MSG           B.처리결과메시지
+*******************************************************************************/
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE V_TEMP_DAT  VARCHAR(100)  DEFAULT '';--
+    DECLARE V_BACHA_DT  VARCHAR(8);--
+    DECLARE V_ROUTE     VARCHAR(10);--
+
+    DECLARE V_CNT       INTEGER;--
+    DECLARE V_KEY_MSG   VARCHAR(100)  DEFAULT '';--
+
+
+    DECLARE SQLCODE     INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE  CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER   CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER    CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL    CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO     CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE    CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+--*    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+--*    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+--*    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+--*    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    SET V_TEMP_DAT = IN_TEMP_DAT;--
+
+    SET V_BACHA_DT = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1);-- 일자
+    SET V_ROUTE    = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1);-- 노선
+
+    DELETE GADMIN.MBC_BACHATIME
+     WHERE (BACHA_DT, ROUTE)
+         = (V_BACHA_DT, V_ROUTE)
+    ;--
+
+--*    SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'삭제되었습니다.');--
+
+
+END MAIN 

@@ -1,0 +1,61 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0101_D02"
+(
+      IN IN_USER_ID          VARCHAR(12)
+    , IN IN_MENU_ID          VARCHAR(10)
+    , IN IN_SSID             VARCHAR(70)
+    , IN IN_CHURI_YYYY       VARCHAR(3)
+    , IN IN_CHURI_MM         VARCHAR(3)
+    , IN IN_ROUTE_CD         VARCHAR(3)
+    , IN IN_SUNBUN           VARCHAR(4)
+    , OUT OUT_CNT            VARCHAR(2)
+    , OUT OUT_MSG            VARCHAR(10000)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+        DECLARE V_CNT				INT  		DEFAULT 0 ;--
+        DECLARE V_CHURI_YYMM		VARCHAR(4)	DEFAULT '';--
+        DECLARE SQLCODE  			INTEGER  	DEFAULT 0;--
+        DECLARE SQLSTATE 			CHAR(5)		DEFAULT '00000';--
+        DECLARE V_SQLSTATE 			CHAR(5) 	DEFAULT '00000';--
+
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+               E1: BEGIN
+                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR03: 실행중 알수없는 오류로 종료되었습니다.' ; --
+                     SET OUT_CNT = '-1'; --
+                     RETURN; --
+               END E1;--
+
+        SET OUT_MSG              = ''; --
+        SET OUT_CNT              = ''; --
+
+       P1: BEGIN
+                 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                        E2: BEGIN
+                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: 자료 저장 시 오류가 발생하였습니다.' ; --
+                             SET OUT_CNT = '-1'; --
+                             ROLLBACK ; --
+                             RETURN ;--
+                        END E2;--
+
+            DELETE FROM GADMIN.BSUNHA11_M
+                  WHERE CHURI_YYMM	=	V_CHURI_YYMM
+                    AND ROUTE_CD = IN_ROUTE_CD
+                    AND SUNBUN  =  IN_SUNBUN
+            ;--
+
+        SET V_CHURI_YYMM = COALESCE(IN_CHURI_YYYY,'')||COALESCE(IN_CHURI_MM,'');--
+            DELETE FROM GADMIN.BSUNHA11_D
+                  WHERE CHURI_YYMM	=	V_CHURI_YYMM
+                    AND ROUTE_CD	=	IN_ROUTE_CD
+                    AND SUNBUN		=	IN_SUNBUN
+            ;--
+        END P1 ;--
+
+        SET OUT_MSG = '삭제 되었습니다.' ; --
+        SET OUT_CNT = '1';            --
+
+
+END MAIN 

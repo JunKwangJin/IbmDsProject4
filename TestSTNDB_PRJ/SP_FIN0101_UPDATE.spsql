@@ -1,0 +1,74 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_UPDATE"
+(
+    IN IN_STATUS VARCHAR(10),
+    IN IN_ROW_ID VARCHAR(20),
+    IN IN_DATE VARCHAR(10),
+    IN IN_ACC_NO VARCHAR(4),
+    IN IN_DRCR_GB VARCHAR(6),
+    IN IN_ACC_CD VARCHAR(10),
+    IN IN_ACC_NM VARCHAR(60),
+    IN IN_ACC_CONT VARCHAR(300),
+    IN IN_PRICE VARCHAR(13),
+    IN IN_JEUNGBING_DOC VARCHAR(15),
+    IN IN_MANAGE_CD_1 VARCHAR(9),
+    IN IN_MANAGE_ITEM_1 VARCHAR(45),
+    IN IN_MANAGE_CD_2 VARCHAR(9),
+    IN IN_MANAGE_ITEM_2 VARCHAR(90),
+    IN IN_DR_AMT VARCHAR(13),
+    IN IN_CR_AMT VARCHAR(13),
+    IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE   V_ROW_ID         BIGINT DEFAULT 0;--
+    DECLARE   V_PRICE          DECIMAL(13,0) DEFAULT 0.0;--
+    DECLARE   V_DR_AMT         DECIMAL(13,0) DEFAULT 0.0;--
+    DECLARE   V_CR_AMT         DECIMAL(13,0) DEFAULT 0.0;--
+    P1: BEGIN
+        IF IN_ROW_ID = '' THEN
+            SET IN_ROW_ID = '0';--
+        END IF;--
+        SET V_ROW_ID = CAST(IN_ROW_ID AS BIGINT);--
+        SET V_PRICE = CAST(IN_PRICE AS DECIMAL(13,0));--
+        SET V_DR_AMT = CAST(IN_DR_AMT AS DECIMAL(13,0));--
+        SET V_CR_AMT = CAST(IN_CR_AMT AS DECIMAL(13,0));--
+        IF IN_STATUS = '추가' THEN
+            --추가
+            SELECT COALESCE(MAX(ROW_ID),0) + 1  INTO V_ROW_ID
+              FROM GADMIN.ACCOU1;--
+
+            INSERT INTO GADMIN.ACCOU1 ( ROW_ID, DATE, ACC_NO, DRCR_GB, ACC_CD, ACC_NM, ACC_CONT, PRICE, JEUNGBING_DOC, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, DR_AMT, CR_AMT, C_USER, C_DATE, M_USER, M_DATE)
+            VALUES( V_ROW_ID, IN_DATE, IN_ACC_NO, IN_DRCR_GB, IN_ACC_CD, IN_ACC_NM, IN_ACC_CONT, V_PRICE, IN_JEUNGBING_DOC, IN_MANAGE_CD_1, IN_MANAGE_ITEM_1, IN_MANAGE_CD_2, IN_MANAGE_ITEM_2, V_DR_AMT, V_CR_AMT, IN_USER_ID, NOW, NULL, NULL);--
+
+        ELSEIF IN_STATUS = '수정' THEN
+            --수정
+            UPDATE GADMIN.ACCOU1
+               SET DATE = IN_DATE,
+                    ACC_NO = IN_ACC_NO,
+                    DRCR_GB = IN_DRCR_GB,
+                    ACC_CD = IN_ACC_CD,
+                    ACC_NM = IN_ACC_NM,
+                    ACC_CONT = IN_ACC_CONT,
+                    PRICE = V_PRICE,
+                    JEUNGBING_DOC = IN_JEUNGBING_DOC,
+                    MANAGE_CD_1 = IN_MANAGE_CD_1,
+                    MANAGE_ITEM_1 = IN_MANAGE_ITEM_1,
+                    MANAGE_CD_2 = IN_MANAGE_CD_2,
+                    MANAGE_ITEM_2 = IN_MANAGE_ITEM_2,
+                    DR_AMT = V_DR_AMT,
+                    CR_AMT = V_CR_AMT,
+                    M_USER = IN_USER_ID,
+                    M_DATE = NOW
+              WHERE ROW_ID = V_ROW_ID;--
+
+        ELSEIF IN_STATUS = '삭제' THEN
+	        --삭제
+	        DELETE GADMIN.ACCOU1
+	         WHERE ROW_ID = V_ROW_ID;--
+
+	    END IF;--
+
+    END P1;--   END P1;--
+END MAIN 

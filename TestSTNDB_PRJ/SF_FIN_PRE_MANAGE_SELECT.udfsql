@@ -1,0 +1,52 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_FIN_PRE_MANAGE_SELECT"  (IN IN_FROMDATE
+VARCHAR(10))
+	RETURNS TABLE (
+		        ACC_CD          VARCHAR(10),
+		        ACC_NM          VARCHAR(60),
+		        MANAGE_1        VARCHAR(9),
+		        ITEM_1          VARCHAR(45),
+		        MANAGE_2        VARCHAR(9),
+		        ITEM_2          VARCHAR(90),
+		        DRCR_GB         VARCHAR(6),
+		        DR_AMT          DECIMAL(20,5),
+		        CR_AMT          DECIMAL(20,5)
+             )
+	LANGUAGE SQL
+F1: BEGIN ATOMIC
+	-- ######################################################################
+	-- # Note: The RETURN TABLE is defined only to return a column of type
+	-- # VARCHAR. Modify this to return a different column type
+	-- ######################################################################
+	RETURN
+        SELECT ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB,
+                CASE SUBSTRING(IN_FROMDATE,6,2) WHEN '01' THEN DR_00
+                                                   WHEN '02' THEN DR_01
+                                                   WHEN '03' THEN DR_02
+                                                   WHEN '04' THEN DR_03
+                                                   WHEN '05' THEN DR_04
+                                                   WHEN '06' THEN DR_05
+                                                   WHEN '07' THEN DR_06
+                                                   WHEN '08' THEN DR_07
+                                                   WHEN '09' THEN DR_08
+                                                   WHEN '10' THEN DR_09
+                                                   WHEN '11' THEN DR_10
+                                                   WHEN '12' THEN DR_11
+                                                   ELSE NULL END        AS DR_AMT,
+                CASE SUBSTRING(IN_FROMDATE,6,2) WHEN '01' THEN CR_00
+                                                   WHEN '02' THEN CR_01
+                                                   WHEN '03' THEN CR_02
+                                                   WHEN '04' THEN CR_03
+                                                   WHEN '05' THEN CR_04
+                                                   WHEN '06' THEN CR_05
+                                                   WHEN '07' THEN CR_06
+                                                   WHEN '08' THEN CR_07
+                                                   WHEN '09' THEN CR_08
+                                                   WHEN '10' THEN CR_09
+                                                   WHEN '11' THEN CR_10
+                                                   WHEN '12' THEN CR_11
+                                                   ELSE NULL END         AS CR_AMT
+          FROM GADMIN.TRADEKYE
+         WHERE 1 = 1
+           AND YEAR = ( SELECT GISU FROM GADMIN.BSACC9 WHERE START <= IN_FROMDATE AND TERMINATION >= IN_FROMDATE )  -- 전기기준 시작일을 기준
+        ORDER BY ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB ;--
+END

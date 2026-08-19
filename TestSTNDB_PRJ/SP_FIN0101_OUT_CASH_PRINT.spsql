@@ -1,0 +1,120 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_OUT_CASH_PRINT"
+(
+    IN IN_FROMDATE VARCHAR(10) -- yyyymmdd 형식
+  , IN IN_TODATE VARCHAR(10) -- yyyymmdd 형식
+  , IN IN_ACCNO VARCHAR(3)
+  , IN IN_USER_ID VARCHAR(25)  -- yyyymmdd 형식
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_CNT INT DEFAULT 0;--
+    DECLARE V_CNT_MAX INT DEFAULT 0;--
+    DECLARE V_ROW INT DEFAULT 0;--
+    DECLARE V_DATE VARCHAR(10) DEFAULT '';--
+    DECLARE V_ACC_NO VARCHAR(3) DEFAULT '';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (   ROWNUM      VARCHAR(4),
+        DATE		DATE,
+        ACC_NO		VARCHAR(4),
+        DRCR_GB		VARCHAR(6),
+        ACC_CD		VARCHAR(10),
+        ACC_NM		VARCHAR(60),
+        ACC_CONT	VARCHAR(300),
+        PRICE		DECIMAL(13,0),
+        MANAGE		VARCHAR(9),
+        MANAGE_CD_1	VARCHAR(9),
+        MANAGE_ITEM_1	VARCHAR(45),
+        MANAGE_CD_2	VARCHAR(9),
+        MANAGE_ITEM_2	VARCHAR(90),
+        PURCH		VARCHAR(1),
+        JEUNGBING_DOC	VARCHAR(15),
+        ROW_ID		BIGINT,
+        DR_AMT		DECIMAL(13,0),
+        CR_AMT		DECIMAL(13,0)
+     )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+    P1: BEGIN
+         --DATA SELECT
+        INSERT INTO SESSION.TEMP ( SELECT VARCHAR_FORMAT(ROW_NUMBER() OVER(PARTITION BY DATE ORDER BY DATE, ACC_NO),'999') AS ROWNUM,
+                                          DATE,
+                                          ACC_NO,
+                                          DRCR_GB,
+                                          ACC_CD,
+                                          ACC_NM,
+                                          ACC_CONT,
+                                          PRICE,
+                                          MANAGE,
+                                          MANAGE_CD_1,
+                                          MANAGE_ITEM_1,
+                                          MANAGE_CD_2,
+                                          GADMIN.SF_STRINGSLENCUT(MANAGE_ITEM_2,22,'STRING') AS MANAGE_ITEM_2,
+                                          PURCH,
+                                          JEUNGBING_DOC,
+                                          ROW_ID,
+                                          DR_AMT,
+                                          CR_AMT
+                                     FROM GADMIN.ACCOU1
+                                    WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                      AND ACC_NO LIKE IN_ACCNO||'%'
+                                      AND DRCR_GB IN ('출금'));--
+
+   END P1;--
+
+    P2: BEGIN
+/*        DECLARE V_HDPAGE_ROW INTEGER DEFAULT 21;--
+        DECLARE V_SEPAGE_ROW INTEGER DEFAULT 23;--
+         FOR ACCOU_BLK AS SELECT DATE, MAX(ACC_NO) AS ACC_NO, COUNT(*) + ROUND((COUNT(DISTINCT DATE||ACC_NO)+2.0)/2.0) + CEILING(REAL(REAL(COUNT(*) - V_HDPAGE_ROW) / REAL(V_SEPAGE_ROW) )) AS CNT FROM SESSION.TEMP WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE AND DRCR_GB IN ('출금') GROUP BY DATE
+        DO
+        SET V_CNT = ACCOU_BLK.CNT;--
+        SET V_DATE = ACCOU_BLK.DATE;--
+        SET V_ACC_NO = ACCOU_BLK.ACC_NO;--
+
+        IF  V_CNT <= V_HDPAGE_ROW THEN SET V_CNT_MAX = V_HDPAGE_ROW ; -- 첫번째 페이지가  Full 작거나 같으면
+        ELSEIF (V_CNT > V_HDPAGE_ROW AND MOD((V_CNT - V_HDPAGE_ROW), V_SEPAGE_ROW) = 0 ) THEN  SET V_CNT_MAX = V_CNT ; -- 두번쨰 페이지 부터 Full페이지 이면
+        ELSEIF (V_CNT > V_HDPAGE_ROW) THEN SET V_CNT_MAX = (CEILING(REAL(REAL(V_CNT - V_HDPAGE_ROW) / REAL(V_SEPAGE_ROW) )) * V_SEPAGE_ROW + V_HDPAGE_ROW);-- 두번쨰 페이지 부터 Full페이지가 아니면
+        END IF;--
+
+        SET V_ROW = V_CNT + 1;--
+        WHILE (V_ROW <= V_CNT_MAX) DO
+             INSERT INTO SESSION.TEMP VALUES ('ZZZ', V_DATE, V_ACC_NO, varchar_format(v_cnt,'000'), varchar_format(v_cnt,'000'), varchar_format(v_cnt,'000'), '', 0, '', '', '', '', '', '', '', 0, 0, 0);--
+             SET V_ROW = V_ROW + 1;--
+        END WHILE;--
+        END FOR;--
+*/
+    END P2;--
+
+    P3: BEGIN
+        DECLARE CURSOR_ACC CURSOR WITH RETURN FOR
+	     SELECT ROWNUM,
+                DATE,
+                ACC_NO,
+                DRCR_GB,
+                ACC_CD,
+                ACC_NM,
+                ACC_CONT,
+                PRICE,
+                MANAGE,
+                MANAGE_CD_1,
+                MANAGE_ITEM_1,
+                MANAGE_CD_2,
+                MANAGE_ITEM_2,
+                PURCH,
+                JEUNGBING_DOC,
+                ROW_ID,
+                DR_AMT,
+                CR_AMT
+	       FROM SESSION.TEMP
+	      ORDER BY DATE, (CASE WHEN ACC_NO = '' THEN '999' ELSE ACC_NO END), COALESCE(ROWNUM,'99999')
+	      ;--
+	OPEN CURSOR_ACC ;--
+   END P3;--
+
+
+END MAIN 

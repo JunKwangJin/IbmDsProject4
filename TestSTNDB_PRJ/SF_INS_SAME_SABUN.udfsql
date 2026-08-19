@@ -1,0 +1,27 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_INS_SAME_SABUN"
+(
+IN IN_SABUN VARCHAR(8),
+   IN_YEAR VARCHAR(4)
+)
+RETURNS
+      TABLE (
+             SABUN		VARCHAR(8)
+             )
+LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+	-- ######################################################################
+	-- # 사번을 입력받아 주민등록번호가 같은 사번을 출력해 준다.
+	-- # 사번과 년도를 입력받아 해당년도에 재직했던 사번을 출력해 준다.
+	-- # SF_EBUS_SAME_SABUN(사번,녇도)
+	-- ######################################################################
+   		RETURN
+			SELECT SABUN
+ 			  FROM GADMIN.BSDRIVE
+			 WHERE (COALESCE(IN_YEAR,'') = ''
+			   AND JUMIN_NO IN (SELECT JUMIN_NO FROM GADMIN.BSDRIVE WHERE SABUN = IN_SABUN))
+			 OR (COALESCE(IN_YEAR,'') <> ''
+			   AND JUMIN_NO IN (SELECT JUMIN_NO FROM GADMIN.BSDRIVE WHERE SABUN = IN_SABUN)
+			   AND (IN_YEAR BETWEEN TO_CHAR(ENTER_DATE,'YYYY') AND TO_CHAR(RETIRE_DATE,'YYYY')))
+ 			;--
+END MAIN

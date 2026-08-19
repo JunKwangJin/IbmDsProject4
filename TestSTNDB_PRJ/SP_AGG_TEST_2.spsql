@@ -1,0 +1,32 @@
+CREATE OR REPLACE PROCEDURE GADMIN.SP_AGG_TEST()
+-- (out out_route_cd varchar(3), OUT OUT_TERMINAL_NM GADMIN.TERMINALS)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+P1: BEGIN
+	-- #######################################################################
+	-- # Returns count of tables created by GADMIN and like VARNAME
+	-- #######################################################################
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+--		WITH U4M AS (
+--		select C06.CD AS ROUTE_CD, U4.TOT_DIST, U4.STA_HHMM, U4.ARRIVAL_HHMM, U4.SOYO_TIME, U4.TERMINAL_CNT FROM TABLE(GADMIN.SF_COMMON_LST01('DRV0104','DRV06','','','','','','','','','','')) C06
+--		INNER JOIN GADMIN.BSUNHA4_M U4 ON C06.CD=U4.ROUTE_CD),
+--		WITH U4D AS
+        (
+		select  u4.route_cd, ARRAY_AGG(TERMINAL_NM ORDER BY U4.route_cd, U4.SEQ)
+		  FROM TABLE(GADMIN.SF_COMMON_LST01('DRV0104','DRV06','','','','','','','','','','')) C06
+		LEFT OUTER JOIN GADMIN.BSUNHA4_D U4 ON C06.CD=U4.ROUTE_CD
+		GROUP BY u4.route_cd);--
+
+/*
+SELECT ARRAY_AGG(TERMINAL_NM ORDER BY route_cd, SEQ)
+into out_terminal_nm
+              FROM GADMIN.BSUNHA4_D
+             WHERE ROUTE_CD = '120'
+;--
+   select distinct route_cd
+     INTO OUT_ROUTE_CD
+    FROM GADMIN.BSUNHA4_D a
+   where route_cd ='120'; --
+*/
+OPEN CURSOR_DRV;--
+END P1 

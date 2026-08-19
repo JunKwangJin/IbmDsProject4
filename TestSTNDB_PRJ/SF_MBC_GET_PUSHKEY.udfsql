@@ -1,0 +1,41 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_GET_PUSHKEY"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_GET_PUSHKEY
+생성일자	: 2022. 3.3
+생성자	: 전광진
+내용	    : 휴대폰 정보 가져오기
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_MBC_(UID)
+*******************************************************************************/
+(
+    IN IN_USERID   VARCHAR(15)  -- USER ID
+)
+
+
+RETURNS
+    TABLE
+    (
+	  USERID     	VARCHAR(15)
+	, DEV_PUSHKEY	VARCHAR(256)
+	, DEV_TYPE   	VARCHAR(20)
+	, DEV_MODEL  	VARCHAR(32)
+	, DEV_AUTHID 	VARCHAR(256)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_USERID     VARCHAR(15);-- 사용자 ID
+
+
+   SET V_USERID = COALESCE(IN_USERID,'');--
+
+   RETURN
+   SELECT USERID, DEV_PUSHKEY, DEV_TYPE , DEV_MODEL , DEV_AUTHID
+     FROM GADMIN.MBC_DEV_PUSHKEY
+    WHERE USERID = V_USERID
+
+    ;--
+END

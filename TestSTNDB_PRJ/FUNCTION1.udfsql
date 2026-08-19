@@ -1,0 +1,14 @@
+CREATE OR REPLACE FUNCTION FUNCTION1 ()
+	RETURNS INTEGER
+	NO EXTERNAL ACTION
+F1: BEGIN ATOMIC
+	RETURN 
+  	-- #######################################################################
+	-- # Replace the SQL statement with your statement.
+	-- #  Note: Be sure to end statements with the terminator character (usually ';')
+	-- #
+	-- # The example SQL statement SELECT COUNT(*) FROM SYSIBM.SYSTABLES
+	-- # returns the count of tables in SYSIBM.SYSTABLES 
+	-- ######################################################################
+	SELECT COUNT(*) FROM SYSIBM.SYSTABLES;
+END

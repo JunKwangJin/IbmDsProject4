@@ -1,0 +1,74 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0901_TAB03_SELECT" (IN IN_FROMDATE
+VARCHAR(10), IN IN_TODATE VARCHAR(10), IN IN_USER_ID VARCHAR(25))
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE   SQLSTATE          CHAR(5) DEFAULT '00000';--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+        ACC_CD          VARCHAR(10),
+        ACC_NM          VARCHAR(60),
+        MANAGE_1        VARCHAR(9),
+        ITEM_1          VARCHAR(100),
+        MANAGE_2        VARCHAR(9),
+        ITEM_2          VARCHAR(100),
+        JAN_AMT         DECIMAL(20,5),
+        PRE_AMT         DECIMAL(20,5)
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;	--
+
+P1: BEGIN
+
+    INSERT INTO SESSION.TEMP
+    SELECT *
+       FROM (
+                SELECT ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, SUM((DR_AMT - CR_AMT) + (BE_DR_AMT - BE_CR_AMT)) AS JAN_AMT,  MAX(BE_DR_AMT - BE_CR_AMT) AS PRE_AMT
+                  FROM (
+                            SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT, 0 AS BE_DR_AMT, 0 AS BE_CR_AMT
+                              FROM (
+                                        SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE B.DRCR_GB WHEN '차변' THEN A.DR_AMT ELSE A.CR_AMT END AS DR_AMT
+                                                , CASE B.DRCR_GB WHEN '차변' THEN A.CR_AMT ELSE A.DR_AMT END AS CR_AMT
+                                           FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
+                                          WHERE A.ACC_CD = B.ACC_CD
+                                    ) A
+                             WHERE 1 = 1
+                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                AND LENGTH(COALESCE(A.MANAGE_CD_1,'')) > 1
+                            GROUP BY A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2
+                            UNION ALL
+                            SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, 0 AS DR_AMT, 0 AS CR_AMT, SUM(B.DR_AMT) AS BE_DR_AMT, SUM(B.CR_AMT) AS BE_CR_AMT
+                              FROM (
+                                        SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, CASE C.DRCR_GB WHEN '차변' THEN B.DR_AMT ELSE B.CR_AMT END AS DR_AMT
+                                                , CASE C.DRCR_GB WHEN '차변' THEN B.CR_AMT ELSE B.DR_AMT END AS CR_AMT
+                                           FROM TABLE(GADMIN.SF_FIN_PRE_MANAGE_SELECT(IN_FROMDATE)) B, GADMIN.BSACC2 C
+                                          WHERE B.ACC_CD = C.ACC_CD
+                                    ) B
+                            GROUP BY B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2
+                        )
+                 GROUP BY ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2
+             ) A
+     WHERE 1 = 1
+       AND NOT (JAN_AMT = 0 AND PRE_AMT = 0)
+    ORDER BY ACC_CD, MANAGE_CD_1;    --
+
+    INSERT INTO SESSION.TEMP
+    SELECT ACC_CD, ACC_NM, '' AS MANAGE_1, ' 소  계 ' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, SUM(JAN_AMT) AS JAN_AMT, SUM(PRE_AMT) AS PRE_AMT
+      FROM SESSION.TEMP
+    GROUP BY ACC_CD, ACC_NM;--
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT *
+      FROM SESSION.TEMP
+    ORDER BY ACC_CD;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END MAIN 

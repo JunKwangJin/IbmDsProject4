@@ -1,0 +1,25 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_ACC_MANAGE_NM_2_SELECT"
+(
+    IN IN_NM VARCHAR(90),
+    IN IN_M_CD VARCHAR(9)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_MNG CURSOR WITH RETURN FOR
+        SELECT DETAIL_CD, DETAIL_ITEM, MANAGE_CD, MANAGE_ITEM
+           FROM  GADMIN.BSACC8
+          WHERE 1 = 1
+            AND ( DETAIL_CD LIKE '%'||IN_NM||'%'
+             OR DETAIL_ITEM LIKE '%'||IN_NM||'%' )
+            AND MANAGE_CD LIKE '%'||IN_M_CD||'%'
+            AND COALESCE(USE,'') != 'N'
+         ORDER BY MANAGE_ITEM, regexp_replace(DETAIL_ITEM,'\(.\)|\(..\)|[[:punct:]]|[0-9]|Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ| ');-- (주)와 같은 머리말 뺴고 명칭으로만 정렬(21.9.2/전광진)
+	    OPEN CURSOR_MNG;--
+    END P1;--
+END MAIN 

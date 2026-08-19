@@ -1,0 +1,383 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_ZCNV_DRV_C01"
+(
+    IN IN_TAB_NM        VARCHAR(100)
+  , IN IN_CD1           VARCHAR(100)
+
+  , OUT	OUT_CNT		    INTEGER  -- 처리한 데이터 건수
+  , OUT	OUT_TCNT	    INTEGER  -- 전체 데이터 건스
+  , OUT	OUT_ECNT	    INTEGER  -- 처리 중 에러처리한 건수
+  , OUT	OUT_MSG		    VARCHAR(10000)   -- 메세지
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_ZCNV_DRV_C01
+생성일자	: 2021.03.16
+생성자	: 전광진
+내용	: 운행테이블 변환
+수정일자	:
+수정자	:
+수정내용
+INPUT	: IN IN_TAB_NM      1.테이블명
+	    : IN IN_CD1		    2.예비파라메터
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+     	: OUT_TCNT	    	B.에러COUNT
+     	: OUT_ECNT	    	B.에러COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_CNT INTEGER DEFAULT 0;--
+    DECLARE V_TCNT INTEGER DEFAULT 0;--
+    DECLARE E_TCNT INTEGER DEFAULT 0;--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+/*
+  DECLARE CONTINUE HANDLER FOR NOT FOUND
+          E1: BEGIN
+               SET V_SQLSTATE = SQLSTATE;--
+               SET OUT_MSG = OUT_MSG|| V_SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+               ROLLBACK ;--
+               RETURN ;--
+          END E1;--
+  DECLARE CONTINUE HANDLER FOR SQLWARNING
+        E2: BEGIN
+             SET V_SQLSTATE = SQLSTATE;--
+             SET OUT_MSG = OUT_MSG||CASE V_SQLSTATE WHEN '01004' THEN V_SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                            ELSE                V_SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END;--
+             ROLLBACK ;--
+             RETURN ;--
+        END E2;--
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        E3: BEGIN
+             SET V_SQLSTATE = SQLSTATE;--
+             SET OUT_MSG = OUT_MSG|| CASE V_SQLSTATE WHEN '42704' THEN V_SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                            WHEN '23502' THEN V_SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+				                            WHEN '23505' THEN v_SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                            WHEN '22001' THEN V_SQLSTATE || CHR(13) || 'ERR03: 저장될 문자열 길이가 너무 깁니다..'
+                                            ELSE               V_SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+             ROLLBACK ;--
+             RETURN ;--
+        END E3;--
+*/
+  CALL DBMS_OUTPUT.PUT_LINE('BSUNHA2시작');  --
+
+  IF IN_TAB_NM = 'BSUNHA2' THEN
+    PBSUNHA2: BEGIN
+        DECLARE V_AM VARCHAR(2) DEFAULT '';--
+        DECLARE V_PM VARCHAR(2) DEFAULT '';--
+    -- 변수 초기화
+        SET (V_CNT, V_TCNT, OUT_CNT, OUT_ECNT, OUT_MSG) = (0, 0, '0', '0', '');--
+
+         --목표데이터 조회
+		SELECT COUNT(*) INTO V_TCNT
+		 FROM GADMIN.BSUNHA2_M;--
+
+        SET OUT_TCNT = VARCHAR(V_TCNT);--
+
+         --목표데이터 삭제
+        IF OUT_TCNT > 0 THEN
+
+           DELETE
+             FROM GADMIN.BSUNHA2_M;--
+        END IF;--
+        CALL DBMS_OUTPUT.PUT_LINE('데이터삭제');--
+
+         --DATA COUNT
+		SELECT COUNT(*) INTO V_TCNT
+		 FROM GADMIN.BSUNHA2;--
+        SET OUT_TCNT = VARCHAR(V_TCNT);--
+         P1: BEGIN
+
+              --DATA SELECT
+             FOR BSU2 AS
+                 SELECT
+                    ROUTE, PYEONSUNG, GUBUN, SUNBUN, AM_START, AM_INTERVAL, PM_START, PM_INTERVAL, AM_CNT, PM_HOISU, SHIFT_WEEK_AM, SHIFT_WEEK_PM, SHIFT_SAT_AM, SHIFT_SAT_PM, SHIFT_SUN_AM, SHIFT_SUN_PM, TIME_01, TIME_02, TIME_03, TIME_04, TIME_05, TIME_06, TIME_07, TIME_08, TIME_09, TIME_10, TIME_11, TIME_12, TIME_13, TIME_14, ROW_ID, C_USER, C_DATE, M_USER, M_DATE
+                   FROM GADMIN.BSUNHA2
+              DO
+                    CALL DBMS_OUTPUT.PUT_LINE(BSU2.ROUTE);--
+                    SET V_CNT = V_CNT + 1;--
+                    SET OUT_CNT = VARCHAR(V_CNT);--
+                    SET OUT_MSG = '[ROUTE]=['||BSU2.ROUTE||']  [PYEONSUNG]=['||BSU2.PYEONSUNG||']  [GUBUN]=['||BSU2.GUBUN||']  [SUNBUN]=['||BSU2.SUNBUN||']';--
+
+                    -- 오전오후 심야 코드 지정(  -- AMPM_GB [DRV06 : 노선(CD3:주야노선구분), DRV07 : 주야심야 구분])
+--                    SELECT MAX(CD) INTO V_AM
+--                      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_NM('DRV06',ROUTE,'CD3'),'L','','','','','',''));--
+--                    SELECT MAX(CD) INTO V_PM
+--                      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_NM('DRV06',ROUTE,'CD3'),'R','','','','','',''));--
+
+                 -- 오전 배차
+                 IF ( BSU2.AM_START IS NULL AND BSU2.AM_INTERVAL IS NULL AND BSU2.AM_CNT IS NULL) THEN
+                  ELSE
+                    SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT1]';--
+                     INSERT INTO BSUNHA2_M (
+                                   ROUTE_CD
+                                 , PYEON_GB
+                                 , WEEK_GB
+                                 , SEQ
+                                 , AMPM_GB
+                                 , SUNBUN
+                                 , START_TM
+                                 , INTERVAL
+                                 , HOISU
+                                 , SHIFT_WEEK_YN
+                                 , SHIFT_SAT_YN
+                                 , SHIFT_SUN_YN
+                                 , TIME_01
+                                 , TIME_02
+                                 , TIME_03
+                                 , TIME_04
+                                 , TIME_05
+                                 , TIME_06
+                                 , TIME_07
+                                 , C_DATE
+                                 , C_USER
+                                 , M_DATE
+                                 , M_USER )
+                            VALUES
+                                 ( GADMIN.SF_EBUS_COMMON_NM('DRV06', BSU2.ROUTE, '')
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV04', BSU2.PYEONSUNG, '')
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV05', BSU2.GUBUN, '')
+                                 , INT(BSU2.SUNBUN)
+                                 , (SELECT MAX(CD) FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_NM('DRV06',ROUTE,'CD3'),'L','','','','','','')))
+                                 , BSU2.SUNBUN
+                                 , CASE WHEN COALESCE(BSU2.AM_START,'')='' THEN NULL ELSE BSU2.AM_START END
+                                 , BSU2.AM_INTERVAL
+                                 , BSU2.AM_CNT
+                                 , CASE COALESCE(SHIFT_WEEK_AM,'') WHEN '' THEN '0' WHEN 'N' THEN '0' WHEN 'Y' THEN '1' ELSE 'N' END
+                                 , CASE COALESCE(SHIFT_SAT_AM,'')  WHEN '' THEN '0' WHEN 'N' THEN '0' WHEN 'Y' THEN '1' ELSE 'N' END
+                                 , CASE COALESCE(SHIFT_SUN_AM,'')  WHEN '' THEN '0' WHEN 'N' THEN '0' WHEN 'Y' THEN '1' ELSE 'N' END
+                                 , CASE WHEN COALESCE(BSU2.TIME_01,'')='' THEN NULL ELSE BSU2.TIME_01 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_02,'')='' THEN NULL ELSE BSU2.TIME_02 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_03,'')='' THEN NULL ELSE BSU2.TIME_03 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_04,'')='' THEN NULL ELSE BSU2.TIME_04 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_05,'')='' THEN NULL ELSE BSU2.TIME_05 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_06,'')='' THEN NULL ELSE BSU2.TIME_06 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_07,'')='' THEN NULL ELSE BSU2.TIME_07 END
+                                 , CURRENT TIMESTAMP
+                                 , 'admin'
+                                 , NULL
+                                 , NULL );--
+                  END IF;--
+                 -- 오후 배차
+                 IF ( PM_START IS NULL AND PM_INTERVAL IS NULL AND PM_HOISU IS NULL) THEN
+                  ELSE
+                    SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT2]';--
+                     INSERT INTO BSUNHA2_M (
+                                   ROUTE_CD
+                                 , PYEON_GB
+                                 , WEEK_GB
+                                 , SEQ
+                                 , AMPM_GB
+                                 , SUNBUN
+                                 , START_TM
+                                 , INTERVAL
+                                 , HOISU
+                                 , SHIFT_WEEK_YN
+                                 , SHIFT_SAT_YN
+                                 , SHIFT_SUN_YN
+                                 , TIME_01
+                                 , TIME_02
+                                 , TIME_03
+                                 , TIME_04
+                                 , TIME_05
+                                 , TIME_06
+                                 , TIME_07
+                                 , C_DATE
+                                 , C_USER
+                                 , M_DATE
+                                 , M_USER )
+                            VALUES
+                                 ( GADMIN.SF_EBUS_COMMON_NM('DRV06', BSU2.ROUTE,'')
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV04', BSU2.PYEONSUNG,'')
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV05', BSU2.GUBUN,'')
+                                 , INT(BSU2.SUNBUN)
+                                 , (SELECT MAX(CD) FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_NM('DRV06',ROUTE,'CD3'),'R','','','','','','')))
+                                 , BSU2.SUNBUN
+                                 , CASE WHEN COALESCE(BSU2.PM_START,'')='' THEN NULL ELSE BSU2.PM_START END
+                                 , BSU2.AM_INTERVAL
+                                 , BSU2.PM_HOISU
+                                 , CASE COALESCE(SHIFT_WEEK_PM,'') WHEN '' THEN '0' WHEN 'N' THEN '0' WHEN 'Y' THEN '1' ELSE 'N' END
+                                 , CASE COALESCE(SHIFT_SAT_PM,'')  WHEN '' THEN '0' WHEN 'N' THEN '0' WHEN 'Y' THEN '1' ELSE 'N' END
+                                 , CASE COALESCE(SHIFT_SUN_PM,'')  WHEN '' THEN '0' WHEN 'N' THEN '0' WHEN 'Y' THEN '1' ELSE 'N' END
+                                 , CASE WHEN COALESCE(BSU2.TIME_08,'')='' THEN NULL ELSE BSU2.TIME_08 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_09,'')='' THEN NULL ELSE BSU2.TIME_09 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_10,'')='' THEN NULL ELSE BSU2.TIME_10 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_11,'')='' THEN NULL ELSE BSU2.TIME_11 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_12,'')='' THEN NULL ELSE BSU2.TIME_12 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_13,'')='' THEN NULL ELSE BSU2.TIME_13 END
+                                 , CASE WHEN COALESCE(BSU2.TIME_14,'')='' THEN NULL ELSE BSU2.TIME_14 END
+                                 , CURRENT TIMESTAMP
+                                 , 'admin'
+                                 , NULL
+                                 , NULL );--
+                 END IF;                --
+             END FOR;--
+         END P1;--
+    END PBSUNHA2;--
+  ELSEIF IN_TAB_NM = 'BSUNHA2B' THEN
+    PBSUNHA2B: BEGIN
+    -- 변수 초기화
+        SET (V_CNT, V_TCNT, OUT_CNT, OUT_ECNT, OUT_MSG) = (0, 0, '0', '0', '');--
+
+         --목표데이터 조회
+		SELECT COUNT(*) INTO V_TCNT
+		 FROM GADMIN.BSUNHA2B_M;--
+
+        SET OUT_TCNT = VARCHAR(V_TCNT);--
+
+         --목표데이터 삭제
+        IF OUT_TCNT > 0 THEN
+
+           DELETE
+             FROM GADMIN.BSUNHA2B_M;--
+        END IF;--
+        CALL DBMS_OUTPUT.PUT_LINE('데이터삭제');--
+
+         --DATA COUNT
+		SELECT COUNT(*) INTO V_TCNT
+		 FROM GADMIN.BSUNHA2B;--
+        SET OUT_TCNT = VARCHAR(V_TCNT);--
+         P2: BEGIN
+
+              --DATA SELECT
+             FOR BSU2B AS
+                 SELECT
+                    ROUTE, PYEONSUNG, GUBUN, JUNGSANG_AM, JUNGSANG_PM, SHORT_AM, SHORT_PM, ROW_ID, C_USER, C_DATE, M_USER, M_DATE
+                   FROM GADMIN.BSUNHA2B
+              DO
+                    CALL DBMS_OUTPUT.PUT_LINE(BSU2B.ROUTE);--
+                    SET V_CNT = V_CNT + 1;--
+                    SET OUT_CNT = VARCHAR(V_CNT);--
+                    SET OUT_MSG = '[ROUTE]=['||BSU2B.ROUTE||']  [PYEONSUNG]=['||BSU2B.PYEONSUNG||']  [GUBUN]=['||BSU2B.GUBUN||']';--
+
+                 -- 오전 정상
+                 IF ( COALESCE(BSU2B.JUNGSANG_AM,0.0)=0.0) THEN
+                  ELSE
+                    SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT1]';--
+                     INSERT INTO BSUNHA2B_M (
+                                   ROUTE_CD
+                                 , PYEON_GB
+                                 , WEEK_GB
+                                 , AMPM_GB
+                                 , DRIVE_ST
+                                 , HOISU
+                                 , C_DATE
+                                 , C_USER
+                                 , M_DATE
+                                 , M_USER)
+                            VALUES
+                                 ( GADMIN.SF_EBUS_COMMON_NM('DRV06', BSU2B.ROUTE, '') -- ROUTE_CD
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV04', BSU2B.PYEONSUNG, '') -- PYEON_GB
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV05', BSU2B.GUBUN,'') -- WEEK_GB
+                                 , '10' -- BSU2B.AMPM_GB
+                                 , '10' -- BSU2B.DRIVE_ST
+                                 , BSU2B.JUNGSANG_AM
+                                 , CURRENT TIMESTAMP
+                                 , 'admin'
+                                 , NULL
+                                 , NULL );--
+                 END IF;--
+
+                 -- 오후 정상
+		 IF ( COALESCE(JUNGSANG_PM,0.0)=0.0) THEN
+                  ELSE
+                    SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT2]';--
+                     INSERT INTO BSUNHA2B_M (
+                                   ROUTE_CD
+                                 , PYEON_GB
+                                 , WEEK_GB
+                                 , AMPM_GB
+                                 , DRIVE_ST
+                                 , HOISU
+                                 , C_DATE
+                                 , C_USER
+                                 , M_DATE
+                                 , M_USER)
+                            VALUES
+                                 ( GADMIN.SF_EBUS_COMMON_NM('DRV06', BSU2B.ROUTE, '') -- ROUTE_CD
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV04', BSU2B.PYEONSUNG, '') -- PYEON_GB
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV05', BSU2B.GUBUN,'') -- WEEK_GB
+                                 , '20' -- AMPM_GB
+                                 , '10' -- DRIVE_ST
+                                 , BSU2B.JUNGSANG_PM
+                                 , CURRENT TIMESTAMP
+                                 , 'ADMIN'
+                                 , NULL
+                                 , NULL );--
+                 END IF;                --
+
+                 -- 오전 단축
+                 IF ( COALESCE(JUNGSANG_AM,0.0)=0.0) THEN
+                  ELSE
+                    SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT3]';--
+                     INSERT INTO BSUNHA2B_M (
+                                   ROUTE_CD
+                                 , PYEON_GB
+                                 , WEEK_GB
+                                 , AMPM_GB
+                                 , DRIVE_ST
+                                 , HOISU
+                                 , C_DATE
+                                 , C_USER
+                                 , M_DATE
+                                 , M_USER)
+                            VALUES
+                                 ( GADMIN.SF_EBUS_COMMON_NM('DRV06', BSU2B.ROUTE, '') -- ROUTE_CD
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV04', BSU2B.PYEONSUNG,'') -- PYEON_GB
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV05', BSU2B.GUBUN,'') -- WEEK_GB
+                                 , '10' -- AMPM_GB
+                                 , '40' -- DRIVE_ST
+                                 , BSU2B.SHORT_AM
+                                 , CURRENT TIMESTAMP
+                                 , 'admin'
+                                 , NULL
+                                 , NULL );--
+                 END IF;                --
+
+                 -- 오후 단축
+		 IF ( COALESCE(JUNGSANG_PM,0.0)=0.0) THEN
+                  ELSE
+                    SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT4]';--
+                     INSERT INTO BSUNHA2B_M (
+                                   ROUTE_CD
+                                 , PYEON_GB
+                                 , WEEK_GB
+                                 , AMPM_GB
+                                 , DRIVE_ST
+                                 , HOISU
+                                 , C_DATE
+                                 , C_USER
+                                 , M_DATE
+                                 , M_USER)
+                            VALUES
+                                 ( GADMIN.SF_EBUS_COMMON_NM('DRV06', BSU2B.ROUTE, '') -- ROUTE_CD
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV04', BSU2B.PYEONSUNG, '') -- PYEON_GB
+                                 , GADMIN.SF_EBUS_COMMON_NM('DRV05', BSU2B.GUBUN,'') -- WEEK_GB
+                                 , '20' -- AMPM_GB
+                                 , '40' -- DRIVE_ST
+                                 , BSU2B.SHORT_PM
+                                 , CURRENT TIMESTAMP
+                                 , 'admin'
+                                 , NULL
+                                 , NULL );--
+                 END IF;                --
+
+             END FOR;--
+         END P2;--
+    END PBSUNHA2B;--
+  END IF;--
+   SELECT COUNT(*) INTO OUT_ECNT FROM GADMIN.BSUNHA2B_M;--
+END MAIN 

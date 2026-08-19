@@ -1,0 +1,18 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_CUSTOMER_M_DELETE" 
+(
+    IN IN_CUSTOMER_ID        VARCHAR(9),
+    OUT OUT_CNT INTEGER, 
+    OUT OUT_MSG VARCHAR(1000)
+)
+
+ LANGUAGE SQL
+P1: BEGIN
+------------------------------------------------------------------------
+-- SQL Stored Procedure 
+------------------------------------------------------------------------
+    DELETE FROM 
+        GADMIN.CS_CUSTOMER_M
+    WHERE
+            CUSTOMER_ID         = IN_CUSTOMER_ID
+    ;
+END P1 

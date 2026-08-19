@@ -1,0 +1,235 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0302_TAB02_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_LASTDATE VARCHAR(10) DEFAULT '';--
+
+    SELECT TO_CHAR(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') -1,'YYYY-MM-DD') INTO V_LASTDATE FROM SYSIBM.SYSDUMMY1;--
+
+    P1: BEGIN
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+		SELECT *
+		   FROM (
+                    SELECT A.CLASS, COALESCE(B.EWOL_AMT,0) AS EWOL_AMT, COALESCE(C.IN_AMT,0) AS IN_AMT, COALESCE(D.R_AMT,0) AS R_AMT, 0 AS R2_AMT
+                          , COALESCE(E.SA_AMT,0) AS SA_AMT, 0 AS SA2_AMT, COALESCE(F.ETC_AMT,0) AS ETC_AMT, COALESCE(G.OUT_AMT,0) AS OUT_AMT
+                          , COALESCE(B.EWOL_AMT,0) + COALESCE(C.IN_AMT,0) - COALESCE(G.OUT_AMT,0) AS JAE_AMT
+                      FROM
+                             (  SELECT CLASS
+                                  FROM GADMIN.BSJAJA
+                                GROUP BY CLASS
+                                UNION ALL
+                                SELECT 'C.N.G'
+                                  FROM SYSIBM.SYSDUMMY1 ) A
+                            LEFT OUTER JOIN ( --이월금액
+                                                SELECT A.CLASS, SUM(AMT) AS EWOL_AMT
+                                                  FROM GADMIN.BSJAJA A
+                                                        LEFT OUTER JOIN
+                                                        (    SELECT PRODUC_NO, SUM(AMT) AS AMT
+                                                               FROM (
+                                                                         SELECT A.PRODUC_NO, A.UNIT_PRICE_01 AS AMT
+                                                                           FROM GADMIN.JAGUJAGO A
+                                                                          WHERE 1 = 1
+                                                                            AND A.YEAR = SUBSTRING(IN_FROMDATE,1,4)
+                                                                         UNION ALL
+                                                                         SELECT A.PRODUC_NO, SUM(A.SUPPLY_PRICE) AS AMT
+                                                                           FROM GADMIN.JAGUMA1 A
+                                                                          WHERE A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDATE
+                                                                         GROUP BY A.DATE, A.PRODUC_NO
+                                                                         UNION ALL
+                                                                         SELECT A.PRODUC_NO, SUM(A.PRICE) * -1 AS AMT
+                                                                           FROM GADMIN.JACHUL1 A
+                                                                          WHERE A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDATE
+                                                                         GROUP BY A.DATE, A.PRODUC_NO
+                                                                      )
+                                                                GROUP BY PRODUC_NO
+                                                        ) B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 GROUP BY A.CLASS
+                                               ) B ON (A.CLASS = B.CLASS)
+                            LEFT OUTER JOIN ( --입고금액
+                                                SELECT CLASS, IN_AMT
+                                                  FROM (
+                                                            SELECT B.CLASS, SUM(A.SUPPLY_PRICE) AS IN_AMT
+                                                               FROM GADMIN.JAGUMA1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                              WHERE 1 = 1
+                                                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                --AND EVENT_GB != 'Y'
+                                                            GROUP BY B.CLASS
+                                                            UNION ALL
+                                                            SELECT CLASS, SUM(IN_AMT) AS IN_AMT
+                                                               FROM (
+                                                                        SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
+                                                                          FROM  GADMIN.UNHANG07 A -- 주유 내역
+                                                                         WHERE 1 = 1
+                                                                           AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                      )
+                                                             GROUP BY CLASS
+                                                         )) C ON (A.CLASS = C.CLASS)
+                            LEFT OUTER JOIN ( --노선총액
+                                                SELECT B.CLASS, SUM(PRICE) AS R_AMT
+                                                   FROM JACHUL1 A
+                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                  WHERE 1 = 1
+                                                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                    AND EVENT_GB != 'Y'
+                                                GROUP BY B.CLASS
+                                              ) D ON (A.CLASS = D.CLASS)
+                            LEFT OUTER JOIN ( --사고총액
+                                                SELECT B.CLASS, SUM(PRICE) AS SA_AMT
+                                                  FROM JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                   AND EVENT_GB = 'Y'
+                                                GROUP BY B.CLASS
+                                              ) E ON (A.CLASS = E.CLASS)
+                            LEFT OUTER JOIN ( --기타금액
+                                                 SELECT B.CLASS, SUM(PRICE) AS ETC_AMT
+                                                  FROM JACHUL6 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                   AND EVENT_GB = 'Y'
+                                                GROUP BY B.CLASS
+                                              ) F ON (A.CLASS = F.CLASS)
+                            LEFT OUTER JOIN ( --출고금액
+                                                SELECT CLASS, OUT_AMT
+                                                  FROM (
+                                                            SELECT B.CLASS, SUM(A.PRICE) AS OUT_AMT
+                                                               FROM GADMIN.JACHUL1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                              WHERE 1 = 1
+                                                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                            GROUP BY B.CLASS
+                                                            UNION ALL
+                                                            SELECT CLASS, SUM(IN_AMT) AS OUT_AMT
+                                                               FROM (
+                                                                        SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
+                                                                          FROM  GADMIN.UNHANG07 A -- 주유 내역
+                                                                         WHERE 1 = 1
+                                                                           AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                      )
+                                                             GROUP BY CLASS
+                                                         )
+                                              ) G ON (A.CLASS = G.CLASS)
+                    UNION ALL
+                    --합계는 위의 쿼리를 붙여 합계만 출력
+                    SELECT '합계' AS CLASS, COALESCE(SUM(EWOL_AMT),0) AS EWOL_AMT, COALESCE(SUM(IN_AMT),0) AS IN_AMT, COALESCE(SUM(R_AMT),0) AS R_TOT, 0 AS R2_AMT
+                        , COALESCE(SUM(SA_AMT),0) AS SA_AMT, 0 AS SA2_AMT, COALESCE(SUM(ETC_AMT),0) AS ETC_AMT, COALESCE(SUM(OUT_AMT),0) AS OUT_AMT
+                          ,  COALESCE(SUM(JAE_AMT),0)AS JAE_AMT
+                      FROM
+                            (
+                    SELECT A.CLASS, COALESCE(B.EWOL_AMT,0) AS EWOL_AMT, COALESCE(C.IN_AMT,0) AS IN_AMT, COALESCE(D.R_AMT,0) AS R_AMT
+                          , COALESCE(E.SA_AMT,0) AS SA_AMT, COALESCE(F.ETC_AMT,0) AS ETC_AMT, COALESCE(G.OUT_AMT,0) AS OUT_AMT
+                          , COALESCE(B.EWOL_AMT,0) + COALESCE(C.IN_AMT,0) - COALESCE(G.OUT_AMT,0) AS JAE_AMT
+                      FROM
+                             (  SELECT CLASS
+                                  FROM GADMIN.BSJAJA
+                                GROUP BY CLASS
+                                UNION ALL
+                                SELECT 'C.N.G'
+                                  FROM SYSIBM.SYSDUMMY1 ) A
+                            LEFT OUTER JOIN ( --이월금액
+                                                SELECT A.CLASS, SUM(AMT) AS EWOL_AMT
+                                                  FROM GADMIN.BSJAJA A
+                                                        LEFT OUTER JOIN
+                                                        (    SELECT PRODUC_NO, SUM(AMT) AS AMT
+                                                               FROM (
+                                                                         SELECT A.PRODUC_NO, A.UNIT_PRICE_01 AS AMT
+                                                                           FROM GADMIN.JAGUJAGO A
+                                                                          WHERE 1 = 1
+                                                                            AND A.YEAR = SUBSTRING(IN_FROMDATE,1,4)
+                                                                         UNION ALL
+                                                                         SELECT A.PRODUC_NO, SUM(A.SUPPLY_PRICE) AS AMT
+                                                                           FROM GADMIN.JAGUMA1 A
+                                                                          WHERE A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDATE
+                                                                         GROUP BY A.DATE, A.PRODUC_NO
+                                                                         UNION ALL
+                                                                         SELECT A.PRODUC_NO, SUM(A.PRICE) * -1 AS AMT
+                                                                           FROM GADMIN.JACHUL1 A
+                                                                          WHERE A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDATE
+                                                                         GROUP BY A.DATE, A.PRODUC_NO
+                                                                      )
+                                                                GROUP BY PRODUC_NO
+                                                        ) B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 GROUP BY A.CLASS
+                                               ) B ON (A.CLASS = B.CLASS)
+                            LEFT OUTER JOIN ( --입고금액
+                                                SELECT CLASS, IN_AMT
+                                                  FROM (
+                                                            SELECT B.CLASS, SUM(A.SUPPLY_PRICE) AS IN_AMT
+                                                               FROM GADMIN.JAGUMA1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                              WHERE 1 = 1
+                                                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                --AND EVENT_GB != 'Y'
+                                                            GROUP BY B.CLASS
+                                                            UNION ALL
+                                                            SELECT CLASS, SUM(IN_AMT) AS IN_AMT
+                                                               FROM (
+                                                                        SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
+                                                                          FROM  GADMIN.UNHANG07 A -- 주유 내역
+                                                                         WHERE 1 = 1
+                                                                           AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                      )
+                                                             GROUP BY CLASS
+                                                         )
+                                               ) C ON (A.CLASS = C.CLASS)
+                            LEFT OUTER JOIN ( --노선총액
+                                                SELECT B.CLASS, SUM(PRICE) AS R_AMT
+                                                   FROM GADMIN.JACHUL1 A
+                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                  WHERE 1 = 1
+                                                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                    AND EVENT_GB != 'Y'
+                                                GROUP BY B.CLASS
+                                              ) D ON (A.CLASS = D.CLASS)
+                            LEFT OUTER JOIN ( --사고총액
+                                                SELECT B.CLASS, SUM(PRICE) AS SA_AMT
+                                                  FROM GADMIN.JACHUL1 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                   AND EVENT_GB = 'Y'
+                                                GROUP BY B.CLASS
+                                              ) E ON (A.CLASS = E.CLASS)
+                            LEFT OUTER JOIN ( --기타금액
+                                                 SELECT B.CLASS, SUM(PRICE) AS ETC_AMT
+                                                  FROM JACHUL6 A
+                                                        LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                 WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                   AND EVENT_GB = 'Y'
+                                                GROUP BY B.CLASS
+                                              ) F ON (A.CLASS = F.CLASS)
+                            LEFT OUTER JOIN ( --출고금액
+                                                SELECT CLASS, OUT_AMT
+                                                  FROM (
+                                                            SELECT B.CLASS, SUM(A.PRICE) AS OUT_AMT
+                                                               FROM GADMIN.JACHUL1 A
+                                                                     LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
+                                                              WHERE 1 = 1
+                                                                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                            GROUP BY B.CLASS
+                                                            UNION ALL
+                                                            SELECT CLASS, SUM(IN_AMT) AS OUT_AMT
+                                                               FROM (
+                                                                        SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
+                                                                          FROM  UNHANG07 A -- 주유 내역
+                                                                         WHERE 1 = 1
+                                                                           AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                                                                      )
+                                                             GROUP BY CLASS
+                                                         )
+                                              ) G ON (A.CLASS = G.CLASS)
+                          ) A
+            )
+         ORDER BY 1
+       ;--
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

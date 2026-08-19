@@ -1,0 +1,96 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_PUSHKEY_U01"
+(
+     IN IN_USERID        	 VARCHAR(15)
+   , IN IN_DEV_PUSHKEY	     VARCHAR(256)
+   , IN IN_DEV_TYPE   	     VARCHAR(20)
+   , IN IN_DEV_MODEL         VARCHAR(32)
+   , IN IN_DEV_AUTHID 	     VARCHAR(256)
+   , OUT OUT_CNT             VARCHAR(4)
+   , OUT OUT_MSG             VARCHAR(10000)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_MBC_PUSHKEY_U01
+생성일자	: 2022.3.3
+생성자	: 전광진
+내용    	: PUSHKEY 정보를 저장합니다.
+수정일자	:
+수정자	:
+수정내용    :
+INPUT   : IN_USERID        	1. USER ID
+          IN_DEV_PUSHKEY	2. PUSH 인증키
+          IN_DEV_TYPE   	3. 디바이스 형식
+          IN_DEV_MODEL      4. 디바이스 모델
+          IN_DEV_AUTHID 	5. 디바이스 고유ID
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+
+-- DB DATA변수
+    DECLARE V_USERID        VARCHAR(15);--
+    DECLARE V_DEV_PUSHKEY	VARCHAR(256);--
+    DECLARE V_DEV_TYPE   	VARCHAR(20);--
+    DECLARE V_DEV_MODEL     VARCHAR(32);--
+    DECLARE V_DEV_AUTHID 	VARCHAR(256);--
+-- 일반변수
+	DECLARE I           INTEGER;--
+
+
+    DECLARE V_KEY_MSG   VARCHAR(1000)  DEFAULT '';--
+    DECLARE V_USER_CHK  VARCHAR(1);--
+
+
+    DECLARE SQLCODE     INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE  CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER   CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER    CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL    CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO     CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE    CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+--  데이터를 저장한다.
+    SET V_USERID      = COALESCE(IN_USERID, '');--
+    SET V_DEV_PUSHKEY = COALESCE(IN_DEV_PUSHKEY, '');--
+    SET V_DEV_TYPE    = COALESCE(IN_DEV_TYPE, '');--
+    SET V_DEV_MODEL   = COALESCE(IN_DEV_MODEL, '');--
+    SET V_DEV_AUTHID  = COALESCE(IN_DEV_AUTHID, '');--
+    SELECT COUNT(*) INTO V_USER_CHK FROM GADMIN.MBC_DEV_PUSHKEY WHERE USERID = V_USERID;--
+    IF V_USER_CHK = '0' THEN
+       INSERT INTO GADMIN.MBC_DEV_PUSHKEY(USERID, DEV_PUSHKEY, DEV_TYPE, DEV_MODEL, DEV_AUTHID) VALUES (V_USERID, V_DEV_PUSHKEY, V_DEV_TYPE, V_DEV_MODEL, V_DEV_AUTHID);--
+    ELSEIF  V_USER_CHK > '0' THEN
+       UPDATE GADMIN.MBC_DEV_PUSHKEY
+          SET DEV_PUSHKEY  =  V_DEV_PUSHKEY
+            , DEV_TYPE     =  V_DEV_TYPE
+            , DEV_MODEL    =  V_DEV_MODEL
+            , DEV_AUTHID   =  V_DEV_AUTHID
+        WHERE USERID       =  V_USERID
+          AND (DEV_PUSHKEY <> V_DEV_PUSHKEY
+           OR DEV_TYPE     <> V_DEV_TYPE
+           OR DEV_MODEL    <> V_DEV_MODEL
+           OR DEV_AUTHID   <> V_DEV_AUTHID);--
+    END IF;--
+    SET (OUT_CNT, OUT_MSG) = (1, COALESCE(OUT_MSG||CHR(13),'')||'저장되었습니다.');--
+
+END MAIN 

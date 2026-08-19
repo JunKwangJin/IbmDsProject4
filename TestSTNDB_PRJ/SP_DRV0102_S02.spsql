@@ -1,0 +1,129 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0102_S02"
+(
+    IN IN_USER_ID   VARCHAR(12),
+    IN IN_OFFICE_CD VARCHAR(5),
+    IN IN_ROUTE_CD  VARCHAR(3),
+    IN IN_PYEON_GB  VARCHAR(2),
+    IN IN_WEEK_GB   VARCHAR(2),
+    OUT OUT_CNT     VARCHAR(2),
+    OUT OUT_MSG     VARCHAR(100)
+)
+/*******************************************************************************
+파일명	: GADMIN.SP_DRV0102_S02
+생성일자	: 2020.07.10
+생성자	: 전광진
+내용	    : 배차시간표 운행회수  입력용 조회 입니다.
+USAGE   : GADMIN.SP_DRV0102_S01(노선, 편성구분, 평일구분)
+수정일자	:2020.07.14
+수정자	:전광진
+수정내용
+수정일자	:2021.03.23
+수정자	:전광진
+수정내용      : 노선, 오전오후구분을 코드로 변경
+INPUT	: IN_USER_ID        1.사용자 ID
+	    : IN_OFFICE_CD      2.영업소코드
+	    : IN_ROUTE_CD       3.노선코드
+	    : IN_PYEON_GB	    4.코드명
+	    : IN_WEEK_GB	    5.평일구분
+
+OUTPUT	: OUT_CNT	    	A.처리COUNT
+	    : OUT_MSG	        B.처리결과메시지
+*******************************************************************************/
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- 데이터 중복
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE이 없을떄
+
+
+    DECLARE UNDO HANDLER FOR NOT FOUND
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: 데이터를 찾을(조회할)수 없습니다..' ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING
+          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: 변수의 길이가 너무 작습니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: 실행중 경고 오류가 발생하였습니다.' END; --
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION
+          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: 존재하지 않는 테이블 입니다...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULL컬럼에 NULL이 지정되었습니다..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: 저장중 중복되었습니다.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: 저장될 문자열 길이가 너무 깁니다..'
+                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: 실행중 알수없는 오류로 종료되었습니다.' END;--
+    -- 변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');--
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_DRV CURSOR WITH RETURN FOR
+        WITH
+         AMPM AS
+             (SELECT DISTINCT ROUTE_CD, PYEON_GB, WEEK_GB FROM GADMIN.BSUNHA2B_M),
+         AM10 AS
+             (SELECT ROUTE_CD, PYEON_GB, WEEK_GB, HOISU, DRIVE_ST, AMPM_GB FROM GADMIN.BSUNHA2B_M WHERE DRIVE_ST='10' AND GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='L'),
+         PM10 AS
+             (SELECT ROUTE_CD, PYEON_GB, WEEK_GB, HOISU, DRIVE_ST, AMPM_GB FROM GADMIN.BSUNHA2B_M WHERE DRIVE_ST='10' AND GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='R'),
+         AM40 AS
+             (SELECT ROUTE_CD, PYEON_GB, WEEK_GB, HOISU, DRIVE_ST, AMPM_GB FROM GADMIN.BSUNHA2B_M WHERE DRIVE_ST='40' AND GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='L'),
+         PM40 AS
+             (SELECT ROUTE_CD, PYEON_GB, WEEK_GB, HOISU, DRIVE_ST, AMPM_GB FROM GADMIN.BSUNHA2B_M WHERE DRIVE_ST='40' AND GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM_GB,'CD4')='R')
+         SELECT '' AS CK
+              , AMPM.ROUTE_CD AS ROUTE_CD
+              , AMPM.PYEON_GB AS PYEON_GB
+              , AMPM.WEEK_GB  AS WEEK_GB
+
+              , AMPM.ROUTE_CD AS OLD_ROUTE_CD
+              , AMPM.PYEON_GB AS OLD_PYEON_GB
+              , AMPM.WEEK_GB  AS OLD_WEEK_GB
+
+              , AM10.DRIVE_ST AS AM10_DRIVE_ST
+              , AM10.AMPM_GB  AS AM10_AMPM_GB
+              , AM10.HOISU AS AM10_HOISU
+
+              , PM10.DRIVE_ST AS PM10_DRIVE_ST
+              , PM10.AMPM_GB  AS PM10_AMPM_GB
+              , PM10.HOISU AS PM10_HOISU
+
+              , AM40.DRIVE_ST AS AM40_DRIVE_ST
+              , AM40.AMPM_GB  AS AM40_AMPM_GB
+              , AM40.HOISU AS AM40_HOISU
+
+              , PM40.DRIVE_ST AS PM40_DRIVE_ST
+              , PM40.AMPM_GB  AS PM40_AMPM_GB
+              , PM40.HOISU AS PM40_HOISU
+         FROM AMPM
+         FULL OUTER JOIN AM10
+           ON AMPM.ROUTE_CD=AM10.ROUTE_CD
+          AND AMPM.PYEON_GB=AM10.PYEON_GB
+          AND AMPM.WEEK_GB=AM10.WEEK_GB
+         FULL OUTER JOIN PM10
+           ON AMPM.ROUTE_CD=PM10.ROUTE_CD
+          AND AMPM.PYEON_GB=PM10.PYEON_GB
+          AND AMPM.WEEK_GB=PM10.WEEK_GB
+         FULL OUTER JOIN AM40
+           ON AMPM.ROUTE_CD=AM40.ROUTE_CD
+          AND AMPM.PYEON_GB=AM40.PYEON_GB
+          AND AMPM.WEEK_GB=AM40.WEEK_GB
+         FULL OUTER JOIN PM40
+           ON AMPM.ROUTE_CD=PM40.ROUTE_CD
+          AND AMPM.PYEON_GB=PM40.PYEON_GB
+          AND AMPM.WEEK_GB=PM40.WEEK_GB
+        WHERE AMPM.ROUTE_CD LIKE COALESCE(IN_ROUTE_CD,'')||'%'
+          AND AMPM.PYEON_GB LIKE COALESCE(IN_PYEON_GB,'')||'%'
+          AND AMPM.WEEK_GB LIKE COALESCE(IN_WEEK_GB,'')||'%'
+        ORDER BY AMPM.ROUTE_CD
+               , AMPM.PYEON_GB
+               , AMPM.WEEK_GB
+        ;--
+
+        OPEN CURSOR_DRV;--
+   END P1;--
+END MAIN 

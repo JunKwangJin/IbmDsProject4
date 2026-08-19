@@ -1,0 +1,90 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_EBUS_USERMENU"
+(
+    IN_USER_ID VARCHAR(12)
+,   IN_PGM_YN VARCHAR(1)
+)
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_USERMENU CURSOR WITH RETURN FOR
+
+			WITH MENU_T AS (
+							SELECT GU.USER_ID
+								 , U.FULLNAME
+								 , G.AUTHGROUP_ID
+								 , G.AUTHGROUP_NM
+								 , S.SOSOK_NM
+								 , S.ABBR_NM
+								 , M.PGM_YN
+								 , M.MENU_ID
+								 , M.MENU_NM
+								 , M.UP_MENU_ID
+								 , M.MENU_LVL
+								 , M.PGM_PATH
+								 , M.PGM_ID
+								 , GM.SEARCH_YN
+								 , GM.NEW_YN
+								 , GM.SAVE_YN
+								 , GM.DELETE_YN
+								 , GM.HELP_YN
+
+							  FROM GADMIN.EBUS_MENU_M AS M
+ 							 INNER JOIN GADMIN.EBUS_GROUPMENU_M AS GM ON M.MENU_ID = GM.MENU_ID
+ 							 INNER JOIN GADMIN.EBUS_GROUP_M AS G ON GM.AUTHGROUP_ID = G.AUTHGROUP_ID
+ 							 INNER JOIN GADMIN.EBUS_GROUPUSER_M AS GU ON G.AUTHGROUP_ID = GU.AUTHGROUP_ID
+ 							 INNER JOIN GADMIN.EBUS_SOSOK_M AS S ON S.SOSOK_CD = GU.SOSOK_CD
+ 							 INNER JOIN (SELECT SABUN
+                                                , FULLNAME
+                                                , SOSOK_CD
+                                            FROM GADMIN.BSDRIVE
+                                             WHERE ( CASE WHEN NVL(RETIRE_DATE,CURRENT DATE+1)  < CURRENT DATE THEN '0' ELSE '1' END ) ='1'
+
+                                            UNION ALL
+                                            SELECT OEBU_USER_ID
+                                                  , OEBU_USER_NM
+                                                  , SOSOK_CD
+                                             FROM GADMIN.EBUS_OEBUUSER_M
+                                            WHERE SAYONG_YN ='1' ) AS U
+                                              ON GU.USER_ID= U.SABUN
+							 WHERE GU.USER_ID = IN_USER_ID  --'12004100' '22008017' //'22008017'
+  							)
+
+			 SELECT MENU_ID
+			      , MENU_NM
+			      , UP_MENU_ID
+			      , MENU_LVL
+			      , PGM_PATH
+			      , PGM_ID
+			      , USER_ID
+			      , FULLNAME
+			      , AUTHGROUP_ID
+			      , AUTHGROUP_NM
+			      , SOSOK_NM
+			      , ABBR_NM
+			      , SEARCH_YN
+			      , NEW_YN
+			      , SAVE_YN
+			      , DELETE_YN
+			      , HELP_YN
+			   FROM MENU_T
+              WHERE NVL(PGM_YN,'') LIKE CASE WHEN NVL(IN_PGM_YN,'') = '1' THEN '1' ELSE '%' END   -- PROGRAM ID가 있는것만 필요해서 추가 함 - 이재열, 21.1.12 - PGM_YN 은 프로그램 ENTRY를 나타냄 - 전광진
+			    START WITH MENU_ID = 'EBUSMENU'
+				CONNECT BY PRIOR MENU_ID = UP_MENU_ID;--
+
+	    OPEN CURSOR_USERMENU;--
+   END P1;--
+END MAIN 

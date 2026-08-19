@@ -1,0 +1,29 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_EBUS_BUSEO_CODE"
+     ( IN IN_CD VARCHAR(10)
+     , IN IN_RETURN VARCHAR(200))
+RETURNS VARCHAR(100)
+--    IS V_RETURN_VALUE VARCHAR(100) = '';--
+ LANGUAGE SQL
+MAIN: BEGIN
+
+         DECLARE V_RETURN_VALUE VARCHAR(100) DEFAULT '';--
+    P1: BEGIN
+        SELECT DECODE(IN_RETURN,
+                      --'UP_SOSOK_CD',        UP_SOSOK_CD,
+                      'SOSOK_NM',           SOSOK_NM,
+                      'ABBR_NM',            ABBR_NM,
+                      'SORT',               VARCHAR(SORT),
+                      'SAYONG_YN',          SAYONG_YN,
+                      'SOSOK_ENM',          SOSOK_ENM,
+                       SOSOK_NM)
+         INTO V_RETURN_VALUE
+          FROM GADMIN.EBUS_SOSOK_M
+         WHERE SOSOK_CD = IN_CD;--
+--             EXCEPTION
+--            WHEN NO_DATA_FOUND THEN
+--                RETURN (NULL);--
+--            WHEN OTHERS THEN
+--                RETURN (NULL);--
+    END P1;        --
+    RETURN V_RETURN_VALUE;--
+END MAIN

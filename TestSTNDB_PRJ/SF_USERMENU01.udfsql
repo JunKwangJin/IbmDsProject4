@@ -1,0 +1,99 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_USERMENU01"
+(
+    IN IN_USER_ID   VARCHAR(12)  --사용자 ID
+)
+
+
+RETURNS
+    TABLE
+    (
+      MENU_ID     VARCHAR(10 )
+    , MENU_NM     VARCHAR(100)
+    , UP_MENU_ID  VARCHAR(10 )
+    , MENU_LVL    DECIMAL (5,0  )
+    , PGM_PATH    VARCHAR(50 )
+    , PGM_ID      VARCHAR(50 )
+    , PGM_YN      VARCHAR(1  )
+    , SORT        DECIMAL(5,0 )
+    , SAYONG_YN   VARCHAR(1  )
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+
+    SELECT  DISTINCT
+              MENU_ID
+            , MENU_NM
+            , UP_MENU_ID
+            , MENU_LVL
+            , PGM_PATH
+            , PGM_ID
+            , PGM_YN
+            , SORT
+            , SAYONG_YN
+    FROM    (
+
+            SELECT
+                      A.MENU_ID
+                    , A.MENU_NM
+                    , A.UP_MENU_ID
+                    , A.MENU_LVL
+                    , A.PGM_PATH
+                    , A.PGM_ID
+                    , A.PGM_YN
+                    , A.SORT
+                    , A.SAYONG_YN
+            FROM                GADMIN.EBUS_MENU_M         A
+                    INNER JOIN  GADMIN.EBUS_GROUPMENU_M    B
+                                ON A.MENU_ID      = B.MENU_ID
+                    INNER JOIN  GADMIN.EBUS_GROUPUSER_M    C
+                                ON B.AUTHGROUP_ID = C.AUTHGROUP_ID
+            WHERE       1             =       1
+                    AND A.SAYONG_YN   =       '1'
+                    AND C.USER_ID     =       IN_USER_ID
+            UNION ALL
+
+            SELECT
+                      A.MENU_ID
+                    , A.MENU_NM
+                    , A.UP_MENU_ID
+                    , A.MENU_LVL
+                    , A.PGM_PATH
+                    , A.PGM_ID
+                    , A.PGM_YN
+                    , A.SORT
+                    , A.SAYONG_YN
+            FROM                GADMIN.EBUS_MENU_M                         A
+                    INNER JOIN  GADMIN.EBUS_GROUPMENU_M                    B
+                                ON  A.MENU_ID = B.MENU_ID
+                    INNER JOIN  (
+                                SELECT
+                                          AUTHGROUP_ID
+--                                        , HOEGYE_DANWI
+                                        , NVL(AUTHGROUP_DAESANG_CD,'9999')   AS AUTHGROUP_DAESANG_CD
+                                        , NVL(JIKJONG_CD,'9999')             AS JIKJONG_CD
+                                        , NVL(JIKWI_CD,'9999')               AS JIKWI_CD
+                                        , SAYONG_YN
+                                FROM    GADMIN.EBUS_SINBUNGH1_M
+                                WHERE   SAYONG_YN = '1'
+                                )                                         C
+                                ON   B.AUTHGROUP_ID = C.AUTHGROUP_ID
+                    INNER JOIN  (
+                                -- 1302016	김수진	1	01	9999
+                                SELECT    USER_ID
+                                        , USER_NM
+                                        , NVL(USER_GUBUN,'9999')             AS USER_GUBUN
+                                        , NVL(JIKJONG_CD,'9999')             AS JIKJONG_CD
+                                        , NVL(JIKWI_CD,'9999')               AS JIKWI_CD
+                                FROM    TABLE(GADMIN.SF_USER_LIST(IN_USER_ID))
+                                )                                         D
+                                ON      C.AUTHGROUP_DAESANG_CD = D.USER_GUBUN
+                                    AND C.JIKJONG_CD           = D.JIKJONG_CD
+                                    AND C.JIKWI_CD             = D.JIKWI_CD
+            )
+    ORDER BY SORT
+    ;--
+
+END

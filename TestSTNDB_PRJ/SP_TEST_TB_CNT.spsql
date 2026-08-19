@@ -1,0 +1,25 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_TEST_TB_CNT"
+( OUT TABLENAME VARCHAR(10000) , OUT RECORDCOUNT INTEGER ) LANGUAGE SQL
+
+DYNAMIC RESULT SETS 1
+
+BEGIN
+
+DECLARE T1 VARCHAR(10000); --
+DECLARE T2 VARCHAR(10000); --
+DECLARE at_end INTEGER DEFAULT 0; --
+DECLARE not_found CONDITION FOR SQLSTATE '02000';--
+
+DECLARE C1 CURSOR with return FOR select 'select ''' || tabname || ''' , count(*) from '|| strip(tabschema) || '.' || strip(tabname) as t1 from SYSCAT.tables where type in ('T') AND tabschema = 'BAM' ORDER BY 1 ASC; --
+DECLARE C2 CURSOR FOR S2; --
+DECLARE CONTINUE HANDLER FOR not_found SET at_end = 1; --
+OPEN C1; --
+FETCH C1 INTO T2 ;--
+
+
+
+PREPARE S2 FROM T2; OPEN C2;--
+
+
+FETCH C2 INTO TABLENAME , recordcount ;--
+END 

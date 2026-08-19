@@ -1,0 +1,25 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_DRV_BSCAR_CD"
+(
+IN IN_CAR_NO VARCHAR(18)
+)
+RETURNS
+      TABLE (
+             CAR_NO		VARCHAR(18),
+             ROUTE		VARCHAR(15),
+             CAR_TYPE_CD VARCHAR(2)
+             )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+    DECLARE V_RETURN_VALUE VARCHAR(1000);--
+
+   RETURN
+
+     SELECT  CAR_NO,
+                ROUTE,
+                CAR_TYPE_CD
+        FROM    GADMIN.BSCAR
+        WHERE   CAR_NO = IN_CAR_NO
+        ;--
+
+END

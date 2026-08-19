@@ -1,0 +1,72 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_GEUPYEO_PAYCHECK"
+/*******************************************************************************
+파일명	: GADMIN.SF_MBC_GEUPYEO_PAYCHECK
+생성일자	: 2021.12.16
+생성자	: 전광진
+내용	    : 직원급여
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_MBC_GEUPYEO_PAYCHAEK(급여년월, 전화번호, 급여구분)
+*******************************************************************************/
+(
+    IN IN_GUB_YYMM   VARCHAR(6)   -- 급여년월
+  , IN IN_CELLPHONE  VARCHAR(11)  -- 기사전화번호
+  , IN IN_GUB_GB     VARCHAR(25)  -- 급여구분(정기급여/상여/소급분)
+  , IN IN_INSA_NO    VARCHAR(10)  -- 사번
+)
+
+
+RETURNS
+    TABLE
+    (
+      INSA_NO       VARCHAR(10)
+    , INSA_NM       VARCHAR(20)
+    , JIKJONG       VARCHAR(20)
+    , CELLPHONE     VARCHAR(11)
+    , GUB_YYMM      VARCHAR(6)
+    , HANGMOK_CD    VARCHAR(3)
+    , HANGMOK_NM    VARCHAR(30)
+    , HANGMOK_LR    VARCHAR(1)
+    , PAY           VARCHAR(500)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+   DECLARE V_GUB_YYMM   VARCHAR(6);-- 급여년월
+   DECLARE V_CELLPHONE  VARCHAR(11);-- 전화번호
+   DECLARE V_GUB_GB     VARCHAR(25);-- 급여구분
+   DECLARE V_INSA_NO    VARCHAR(10);-- 사번
+
+   SET V_GUB_YYMM  = COALESCE(IN_GUB_YYMM,'');--
+   SET V_CELLPHONE = COALESCE(IN_CELLPHONE,'');--
+   SET V_GUB_GB    = COALESCE(IN_GUB_GB,'');--
+   SET V_INSA_NO   = COALESCE(IN_INSA_NO,'');--
+
+   RETURN
+  SELECT G.INSA_NO
+        , U.INSA_NM
+        , G.JIKJONG
+        , IN_CELLPHONE
+        , IN_GUB_YYMM
+        , H.HANGMOK_CD
+        , H.HANGMOK_NM
+        , H.HANGMOK_LR
+        , CASE WHEN H.HANGMOK_CD BETWEEN '031' AND '090' THEN TRIM(VARCHAR_FORMAT(CAST(COALESCE(G.PAY,'0')||'0' AS DECIMAL(11,0))/10,'9,999,999,999')) ELSE COALESCE(G.PAY,'') END
+        -- PAY 값이 빈(블랭크) 값이면 "0"을 넣어주기 위해 뒤자리에 "0" 추가하고 10으로 나누어준다.
+     FROM GADMIN.MBC_GUBDATA AS G
+          INNER JOIN GADMIN.MBC_USERS AS U
+          ON G.INSA_NO = U.INSA_NO
+          RIGHT OUTER JOIN GADMIN.MBC_GEUPYEO_HANGMOK_C AS H
+          ON  G.JIKJONG    = H.JIKJONG
+          AND G.HANGMOK_CD = H.HANGMOK_CD
+    WHERE G.GUB_YYMM  = V_GUB_YYMM
+      AND U.CELLPHONE = V_CELLPHONE
+      AND U.INSA_NO = V_INSA_NO
+      AND G.GUB_GB = V_GUB_GB
+      AND H.HANGMOK_CD BETWEEN '001' AND '999'
+      AND H.HANGMOK_YN = '1'
+    ORDER BY H.SORT
+    ;--
+END

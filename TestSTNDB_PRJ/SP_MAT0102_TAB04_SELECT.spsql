@@ -1,0 +1,47 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0102_TAB04_SELECT"
+( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE  VARCHAR(10)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    P1: BEGIN
+		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
+        SELECT *
+          FROM (
+                SELECT SANGHO_CD, SANGHO, (MON_01+MON_02+MON_03+MON_04+MON_05+MON_06+MON_07+MON_08+MON_09+MON_10+MON_11+MON_12) AS TOT,
+                        MON_01, MON_02, MON_03, MON_04,MON_05, MON_06, MON_07, MON_08, MON_09, MON_10, MON_11, MON_12
+                  FROM (
+                         SELECT SANGHO_CD,
+                                 SANGHO,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUPPLY_PRICE END,0))  AS MON_01,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '02' THEN SUPPLY_PRICE END,0))  AS MON_02,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '03' THEN SUPPLY_PRICE END,0))  AS MON_03,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '04' THEN SUPPLY_PRICE END,0))  AS MON_04,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '05' THEN SUPPLY_PRICE END,0))  AS MON_05,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '06' THEN SUPPLY_PRICE END,0))  AS MON_06,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '07' THEN SUPPLY_PRICE END,0))  AS MON_07,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '08' THEN SUPPLY_PRICE END,0))  AS MON_08,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '09' THEN SUPPLY_PRICE END,0))  AS MON_09,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '10' THEN SUPPLY_PRICE END,0))  AS MON_10,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '11' THEN SUPPLY_PRICE END,0))  AS MON_11,
+                                  SUM(COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUPPLY_PRICE END,0))  AS MON_12
+                           FROM JAGUMA1
+                         WHERE 1 = 1
+                           AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
+                        GROUP BY SANGHO_CD, SANGHO
+                       )  A
+
+                ) A
+        ORDER BY SANGHO_CD
+       ;--
+
+
+	    OPEN CURSOR_MAT;--
+    END P1;--
+
+END MAIN 

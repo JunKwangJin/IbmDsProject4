@@ -1,0 +1,86 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0205_P01"
+(
+        IN IN_AUTHGROUP_ID       VARCHAR(5)
+      , IN IN_USER_ID            VARCHAR(12)
+      , IN IN_SOSOK_CD           VARCHAR(5)
+      , IN IN_SAYONG_YN          VARCHAR(1)
+      , IN IN_USER_GB_CD         VARCHAR(1)
+      , IN IN_C_USER             VARCHAR(20)
+      , OUT OUT_CNT              VARCHAR(2)
+      , OUT OUT_MSG              VARCHAR(100)
+)
+
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+        DECLARE V_CNT        INTEGER    DEFAULT 0 ;--
+        DECLARE SQLCODE     INTEGER    DEFAULT 0;--
+        DECLARE SQLSTATE    CHAR(5)    DEFAULT '00000';--
+        DECLARE V_SQLSTATE   CHAR(5)    DEFAULT '00000';--
+
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+               E1: BEGIN
+                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: 실행중 알수없는 오류로 종료되었습니다.';--
+                     SET OUT_CNT = '-1'; --
+                     RETURN; --
+               END E1;--
+
+        SET OUT_MSG              = ''; --
+        SET OUT_CNT              = ''; --
+
+        P1: BEGIN
+
+        	SELECT COUNT(*)
+	          INTO V_CNT
+    	      FROM GADMIN.EBUS_GROUPUSER_M
+	         WHERE AUTHGROUP_ID  = IN_AUTHGROUP_ID
+	           AND USER_ID       = IN_USER_ID;--
+
+        IF V_CNT > 0 THEN
+
+            SET OUT_CNT = '0';--
+            SET OUT_MSG = '권한그룹별 사용자가 중복되었습니다' || CHR(13) || '사번 : ' || IN_USER_ID ;--
+
+            ROLLBACK;--
+            RETURN;--
+
+        END IF;--
+
+        END P1;--
+
+        P2: BEGIN
+                 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                        E2: BEGIN
+                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: 자료 저장 시 오류가 발생하였습니다.' ; --
+                             SET OUT_CNT = '-1'; --
+                             ROLLBACK ; --
+                             RETURN ;--
+                        END E2;--
+
+            INSERT INTO GADMIN.EBUS_GROUPUSER_M(
+                  AUTHGROUP_ID
+                , USER_ID
+                , SOSOK_CD
+                , SAYONG_YN
+                , USER_GB_CD
+                , C_USER
+                , C_DATE
+             ) VALUES (
+                  IN_AUTHGROUP_ID
+                , IN_USER_ID
+                , IN_SOSOK_CD
+                , IN_SAYONG_YN
+                , IN_USER_GB_CD
+                , IN_C_USER
+                , CURRENT DATE
+             );--
+
+
+        END P2 ;--
+
+        SET OUT_MSG = '저장되었습니다.' ; --
+        SET OUT_CNT = '1';            --
+
+
+END MAIN 

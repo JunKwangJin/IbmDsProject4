@@ -1,0 +1,52 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_COM_ROUTE_DDLB"
+/*******************************************************************************
+파일명	: GADMIN.SF_COM_ROUTE_DDLB
+생성일자	: 2021.10.12
+생성자	: 전광진
+내용	: 노선 ddlb
+수정일자	:
+수정자	:
+수정내용    :
+예제
+SELECT * FROM GADMIN.SF_COM_ROUTE_DDLB WHERE OFFICE_CD LIKE '10000'
+MENU_ID와 USER_ID를 제어 하뎌 사용자별로 권한에 따른 영업소를 선택적으로 나타낸다.
+*******************************************************************************/
+(
+    IN IN_OFFICE_CD   VARCHAR(5)  --영업소CD
+)
+
+RETURNS
+    TABLE
+    (
+      DATA          VARCHAR(10)
+    , LABEL         VARCHAR(100)
+    , OFFICE_CD      VARCHAR(5)
+    , DOC_LR         VARCHAR(2)
+    )
+LANGUAGE SQL
+
+BEGIN ATOMIC
+
+   RETURN
+   SELECT  CD AS DATA , CD_NM AS LABEL ,CD2 AS OFFICE_CD , DOC_LR
+  FROM
+     ( SELECT *
+         FROM
+         (
+           SELECT A.CD AS CD
+                 , MAX(A.CD_NM) AS CD_NM
+                 , MAX(A.CD2) AS CD2
+                 , LEFT(MIN(B.CD4)||MAX(B.CD4), COUNT(*)) AS DOC_LR
+             FROM
+                TABLE(GADMIN.SF_COMMON_LST01('','DRV06','','','','','','','','','','')) A
+             INNER JOIN
+                TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','','','','','','','','','')) B
+                ON A.CD3 = B.CD3
+             GROUP BY A.CD
+             ORDER BY MAX(A.SORT)
+         )
+        WHERE CD2 LIKE COALESCE(IN_OFFICE_CD, '')||'%'
+        UNION ALL VALUES('','','','')
+     );--
+
+END

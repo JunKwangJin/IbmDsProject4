@@ -1,0 +1,59 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."SF_EBUS_JUMINNO_TO_AGE"  (IN_JUMINNO
+ VARCHAR(13), IN_TYPE VARCHAR(1), IN_GIJUN_DT VARCHAR(8))
+-----------------------------------------------
+--- IN_JUMINNO : 주민등록번호(예:6808182131034)
+--- IN_TYPE : 1(일반나이), 2(만 나이)
+--- IN_GIJUN_DT : 기준이 되는 날짜(예:20200106)
+-----------------------------------------------
+
+RETURNS INTEGER
+
+BEGIN
+    DECLARE V_PRE_YY       VARCHAR(2)  DEFAULT '';--
+    DECLARE V_YY           VARCHAR(2)  DEFAULT '';--
+    DECLARE V_YEAR         VARCHAR(4)  DEFAULT '';--
+    DECLARE V_SEX          VARCHAR(1)  DEFAULT '';--
+
+    DECLARE V_YYMMDD       VARCHAR(6)  DEFAULT '';--
+
+    DECLARE N_AGE          DECIMAL(13,0) DEFAULT 0;--
+    DECLARE V_GIJUN_DT     VARCHAR(8)  DEFAULT '';--
+
+    DECLARE SQLSTATE CHAR(5)  DEFAULT '00000';--
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE CONTINUE HANDLER FOR NOT FOUND RETURN (null); --('DATA NOT FOUND'); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN (SQLCODE); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+
+
+BEGIN
+
+    IF IN_JUMINNO IS NULL THEN SET N_AGE = 0;--
+    ELSE
+        BEGIN
+            IF (TRIM(IN_GIJUN_DT) IS NULL) THEN SET V_GIJUN_DT = TO_CHAR(CURRENT TIMESTAMP, 'YYYYMMDD');--
+                                           ELSE SET V_GIJUN_DT = IN_GIJUN_DT;--
+            END IF;--
+
+            SET V_YY     = SUBSTR(IN_JUMINNO, 1, 2);--
+            SET V_SEX    = SUBSTR(IN_JUMINNO, 7, 1);--
+
+            IF (V_SEX IN ('3', '4', '7', '8')) THEN SET V_PRE_YY = '20';--
+                                     ELSE SET V_PRE_YY = '19';--
+            END IF;--
+
+            IF (IN_TYPE = '1') THEN
+                SET V_YEAR = V_PRE_YY||V_YY;--
+                SET N_AGE = INTEGER(SUBSTR(V_GIJUN_DT, 1, 4)) - INTEGER(V_YEAR) + 1;--
+            ELSEIF (IN_TYPE = '2') THEN
+                SET V_YYMMDD = SUBSTR(IN_JUMINNO, 1, 6);--
+                SET N_AGE = TRUNC(MONTHS_BETWEEN(TO_DATE(V_GIJUN_DT, 'YYYYMMDD'), TO_DATE(V_PRE_YY||V_YYMMDD,'YYYYMMDD')) / 12, 0);--
+            END IF;--
+
+        END;--
+    END IF;--
+
+    RETURN N_AGE;--
+--    EXCEPTION WHEN OTHERS THEN
+--        return 0;--
+END;--
+END

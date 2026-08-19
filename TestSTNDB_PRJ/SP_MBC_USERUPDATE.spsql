@@ -1,0 +1,137 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_USERUPDATE"
+(
+      IN IN_CELLPHONE    VARCHAR(11)--
+ ,    IN IN_INSA_NO      VARCHAR(10)--
+ ,    IN IN_JIKJONG      VARCHAR(25)--
+ ,    IN IN_INSA_NM      VARCHAR(20)--
+ ,   OUT OUT_CNT         VARCHAR(4)
+ ,   OUT OUT_MSG         VARCHAR(10000)
+)
+--/*******************************************************************************
+--파일명   : GADMIN.SP_MBC_USERUPDATE
+--생성일자  : 2024. 3. 25
+--생성자   : 전광진
+--내용        : 인사데이터 Update
+--수정일자  :
+--수정자   : 
+--수정내용    :
+--수정일자  :
+--수정자   : 
+--  
+--     INPUT: IN_TIMEID         1 TIME id
+--    OUTPUT: OUT_CNT           A.처리COUNT
+--          : OUT_MSG           B.처리결과메시지
+--*******************************************************************************/
+
+
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+-- DB DATA변수
+    DECLARE V_CELLPHONE    VARCHAR(11);--
+    DECLARE V_INSA_NO      VARCHAR(10);--
+    DECLARE V_JIKJONG      VARCHAR(25);--
+    DECLARE V_INSA_NM      VARCHAR(20);--
+
+--CLIENT정보 변수
+    DECLARE V_APPLICATION_ID
+                            VARCHAR(50);--
+    DECLARE V_APPLICATION_NAME
+                            VARCHAR(250);--
+    DECLARE V_CLIENT_HOSTNAME
+                            VARCHAR(250);--
+
+
+-- 일반변수
+--    DECLARE I           INTEGER;--
+    DECLARE V_CNT           INTEGER;--
+    DECLARE V_USER_CHK     INT;--
+    DECLARE V_KEY_MSG       VARCHAR(1000)  DEFAULT '';--
+
+    DECLARE SQLCODE         INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE        CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE      CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  변수 클리어
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG 사용안하고 테스트
+--    SET V_SAVE = 0;--
+--    P1: BEGIN
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG 사용안하고 테스트
+
+--  데이터를 저장한다.
+
+    SET V_SQLSTATE = '00000';--
+
+    SET V_CELLPHONE = IN_CELLPHONE;--
+    SET V_INSA_NO   = COALESCE(IN_INSA_NO,   '');--
+    SET V_JIKJONG   = IN_JIKJONG;--
+    SET V_INSA_NM   = IN_INSA_NM;--
+
+        SET V_USER_CHK = 0;--
+        SELECT '1' 
+             INTO 
+                V_USER_CHK 
+          FROM GADMIN.MBC_USERS
+         WHERE INSA_NO = V_INSA_NO ;--
+
+        IF COALESCE(V_USER_CHK,'')   = '1' THEN
+           UPDATE GADMIN.MBC_USERS
+              SET CELLPHONE           = COALESCE(V_CELLPHONE, CELLPHONE, '')
+                , INSA_NM             = COALESCE(V_INSA_NM, INSA_NM, '')
+                , JIKJONG             = COALESCE(V_JIKJONG, JIKJONG, '')
+                , JAEJIK_YN           = '1'
+                , APPLICATION_ID      = V_APPLICATION_ID
+                , APPLICATION_NAME    = V_APPLICATION_NAME
+                , CLIENT_HOSTNAME     = V_CLIENT_HOSTNAME
+                , M_DATE              = CURRENT TIMESTAMP
+            WHERE INSA_NO = V_INSA_NO
+              AND ( COALESCE(CELLPHONE, '')   <> COALESCE(V_CELLPHONE, CELLPHONE, '')
+                  OR COALESCE(INSA_NM, '')    <> COALESCE(V_INSA_NM, INSA_NM, '')
+                  OR COALESCE(JIKJONG, '')    <> COALESCE(V_JIKJONG, JIKJONG, '')
+                  OR COALESCE(JAEJIK_YN, '')  <> '1'
+                  )
+              ;--
+        ELSE
+           INSERT INTO GADMIN.MBC_USERS
+                       (   CELLPHONE
+                         , INSA_NO
+                         , INSA_NM
+                         , JIKJONG
+                         , JAEJIK_YN
+                         , APPLICATION_ID
+                         , APPLICATION_NAME
+                         , CLIENT_HOSTNAME
+                         , C_DATE
+                       )
+                       VALUES
+                       ( COALESCE(V_CELLPHONE, '')
+                        , V_INSA_NO
+                        , COALESCE(V_INSA_NM, '')
+                        , COALESCE(V_JIKJONG, '')
+                        , '1' -- 재직상태
+                        , V_APPLICATION_ID
+                        , V_APPLICATION_NAME
+                        , V_CLIENT_HOSTNAME
+                        , CURRENT TIMESTAMP
+                       )
+               ;--
+        END IF;--
+
+END MAIN 

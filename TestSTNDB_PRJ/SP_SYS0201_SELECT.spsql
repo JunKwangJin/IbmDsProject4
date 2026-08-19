@@ -1,0 +1,74 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0201_SELECT"
+(
+    IN_UP_MENU_ID VARCHAR(25),
+    IN_MENU_NM VARCHAR(100)
+)
+
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+
+    DECLARE SQLCODE  INTEGER  DEFAULT 0;--
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
+--    DECLARE V_CAR_LST VARCHAR(100) DEFAULT '';--
+--    DECLARE V_CAR_TYPE_CD VARCHAR(100) DEFAULT '';--
+--    DECLARE V_REG_DATE DATE;--
+
+    DECLARE EXIT HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
+
+    P1: BEGIN
+         --DATA SELECT
+		DECLARE CURSOR_SYSO2 CURSOR WITH RETURN FOR
+
+ 		SELECT
+	            TO_CHAR(A.MENU_ID) AS MENU_ID
+	           ,A.MENU_NM
+	           ,A.MENU_SEOLMYEONG
+	           ,TO_CHAR(A.UP_MENU_ID) AS UP_MENU_ID
+	           ,A.HWAMYEON_NO
+	           ,A.MENU_LVL
+	           ,A.PGM_PATH
+	           ,A.PGM_ID
+	           ,A.SORT
+	           ,A.POPUP_YN
+--	           ,B.GAEYO
+--	           ,B.SEOLMYUNG
+--	           ,B.TIP
+--	           ,B.PROCESS
+	           ,A.SAYONG_YN
+	           ,A.DATALOG_YN
+	           ,A.PRINTLOG_YN
+	           ,A.NEW_YN
+		       ,A.SEARCH_YN
+		       ,A.SAVE_YN
+		       ,A.DELETE_YN
+		       ,A.PRINT_YN
+		       ,A.HELP_YN
+               ,A.UPGRADE_YN
+		       ,A.START_ILJA
+		       ,A.START_TIME
+		       ,A.END_ILJA
+		       ,A.END_TIME
+		       ,A.PGM_YN
+		       ,A.SOSOKGB_CD
+		       ,A.SCHEMA_NM
+		       ,A.FILE_PATH
+		       ,A.FILE_NM
+	        FROM GADMIN.EBUS_MENU_M A --left outer join
+--	            GADMIN.EBUS_MENUAL_M B on A.MENU_ID = B.MENU_ID
+	        WHERE 1=1
+		  AND A.MENU_NM LIKE '%'|| NVL(IN_MENU_NM,'') ||'%'
+		  AND A.SAYONG_YN = NVL(SAYONG_YN,'0')
+		 START WITH A.MENU_ID = IN_UP_MENU_ID
+		 CONNECT BY PRIOR A.MENU_ID =  NVL(A.UP_MENU_ID,'0')
+		 ORDER SIBLINGS BY A.SORT;--
+
+
+	    OPEN CURSOR_SYSO2;--
+   END P1;--
+END MAIN 

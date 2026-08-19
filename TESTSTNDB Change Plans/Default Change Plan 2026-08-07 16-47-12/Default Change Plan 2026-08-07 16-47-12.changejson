@@ -1,0 +1,35 @@
+{
+	"Column_Map": [
+	],
+	"Table Tracker Map": {
+		"Tables": [
+		]
+	},
+	"alterOption": "ALTER",
+	"changes": [
+		{
+			"action": "DROP",
+			"beforeObject": {
+				"id": "PROC(USP__CS__JUSO__INFO,VARCHAR,INTEGER,INTEGER,VARCHAR,VARCHAR)>S(GADMIN)"
+			},
+			"updatedTimestamp": 1786088840032
+		}
+	],
+	"createdTimestamp": 1786088832489,
+	"deployReportPath": null,
+	"doDDLPath": "\\TESTSTNDB Change Plans\\Default Change Plan 2026-08-07 16-47-12\\Default Change Plan 2026-08-07 16-47-12_Change.sql",
+	"doModelPath": "Default Change Plan 2026-08-07 16-47-12.dbm",
+	"enableAutoBackup": false,
+	"enableDataPreservation": true,
+	"enableFlushPackageCache": false,
+	"enableRebind": true,
+	"enableReorg": true,
+	"enableRunstats": false,
+	"enableUndo": true,
+	"lastUpdatedTimestamp": 1786088837558,
+	"name": "Default Change Plan 2026-08-07 16-47-12",
+	"planId": "ac4ccd99-ed03-47d2-8be1-9f435cb4331d",
+	"sourceDatabaseIdentifier": "46dc48d0-8faa-11f1-b21b-8b7ec3fe3753",
+	"status": "PENDING",
+	"undoDDLPath": "\\TESTSTNDB Change Plans\\Default Change Plan 2026-08-07 16-47-12\\Default Change Plan 2026-08-07 16-47-12_Change_Undo.sql"
+}

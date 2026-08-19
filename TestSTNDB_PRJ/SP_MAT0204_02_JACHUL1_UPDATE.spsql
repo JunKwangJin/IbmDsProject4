@@ -1,0 +1,135 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0204_02_JACHUL1_UPDATE"
+( IN IN_DATE VARCHAR(10),
+ IN IN_ACC_NO VARCHAR(4),
+ IN IN_CHANGGO VARCHAR(10),
+ IN IN_PRODUC_NO VARCHAR(21),
+ IN IN_UNIT_PRICE DECIMAL(12,2),
+ IN IN_USER_ID VARCHAR(25),
+ OUT OUT_CNT             VARCHAR(4),
+ OUT OUT_MSG             VARCHAR(10000)
+ )
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN ATOMIC
+
+    DECLARE   V_ROUTE            VARCHAR(15)     DEFAULT '';--
+    DECLARE   V_ACC_NO           VARCHAR(4)      DEFAULT '';--
+    DECLARE   V_SEQ              VARCHAR(3)      DEFAULT '';--
+    DECLARE   V_ROW_ID           BIGINT          DEFAULT 0;--
+    DECLARE   V_QTY              DECIMAL(12,2)   DEFAULT 0.0;--
+    DECLARE   V_PRICE            DECIMAL(12,2)   DEFAULT 0.0;--
+    DECLARE   V_CNT              DECIMAL(3,0)    DEFAULT 0.0;--
+    DECLARE   V_KEY_MSG          VARCHAR(1000)     DEFAULT '';--
+
+    DECLARE SQLCODE       INTEGER       DEFAULT 0;--
+    DECLARE SQLSTATE      CHAR(5)       DEFAULT '00000';--
+
+    DECLARE V_SQLSTATE    CHAR(5)       DEFAULT '00000';--
+
+    DECLARE LEN_UNDER     CONDITION FOR SQLSTATE '01004';-- 변수 의 길이가 너무 작습니다.
+    DECLARE LEN_OVER      CONDITION FOR SQLSTATE '22001';-- 저장할 문자열의 길이가 너무 깁니다.
+    DECLARE NOT_NULL      CONDITION FOR SQLSTATE '23502';-- NOT NULL지정된 컬럼에 NULL지정
+    DECLARE ROW_DUO       CONDITION FOR SQLSTATE '23505';-- 데이터 중복
+    DECLARE NO_TABLE      CONDITION FOR SQLSTATE '42704';-- TABLE이 없을떄
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'데이터를 찾을(조회할)수 없습니다..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'변수의 길이가 너무 작습니다..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'존재하지 않는 테이블 입니다...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULL컬럼에 NULL이 지정되었습니다..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'저장중 중복되었습니다.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'저장될 문자열 길이가 너무 깁니다..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'실행중 경고 오류가 발생하였습니다.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'실행중 알수없는 오류로 종료되었습니다.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+    P1: BEGIN
+                --SELECT (MAX(COALESCE(ROW_ID,0)) + 1) INTO V_ROW_ID
+                --  FROM GADMIN.JACHUL1
+                -- ;--
+
+                DELETE FROM GADMIN.JACHUL1
+                 WHERE 1= 1
+                   AND DATE = IN_DATE
+                   AND GUBUN_CD = '40'
+                   AND CHANGGO_CD = IN_CHANGGO
+                ;--
+
+                IF( IN_ACC_NO = '' ) THEN
+                /*
+                        SELECT TO_CHAR(TO_NUMBER(COALESCE(MAX(SEQ),'0')) + 1) INTO V_SEQ
+                          FROM GADMIN.JACHUL1
+                         WHERE 1 = 1
+                           AND DATE = IN_DATE
+                           AND CHANGGO_CD = IN_CHANGGO
+                           ;--
+                */
+                        SELECT MAX(ROW_ID) +1 INTO V_ROW_ID
+                          FROM GADMIN.JACHUL1;--
+
+                        INSERT INTO GADMIN.JACHUL1 (DATE, ACC_NO, GUBUN_CD, CHANGGO_CD, PRODUC_NO, PRODUC_NM, SPEC, UNIT, UNIT_PRICE, QTY, PRICE, MANAGER, ROW_ID, C_DATE, C_USER, M_DATE, M_USER, SEQ)
+                        SELECT DATE
+                              , ''  -- ACC_NO은 나중에 정리해서 넣음
+                              , '40'
+                              , IN_CHANGGO
+                              , PRODUC_NO
+                              , PRODUC_NM
+                              , SPEC
+                              , UNIT
+                              , UNIT_PRICE
+                              , SUM(COALESCE(QTY,0))
+                              , SUM(COALESCE(PRICE,0))
+                              , IN_USER_ID
+                              , V_ROW_ID
+                              , CURRENT TIMESTAMP
+                              , IN_USER_ID
+                              , NULL
+                              , NULL
+                              --, MAX(V_SEQ)
+                              , MAX(SEQ)
+                          FROM GADMIN.JACHUL6
+                         WHERE DATE = IN_DATE
+                           --AND PRODUC_NO = IN_PRODUC_NO
+                           AND CHANGGO_CD = IN_CHANGGO
+                         GROUP BY DATE, PRODUC_NO, PRODUC_NM, SPEC, UNIT, UNIT_PRICE --, MANAGER, SEQ
+                           --AND ACC_NO = V_ACC_NO  -- 신규추가시 초기 설정임
+                     ;--
+
+                     /*
+                     UPDATE GADMIN.JACHUL6
+                        SET SEQ = V_SEQ
+                      WHERE DATE = IN_DATE
+                        AND GUBUN_CD = '40'
+                        AND CHANGGO_CD = IN_CHANGGO
+                     ;--
+                     */
+                 ELSE
+                        INSERT INTO GADMIN.JACHUL1 (DATE, ACC_NO, GUBUN_CD, CHANGGO_CD, PRODUC_NO, PRODUC_NM, SPEC, UNIT, UNIT_PRICE, QTY, PRICE, MANAGER, ROW_ID, C_DATE, C_USER, M_DATE, M_USER, SEQ)
+                        SELECT DATE
+                              , ''  -- ACC_NO은 나중에 정리해서 넣음
+                              , '40'
+                              , IN_CHANGGO
+                              , PRODUC_NO
+                              , PRODUC_NM
+                              , SPEC
+                              , UNIT
+                              , UNIT_PRICE
+                              , SUM(COALESCE(QTY,0))
+                              , SUM(COALESCE(PRICE,0))
+                              , MAX(MANAGER)
+                              , 0
+                              , CURRENT TIMESTAMP
+                              , IN_USER_ID
+                              , NULL
+                              , NULL
+                              , MAX(SEQ)
+                          FROM GADMIN.JACHUL6
+                         WHERE DATE = IN_DATE
+                           --AND PRODUC_NO = IN_PRODUC_NO
+                           AND CHANGGO_CD = IN_CHANGGO
+                         GROUP BY DATE, PRODUC_NO, PRODUC_NM, SPEC, UNIT, UNIT_PRICE --, MANAGER, SEQ
+                           --AND ACC_NO = V_ACC_NO  -- 신규추가시 초기 설정임
+                     ;--
+                END IF;                    --
+
+    END P1;    --
+END MAIN 

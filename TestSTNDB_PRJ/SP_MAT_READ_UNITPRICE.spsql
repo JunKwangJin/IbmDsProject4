@@ -1,0 +1,111 @@
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT_READ_UNITPRICE" ( IN IN_FROMDATE VARCHAR(10)
+, IN IN_TODATE  VARCHAR(10)
+, IN IN_PRODUC_NO VARCHAR(21)
+, IN IN_CHANGGO VARCHAR(9)
+, IN IN_USER_ID VARCHAR(25)
+)
+  DYNAMIC RESULT SETS 1
+  LANGUAGE SQL
+
+MAIN: BEGIN
+
+    DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
+    DECLARE V_DATE        DATE;--
+    DECLARE V_JAEGO      DECIMAL(12,2) DEFAULT 0.0;--
+    DECLARE V_UNITPRICE DECIMAL(12,2) DEFAULT 0.0;--
+    DECLARE V_QTY        DECIMAL(12,2) DEFAULT 0.0;--
+
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP
+    (
+    	DATE            DATE,
+        UNIT_PRICE      DECIMAL(12,2) DEFAULT 0,
+        QTY             DECIMAL(12,2) DEFAULT 0
+    )  ON COMMIT PRESERVE ROWS
+  WITH REPLACE
+  NOT LOGGED;--
+
+    SELECT COALESCE(SUM(IN_QTY - OUT_QTY),0) AS JAEGO   INTO V_JAEGO
+      FROM (
+                SELECT YEAR||'-01-01' AS DATE, '' AS ACC_NO, '이월' AS GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, '' AS SPEC, '' AS UNIT, EWOL_01 AS IN_QTY, 0 AS OUT_QTY,  (UNIT_PRICE_01 / EWOL_01) AS SUPPLY_PRICE, UNIT_PRICE_01 AS PRICE, '' AS CHANGGO, '' AS MANAGER
+                  FROM GADMIN.JAGUJAGO
+                 WHERE 1 = 1
+                    AND YEAR = SUBSTRING(IN_FROMDATE,1,4)
+                    AND PRODUC_NO = IN_PRODUC_NO
+                UNION ALL
+                SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, CASE WHEN GUBUN = '반품' THEN QTY * -1 ELSE QTY END AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, SUPPLY_PRICE AS PRICE, CHANGGO, '' AS MANAGER
+                  FROM GADMIN.JAGUMA1
+                 WHERE 1 = 1
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                   AND PRODUC_NO = IN_PRODUC_NO
+                   AND CHANGGO = IN_CHANGGO
+                UNION ALL
+                SELECT DATE, ACC_NO, GUBUN,       ROUTE,       CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, 0 AS IN_QTY, CASE WHEN QTY < 0 THEN QTY * -1 ELSE QTY END  AS OUT_QTY, UNIT_PRICE, PRICE, CHANGGO, MANAGER
+                   FROM GADMIN.JACHUL1
+                 WHERE 1 = 1
+                   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                   AND PRODUC_NO = IN_PRODUC_NO
+                   AND CHANGGO = IN_CHANGGO
+           )
+     WHERE 1 = 1
+     ;--
+
+P1: BEGIN
+
+    DECLARE CURSOR_MAT CURSOR FOR
+        SELECT *
+          FROM (
+                    SELECT YEAR||'-01-01' AS DATE, EWOL_01 AS QTY, UNIT_PRICE_01
+                      FROM GADMIN.JAGUJAGO
+                     WHERE 1 = 1
+                       AND YEAR = SUBSTRING(IN_FROMDATE,1,4)
+                       AND PRODUC_NO = IN_PRODUC_NO
+                    UNION ALL
+                    SELECT DATE, CASE WHEN GUBUN = '반품' THEN QTY * -1 ELSE QTY END AS QTY, UNIT_PRICE
+                      FROM GADMIN.JAGUMA1
+                     WHERE 1 = 1
+                       AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
+                       AND PRODUC_NO = IN_PRODUC_NO
+                       AND CHANGGO_CD = IN_CHANGGO
+                       AND GUBUN = '매입'
+                     ORDER BY DATE DESC
+                );--
+
+    OPEN CURSOR_MAT;--
+
+    FETCH FROM CURSOR_MAT INTO V_DATE, V_QTY, V_UNITPRICE;--
+
+    WHILE (SQLSTATE = '00000' )
+    DO
+        IF V_JAEGO <= 0 THEN          -- 마이너스 출고
+                INSERT INTO SESSION.TEMP
+                VALUES( V_DATE, V_UNITPRICE, 0 );    --
+                GOTO P2;        --
+        END IF;--
+        SET V_JAEGO = V_JAEGO - V_QTY;--
+        IF V_JAEGO < 0 THEN           -- 재고가 0 이하이면 최근 전표가 해당 전표임
+                INSERT INTO SESSION.TEMP
+                VALUES( V_DATE, V_UNITPRICE, V_JAEGO + V_QTY );    --
+                GOTO P2;--
+        ELSE
+                -- 0 이하 되는 전푝가 최종 입고 전표임
+                INSERT INTO SESSION.TEMP
+                VALUES( V_DATE, V_UNITPRICE, V_JAEGO + V_QTY );--
+        END IF;        --
+
+    	FETCH FROM CURSOR_MAT INTO V_DATE, V_QTY, V_UNITPRICE;--
+    END WHILE;--
+
+END P1;--
+
+P2: BEGIN
+
+    DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
+    SELECT * FROM SESSION.TEMP --FETCH FIRST 1 ROWS ONLY  --첫줄만 출력 EXIT
+     WHERE 1 = 1
+     ORDER BY DATE ASC
+     --FETCH FIRST 1 ROWS ONLY  --첫줄만 출력 EXIT
+    ;--
+
+    OPEN CURSOR_TEMP;--
+END P2;--
+END 
