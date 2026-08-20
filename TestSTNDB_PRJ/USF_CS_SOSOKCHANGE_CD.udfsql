@@ -1,0 +1,46 @@
+CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_SOSOKCHANGE_CD"
+--/*******************************************************************************
+--파일명    : GADMIN.USF_CS_SOSOKCHANGE_CD
+--생성일자  : 2026.08.20
+--생성자    : 전광진
+--내용      : 인사번호로 소속변경코드 조회 (없으면 원소속코드 반환)
+-- INPUT   : IN_SYSGB    시스템구분
+--         : IN_INSA_NO  인사번호
+--         : IN_SOSOK_CD 소속코드
+-- OUTPUT  : VARCHAR(6)  소속변경코드
+--*******************************************************************************/
+(
+      IN_SYSGB    VARCHAR(10) DEFAULT ''
+    , IN_INSA_NO  VARCHAR(10) DEFAULT ''
+    , IN_SOSOK_CD VARCHAR(6)  DEFAULT ''
+)
+RETURNS VARCHAR(6)
+LANGUAGE SQL
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN ATOMIC
+
+    DECLARE LC_SOSOKCHANGE_CD   VARCHAR(6)  DEFAULT NULL;--
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND
+        SET LC_SOSOKCHANGE_CD = NULL;--
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        SET LC_SOSOKCHANGE_CD = NULL;--
+
+    SELECT  COALESCE(B.SOSOKCHG_CD, IN_SOSOK_CD)
+    INTO    LC_SOSOKCHANGE_CD
+    FROM                    (
+                            SELECT  1 AS SEQ
+                            FROM    SYSIBM.SYSDUMMY1
+                            )       A
+            LEFT OUTER JOIN (
+                            SELECT  1 AS SEQ, SOSOKCHG_CD
+                            FROM    CS_INSA_SOSOKCHG_M
+                            WHERE   INSA_NO = IN_INSA_NO
+                            )       B
+                            ON  A.SEQ = B.SEQ
+    ;--
+
+    RETURN LC_SOSOKCHANGE_CD;--
+
+END
