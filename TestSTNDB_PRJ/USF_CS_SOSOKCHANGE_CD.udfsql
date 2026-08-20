@@ -1,46 +1,35 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_SOSOKCHANGE_CD"
 --/*******************************************************************************
---ÌååÏùºÎ™Ö    : GADMIN.USF_CS_SOSOKCHANGE_CD
---ÏÉùÏÑ±ÏùºÏûê  : 2026.08.20
---ÏÉùÏÑ±Ïûê    : Ï†ÑÍ¥ëÏßÑ
---ÎÇ¥Ïö©      : Ïù∏ÏÇ¨Î≤àÌò∏Î°ú ÏÜåÏÜçÎ≥ÄÍ≤ΩÏΩîÎìú Ï°∞Ìöå (ÏóÜÏúºÎ©¥ ÏõêÏÜåÏÜçÏΩîÎìú Î∞òÌôò)
--- INPUT   : IN_SYSGB    ÏãúÏä§ÌÖúÍµ¨Î∂Ñ
---         : IN_INSA_NO  Ïù∏ÏÇ¨Î≤àÌò∏
---         : IN_SOSOK_CD ÏÜåÏÜçÏΩîÎìú
--- OUTPUT  : VARCHAR(6)  ÏÜåÏÜçÎ≥ÄÍ≤ΩÏΩîÎìú
+--∆ƒ¿œ∏Ì    : GADMIN.USF_CS_SOSOKCHANGE_CD                                                                                                                                                                                                                 
+--ª˝º∫¿œ¿⁄  : 2026.08.20                                                                                                                                                                                                                                   
+--ª˝º∫¿⁄    : ¿¸±§¡¯                                                                                                                                                                                                                                       
+--≥ªøÎ      : ¿ŒªÁπ¯»£∑Œ º“º”∫Ø∞Êƒ⁄µÂ ¡∂»∏ (æ¯¿∏∏È ø¯º“º”ƒ⁄µÂ π›»Ø)                                                                                                                                                                                        
+-- INPUT   : IN_SYSGB    Ω√Ω∫≈€±∏∫–                                                                                                                                                                                                                        
+--         : IN_INSA_NO  ¿ŒªÁπ¯»£                                                                                                                                                                                                                          
+--         : IN_SOSOK_CD º“º”ƒ⁄µÂ                                                                                                                                                                                                                          
+-- OUTPUT  : VARCHAR(6)  º“º”∫Ø∞Êƒ⁄µÂ              
 --*******************************************************************************/
+
 (
-      IN_SYSGB    VARCHAR(10) DEFAULT ''
-    , IN_INSA_NO  VARCHAR(10) DEFAULT ''
-    , IN_SOSOK_CD VARCHAR(6)  DEFAULT ''
+      IN IN_SYSGB    VARCHAR(10) DEFAULT ''
+    , IN IN_INSA_NO  VARCHAR(10) DEFAULT ''
+    , IN IN_SOSOK_CD VARCHAR(6)  DEFAULT ''
 )
 RETURNS VARCHAR(6)
 LANGUAGE SQL
 NOT DETERMINISTIC
 READS SQL DATA
-BEGIN ATOMIC
-
-    DECLARE LC_SOSOKCHANGE_CD   VARCHAR(6)  DEFAULT NULL;--
-
-    DECLARE CONTINUE HANDLER FOR NOT FOUND
-        SET LC_SOSOKCHANGE_CD = NULL;--
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-        SET LC_SOSOKCHANGE_CD = NULL;--
-
+RETURN
+    (
     SELECT  COALESCE(B.SOSOKCHG_CD, IN_SOSOK_CD)
-    INTO    LC_SOSOKCHANGE_CD
     FROM                    (
                             SELECT  1 AS SEQ
                             FROM    SYSIBM.SYSDUMMY1
                             )       A
             LEFT OUTER JOIN (
                             SELECT  1 AS SEQ, SOSOKCHG_CD
-                            FROM    CS_INSA_SOSOKCHG_M
+                            FROM    GADMIN.CS_INSA_SOSOKCHG_M
                             WHERE   INSA_NO = IN_INSA_NO
                             )       B
                             ON  A.SEQ = B.SEQ
-    ;--
-
-    RETURN LC_SOSOKCHANGE_CD;--
-
-END
+    )
