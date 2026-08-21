@@ -8,13 +8,13 @@ CREATE FUNCTION "GADMIN"."USF_CS_ISNULLOREMPTY"  ( INSTR VARCHAR(4000) )
 
   BEGIN  --A 
 ----
-----   ¹®ÀÚ¿­ÀÌ null ÀÌ°Å³ª ''(¹®ÀÚ¿­ÀÌ Å©±â°¡ 0ÀÎ) ÀÎ °æ¿ì FALSE¸¦ Àü´ÞÇÑ´Ù.
+----   ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ null ï¿½Ì°Å³ï¿½ ''(ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ Å©ï¿½â°¡ 0ï¿½ï¿½) ï¿½ï¿½ ï¿½ï¿½ï¿½ FALSEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 ----
 
 	IF INSTR IS NULL OR INSTR = '' THEN 
       RETURN TRUE;
   END IF;
 
-  RETURN TRUE;--  REVSTR;--  D 
+  RETURN FALSE;--  REVSTR;--  D
 
 END
