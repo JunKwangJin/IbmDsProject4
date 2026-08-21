@@ -5,22 +5,22 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_GUBDATAUPDATE"
  ,   OUT OUT_MSG            VARCHAR(10000)
 )
 --/*******************************************************************************
---∆ƒ¿œ∏Ì	: GADMIN.SP_MBC_GUBDATAUPDATE
---ª˝º∫¿œ¿⁄	: 2021.12.14
---ª˝º∫¿⁄	: ¿¸±§¡¯
---≥ªøÎ    	: ∏πŸ¿œøÎ ±ﬁø© ∏πŸ¿œ ±ﬁø© ≈◊¿Ã∫Ìø°¿˙¿Â
---ºˆ¡§¿œ¿⁄	:2022.01.13
---ºˆ¡§¿⁄	: ¿¸±§¡¯
---ºˆ¡§≥ªøÎ    : ±›ø©«◊∏Ò µ•¿Ã≈Õø° Return∞™¿ª √ﬂ∞° «“ºˆ ¿÷µµ∑œ ~r -> chr(13)||chr(10)(CR/LF)¿∏∑Œ ∫Ø»Ø
---ºˆ¡§¿œ¿⁄	:2024.01.18/ ∑£º∂ø˛æÓ∑Œ «¡∑Œ±◊∑• π◊ µ•¿Ã≈Õ ∫π±∏∑Œ 24.3.1¿œ ªı∑Œ ¿€º∫«‘
---ºˆ¡§¿⁄	: ¿¸±§¡¯
---ºˆ¡§≥ªøÎ    : Temp ≈◊¿Ã∫Ì¿ª ªÁøÎ«œ¡ˆ æ ∞Ì ≈ÿΩ∫∆Æ∆ƒ¿œ «—∂Û¿Œæø πﬁæ∆º≠ DBø° ¿˙¿Â«œ¥¬ πÊΩƒ¿∏∑Œ ∫Ø∞Ê 
---          Temp ≈◊¿Ã∫Ìø° ¿˙¿Â«œ∞Ì ¿œ∞˝ √≥∏Æ«œ∏È Ω√∞£¿Ã ±ÊæÓ¡Æ TimeOut πﬂª˝«‘¿∏∑ŒΩ· πÃ√≥ √≥∏Æ∞° ≥°≥™±‚¿¸ø° 
---          «¡∑ŒΩ√¡Æ »£√‚«œ¥¬ «¡∑Œ±◊∑•ø°º≠ TimeOut∑Œ ¿ŒΩƒ«œø© «¡∑Œ±◊∑• ¡æ∑·«‘
---  
+--ÌååÏùºÎ™Ö	: GADMIN.SP_MBC_GUBDATAUPDATE
+--ÏÉùÏÑ±ÏùºÏûê	: 2021.12.14
+--ÏÉùÏÑ±Ïûê	: Ï†ÑÍ¥ëÏßÑ
+--ÎÇ¥Ïö©    	: Î™®Î∞îÏùºÏö© Í∏âÏó¨ Î™®Î∞îÏùº Í∏âÏó¨ ÌÖåÏù¥Î∏îÏóêÏ†ÄÏû•
+--ÏàòÏ†ïÏùºÏûê	:2022.01.13
+--ÏàòÏ†ïÏûê	: Ï†ÑÍ¥ëÏßÑ
+--ÏàòÏ†ïÎÇ¥Ïö©    : Í∏àÏó¨Ìï≠Î™© Îç∞Ïù¥ÌÑ∞Ïóê ReturnÍ∞íÏùÑ Ï∂îÍ∞Ä Ìï†Ïàò ÏûàÎèÑÎ°ù ~r -> chr(13)||chr(10)(CR/LF)ÏúºÎ°ú Î≥ÄÌôò
+--ÏàòÏ†ïÏùºÏûê	:2024.01.18/ ÎûúÏÑ¨Ïõ®Ïñ¥Î°ú ÌîÑÎ°úÍ∑∏Îû® Î∞è Îç∞Ïù¥ÌÑ∞ Î≥µÍµ¨Î°ú 24.3.1Ïùº ÏÉàÎ°ú ÏûëÏÑ±Ìï®
+--ÏàòÏ†ïÏûê	: Ï†ÑÍ¥ëÏßÑ
+--ÏàòÏ†ïÎÇ¥Ïö©    : Temp ÌÖåÏù¥Î∏îÏùÑ ÏÇ¨Ïö©ÌïòÏßÄ ÏïäÍ≥† ÌÖçÏä§Ìä∏ÌååÏùº ÌïúÎùºÏù∏Ïî© Î∞õÏïÑÏÑú DBÏóê Ï†ÄÏû•ÌïòÎäî Î∞©ÏãùÏúºÎ°ú Î≥ÄÍ≤Ω
+--          Temp ÌÖåÏù¥Î∏îÏóê Ï†ÄÏû•ÌïòÍ≥† ÏùºÍ¥Ñ Ï≤òÎ¶¨ÌïòÎ©¥ ÏãúÍ∞ÑÏù¥ Í∏∏Ïñ¥Ï†∏ TimeOut Î∞úÏÉùÌï®ÏúºÎ°úÏç® ÎØ∏Ï≤ò Ï≤òÎ¶¨Í∞Ä ÎÅùÎÇòÍ∏∞Ï†ÑÏóê
+--          ÌîÑÎ°úÏãúÏ†∏ Ìò∏Ï∂úÌïòÎäî ÌîÑÎ°úÍ∑∏Îû®ÏóêÏÑú TimeOutÎ°ú Ïù∏ÏãùÌïòÏó¨ ÌîÑÎ°úÍ∑∏Îû® Ï¢ÖÎ£åÌï®
+--
 --     INPUT: IN_TIMEID         1 TIME id
---    OUTPUT: OUT_CNT	    	A.√≥∏ÆCOUNT
---	        : OUT_MSG	        B.√≥∏Æ∞·∞˙∏ﬁΩ√¡ˆ
+--    OUTPUT: OUT_CNT	    	A.Ï≤òÎ¶¨COUNT
+--	        : OUT_MSG	        B.Ï≤òÎ¶¨Í≤∞Í≥ºÎ©îÏãúÏßÄ
 --*******************************************************************************/
 
 
@@ -28,10 +28,10 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_GUBDATAUPDATE"
 
 MAIN: BEGIN ATOMIC
 
---  TEMP TABLE ∫Øºˆ
+--  TEMP TABLE Î≥ÄÏàò
     DECLARE V_TEMP_DAT      VARCHAR(5000)  DEFAULT '';--
 
--- DB DATA∫Øºˆ
+-- DB DATAÎ≥ÄÏàò
     DECLARE V_CELLPHONE     VARCHAR(11);--
     DECLARE V_JIKJONG       VARCHAR(25);--
     DECLARE V_GUB_YYMM      VARCHAR(6);--
@@ -45,14 +45,14 @@ MAIN: BEGIN ATOMIC
     DECLARE V_JIGEUP_DT     VARCHAR(8);--
     DECLARE V_MAX_INSA_NO   VARCHAR(10);--
 
---V1∫Øºˆ
+--V1Î≥ÄÏàò
     DECLARE V1_CELLPHONE    VARCHAR(11);--
     DECLARE V1_INSA_NO      VARCHAR(10);--
     DECLARE V1_JIKJONG      VARCHAR(25);--
     DECLARE V1_INSA_NM      VARCHAR(20);--
     DECLARE V1_USER_CHK     INT;--
 
---CLIENT¡§∫∏ ∫Øºˆ
+--CLIENTÏ†ïÎ≥¥ Î≥ÄÏàò
     DECLARE V_APPLICATION_ID
                             VARCHAR(50);--
     DECLARE V_APPLICATION_NAME
@@ -61,7 +61,7 @@ MAIN: BEGIN ATOMIC
                             VARCHAR(250);--
 
 
--- ¿œπ›∫Øºˆ
+-- ÏùºÎ∞òÎ≥ÄÏàò
 --    DECLARE I           INTEGER;--
 
 
@@ -75,44 +75,44 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE      CHAR(5)       DEFAULT '00000';--
 
-    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- ∫Øºˆ ¿« ±Ê¿Ã∞° ≥ π´ ¿€Ω¿¥œ¥Ÿ.
-    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- ¿˙¿Â«“ πÆ¿⁄ø≠¿« ±Ê¿Ã∞° ≥ π´ ±È¥œ¥Ÿ.
-    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULL¡ˆ¡§µ» ƒ√∑≥ø° NULL¡ˆ¡§
-    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- µ•¿Ã≈Õ ¡ﬂ∫π
-    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLE¿Ã æ¯¿ªãö
+    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- Î≥ÄÏàò Ïùò Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÏûëÏäµÎãàÎã§.
+    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- Ï†ÄÏû•Ìï† Î¨∏ÏûêÏó¥Ïùò Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÍπÅÎãàÎã§.
+    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULLÏßÄÏ†ïÎêú Ïª¨ÎüºÏóê NULLÏßÄÏ†ï
+    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- Îç∞Ïù¥ÌÑ∞ Ï§ëÎ≥µ
+    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLEÏù¥ ÏóÜÏùÑÎñÑ
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'µ•¿Ã≈Õ∏¶ √£¿ª(¡∂»∏«“)ºˆ æ¯Ω¿¥œ¥Ÿ..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'∫Øºˆ¿« ±Ê¿Ã∞° ≥ π´ ¿€Ω¿¥œ¥Ÿ..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'¡∏¿Á«œ¡ˆ æ ¥¬ ≈◊¿Ã∫Ì ¿‘¥œ¥Ÿ...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLƒ√∑≥ø° NULL¿Ã ¡ˆ¡§µ«æ˙Ω¿¥œ¥Ÿ..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'¿˙¿Â¡ﬂ ¡ﬂ∫πµ«æ˙Ω¿¥œ¥Ÿ.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'¿˙¿Âµ… πÆ¿⁄ø≠ ±Ê¿Ã∞° ≥ π´ ±È¥œ¥Ÿ..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'Ω««‡¡ﬂ ∞Ê∞Ì ø¿∑˘∞° πﬂª˝«œø¥Ω¿¥œ¥Ÿ.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'Ω««‡¡ﬂ æÀºˆæ¯¥¬ ø¿∑˘∑Œ ¡æ∑·µ«æ˙Ω¿¥œ¥Ÿ.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'Îç∞Ïù¥ÌÑ∞Î•º Ï∞æÏùÑ(Ï°∞ÌöåÌï†)Ïàò ÏóÜÏäµÎãàÎã§..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'Î≥ÄÏàòÏùò Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÏûëÏäµÎãàÎã§..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'Ï°¥Ïû¨ÌïòÏßÄ ÏïäÎäî ÌÖåÏù¥Î∏î ÏûÖÎãàÎã§...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLÏª¨ÎüºÏóê NULLÏù¥ ÏßÄÏ†ïÎêòÏóàÏäµÎãàÎã§..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'Ï†ÄÏû•Ï§ë Ï§ëÎ≥µÎêòÏóàÏäµÎãàÎã§.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'Ï†ÄÏû•Îê† Î¨∏ÏûêÏó¥ Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÍπÅÎãàÎã§..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'Ïã§ÌñâÏ§ë Í≤ΩÍ≥† Ïò§Î•òÍ∞Ä Î∞úÏÉùÌïòÏòÄÏäµÎãàÎã§.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'Ïã§ÌñâÏ§ë ÏïåÏàòÏóÜÎäî Ïò§Î•òÎ°ú Ï¢ÖÎ£åÎêòÏóàÏäµÎãàÎã§.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
 
---  ∫Øºˆ ≈¨∏ÆæÓ
-    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ªÁøÎæ»«œ∞Ì ≈◊Ω∫∆Æ
+--  Î≥ÄÏàò ÌÅ¥Î¶¨Ïñ¥
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ÏÇ¨Ïö©ÏïàÌïòÍ≥† ÌÖåÏä§Ìä∏
 --    SET V_SAVE = 0;--
 --    P1: BEGIN
-    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ªÁøÎæ»«œ∞Ì ≈◊Ω∫∆Æ
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ÏÇ¨Ïö©ÏïàÌïòÍ≥† ÌÖåÏä§Ìä∏
 
---  ¿˙¿Â«“ µ•¿Ã≈ÕøÕ∞∞¿∫ ±ﬁø© µ•¿Ã≈Õ∏¶ ¿˙¿Â«œ±‚¿¸∑π ªË¡¶«—¥Ÿ.
+--  Ï†ÄÏû•Ìï† Îç∞Ïù¥ÌÑ∞ÏôÄÍ∞ôÏùÄ Í∏âÏó¨ Îç∞Ïù¥ÌÑ∞Î•º Ï†ÄÏû•ÌïòÍ∏∞Ï†ÑÎ†à ÏÇ≠Ï†úÌïúÎã§.
 
     SET V_TEMP_DAT = IN_TEMP_DAT;--
 
---  µ•¿Ã≈Õ∏¶ ¿˙¿Â«—¥Ÿ.
+--  Îç∞Ïù¥ÌÑ∞Î•º Ï†ÄÏû•ÌïúÎã§.
 
     SET V_SQLSTATE = '00000';--
 
-    SET V_JIGEUP_DT = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 4)+1, INSTR(V_TEMP_DAT, '\', 1, 5) - INSTR(V_TEMP_DAT, '\', 1, 4)-1),'');-- ±ﬁø©¡ˆ±ﬁ¿œ
-    SET V_CELLPHONE  = COALESCE(SUBSTR(V_TEMP_DAT, 1, INSTR(V_TEMP_DAT, '\', 1, 1) -1),'');--                                       -- »ﬁ¥Î∆˘π¯»£
-    SET V_JIKJONG    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1),'');-- ¡˜¡æ(∞¸∏Æ¡˜, ¡§∫Ò¡˜, øÓ¿¸±‚ªÁ)
-    SET V_GUB_YYMM   = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1),'');-- ±ﬁø©≥‚ø˘
-    SET V_GUB_GB     = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1),'');-- ±ﬁø©±∏∫–
-    SET V_INSA_NO    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 5)+1, INSTR(V_TEMP_DAT, '\', 1, 6) - INSTR(V_TEMP_DAT, '\', 1, 5)-1),'');-- ªÁπ¯
-    SET V_INSA_NM    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 6)+1, INSTR(V_TEMP_DAT, '\', 1, 7) - INSTR(V_TEMP_DAT, '\', 1, 6)-1),'');-- º∫∏Ì
-    SET V_KEY_MSG = '[¿¸»≠π¯»£]:'||V_CELLPHONE||'[±ﬁø©≥‚ø˘]:'||V_GUB_YYMM||'[º∫∏Ì]:'||V_INSA_NM;--
--- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME¿ª ∞°¡Æø¬¥Ÿ
+    SET V_JIGEUP_DT = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 4)+1, INSTR(V_TEMP_DAT, '\', 1, 5) - INSTR(V_TEMP_DAT, '\', 1, 4)-1),'');-- Í∏âÏó¨ÏßÄÍ∏âÏùº
+    SET V_CELLPHONE  = COALESCE(SUBSTR(V_TEMP_DAT, 1, INSTR(V_TEMP_DAT, '\', 1, 1) -1),'');--                                       -- Ìú¥ÎåÄÌè∞Î≤àÌò∏
+    SET V_JIKJONG    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1),'');-- ÏßÅÏ¢Ö(Í¥ÄÎ¶¨ÏßÅ, Ï†ïÎπÑÏßÅ, Ïö¥Ï†ÑÍ∏∞ÏÇ¨)
+    SET V_GUB_YYMM   = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1),'');-- Í∏âÏó¨ÎÖÑÏõî
+    SET V_GUB_GB     = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1),'');-- Í∏âÏó¨Íµ¨Î∂Ñ
+    SET V_INSA_NO    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 5)+1, INSTR(V_TEMP_DAT, '\', 1, 6) - INSTR(V_TEMP_DAT, '\', 1, 5)-1),'');-- ÏÇ¨Î≤à
+    SET V_INSA_NM    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 6)+1, INSTR(V_TEMP_DAT, '\', 1, 7) - INSTR(V_TEMP_DAT, '\', 1, 6)-1),'');-- ÏÑ±Î™Ö
+    SET V_KEY_MSG = '[Ï†ÑÌôîÎ≤àÌò∏]:'||V_CELLPHONE||'[Í∏âÏó¨ÎÖÑÏõî]:'||V_GUB_YYMM||'[ÏÑ±Î™Ö]:'||V_INSA_NM;--
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAMEÏùÑ Í∞ÄÏ†∏Ïò®Îã§
     SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
     SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
             = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
@@ -144,19 +144,19 @@ MAIN: BEGIN ATOMIC
                                  WHEN TOK.SEQ >= 11 THEN TRIM(VARCHAR_FORMAT(TOK.SEQ - 10,'000'))
                                  ELSE 'eee' END HANGMOK_CD
                         --, TOK.TOKEN V_PAY
-                          , CASE WHEN TOK.SEQ BETWEEN 41 AND 100 
+                          , CASE WHEN TOK.SEQ BETWEEN 41 AND 100
                                     THEN TRIM(VARCHAR_FORMAT
                                                     (CAST
                                                         (
-                                                            (CASE WHEN COALESCE(TOK.TOKEN,'') ='' 
+                                                            (CASE WHEN COALESCE(TOK.TOKEN,'') =''
                                                                 THEN '0' ELSE '' END
-                                                            )||COALESCE(TOK.TOKEN,'') 
+                                                            )||COALESCE(TOK.TOKEN,'')
                                                             AS INT
                                                         ),'9999999999'
                                                     )
-                                              ) 
-                                    ELSE 
-                                       TOK.TOKEN 
+                                              )
+                                    ELSE
+                                       TOK.TOKEN
                             END V_PAY
                           , V_APPLICATION_ID
                           , V_APPLICATION_NAME
@@ -216,7 +216,7 @@ MAIN: BEGIN ATOMIC
                         , V_INSA_NO
                         , V_INSA_NM
                         , V_JIKJONG
-                        , '1' -- ¿Á¡˜ªÛ≈¬
+                        , '1' -- Ïû¨ÏßÅÏÉÅÌÉú
                         , V_APPLICATION_ID
                         , V_APPLICATION_NAME
                         , V_CLIENT_HOSTNAME
@@ -225,7 +225,7 @@ MAIN: BEGIN ATOMIC
                ;--
         END IF;--
 
-      IF V_GUB_GB = '±ﬁø©' AND V_INSA_NO = V_MAX_INSA_NO THEN
+      IF V_GUB_GB = 'Í∏âÏó¨' AND V_INSA_NO = V_MAX_INSA_NO THEN
          UPDATE GADMIN.MBC_USERS
             SET JAEJIK_YN          = '0'
               , APPLICATION_ID     = V_APPLICATION_ID
@@ -243,7 +243,7 @@ MAIN: BEGIN ATOMIC
          SET V_INSA_NO = '9999999999';--
       END IF;--
 
-   SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'¿˙¿Âµ«æ˙Ω¿¥œ¥Ÿ.');-- ¿œ¥‹ ªÁøÎæ»«‘
+   SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'Ï†ÄÏû•ÎêòÏóàÏäµÎãàÎã§.');-- ÏùºÎã® ÏÇ¨Ïö©ÏïàÌï®
    RETURN 999;
 
-END MAIN 
+END MAIN

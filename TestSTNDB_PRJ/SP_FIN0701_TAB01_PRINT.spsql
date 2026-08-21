@@ -45,7 +45,7 @@ MAIN: BEGIN
   WITH REPLACE
   NOT LOGGED;--
 
---°³¼ö Ã£±â
+--ê°œìˆ˜ ì°¾ê¸°
 SELECT GISU INTO V_GISU
   FROM GADMIN.BSACC9
  WHERE START <= IN_FROMDATE
@@ -82,13 +82,13 @@ P1: BEGIN
     DO
 
 
-    --Àü¿ùÀÌ¿ù ±Ý¾× Ã£±â
+    --ì „ì›”ì´ì›” ê¸ˆì•¡ ì°¾ê¸°
     SELECT COALESCE(DR_00, 0), COALESCE(CR_00, 0) INTO V_DR_00, V_CR_00
       FROM GADMIN.HAPJAN A
             LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
      WHERE YEAR = V_GISU
        AND A.ACC_CD = V_CUR_ACC_CD
-       AND B.ACC_GB IN ('ÀÚ»ê','ºÎÃ¤','ÀÚº»');--
+       AND B.ACC_GB IN ('ìžì‚°','ë¶€ì±„','ìžë³¸');--
 
     IF SUBSTRING(IN_FROMDATE, 6, 5) = '01-01' THEN
         SET V_DR_AMT = V_DR_00 + 0;--
@@ -98,7 +98,7 @@ P1: BEGIN
                  SELECT COALESCE(SUM(CR_AMT),0) + COALESCE(V_DR_00, 0), COALESCE(SUM(DR_AMT),0) + COALESCE(V_CR_00, 0) INTO V_DR_AMT, V_CR_AMT
                    FROM GADMIN.ACCOU1
                   WHERE 1 = 1
-                    AND DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                    AND DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                     AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LAST_DAY
                  ;--
             ELSE
@@ -110,44 +110,44 @@ P1: BEGIN
             END IF;--
     END IF; --
 
-	IF V_CUR_DRCR_GB = 'Â÷º¯' THEN
+	IF V_CUR_DRCR_GB = 'ì°¨ë³€' THEN
     	SET V_YIWOL_AMT = V_DR_AMT - V_CR_AMT;--
 
         IF V_CUR_ACC_CD = '1110101' THEN
-            --Â÷º¯°èÁ¤ Çö±Ý
+            --ì°¨ë³€ê³„ì • í˜„ê¸ˆ
             INSERT INTO SESSION.TEMP
             SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, SUM(DR_AMT - CR_AMT) OVER(ORDER BY DATE) FROM
             (
-                      SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'Àü±âÀÌ¿ù' AS ACC_CONT, V_YIWOL_AMT AS DR_AMT, 0 AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
+                      SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ì „ê¸°ì´ì›”' AS ACC_CONT, V_YIWOL_AMT AS DR_AMT, 0 AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
                         FROM SYSIBM.SYSDUMMY1
                       UNION ALL
-                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ÀÏ°èÇ¥¿¡¼­' AS ACC_CONT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT) AS JAN_AMT
+                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ì¼ê³„í‘œì—ì„œ' AS ACC_CONT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT) AS JAN_AMT
                         FROM GADMIN.ACCOU1 A,
                             (
                                 SELECT B.DATE, C.ROW_ID, B.ACC_CONT FROM GADMIN.ACCOU1 B,
-                                    ( SELECT DATE, MAX(ACC_NO) AS ACC_NO, MAX(ROW_ID) AS ROW_ID  FROM GADMIN.ACCOU1 WHERE DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')  AND DATE BETWEEN IN_FROMDATE AND IN_TODATE GROUP BY DATE  ) C
-                                 WHERE B.DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                                    ( SELECT DATE, MAX(ACC_NO) AS ACC_NO, MAX(ROW_ID) AS ROW_ID  FROM GADMIN.ACCOU1 WHERE DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')  AND DATE BETWEEN IN_FROMDATE AND IN_TODATE GROUP BY DATE  ) C
+                                 WHERE B.DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                                    AND B.DATE = C.DATE
                                    AND B.ROW_ID = C.ROW_ID
                              ) B
-                      WHERE A.DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                      WHERE A.DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                          AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                          AND A.DATE = B.DATE
                     GROUP BY VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD')
                     ORDER BY DATE, ROW_ID
             ) A;--
         ELSE
-            --Â÷º¯°èÁ¤ Çö±ÝÀÌ¿Ü
+            --ì°¨ë³€ê³„ì • í˜„ê¸ˆì´ì™¸
     	    SET V_YIWOL_AMT = V_DR_AMT - V_CR_AMT;--
 
             INSERT INTO SESSION.TEMP
             SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, SUM(DR_AMT - CR_AMT) OVER(ORDER BY DATE) FROM
             (
-                      SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'Àü±âÀÌ¿ù' AS ACC_CONT, V_YIWOL_AMT AS DR_AMT, 0 AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
+                      SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ì „ê¸°ì´ì›”' AS ACC_CONT, V_YIWOL_AMT AS DR_AMT, 0 AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
                         FROM SYSIBM.SYSDUMMY1
                       UNION ALL
 --                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, MAX(B.ACC_CONT) AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
-                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ÀÏ°èÇ¥¿¡¼­' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT) AS JAN_AMT
+                      SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ì¼ê³„í‘œì—ì„œ' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT) AS JAN_AMT
                         FROM GADMIN.ACCOU1 A,
                             (
                                 SELECT B.DATE, C.ROW_ID, B.ACC_CONT FROM GADMIN.ACCOU1 B,
@@ -169,16 +169,16 @@ P1: BEGIN
         END IF;--
 
     ELSE
-        --´ëº¯ °èÁ¤
+        --ëŒ€ë³€ ê³„ì •
     	SET V_YIWOL_AMT = V_CR_AMT - V_DR_AMT;--
 
     	INSERT INTO SESSION.TEMP
         SELECT DATE, ACC_CD, ACC_NM, ACC_CONT, DR_AMT, CR_AMT, SUM(CR_AMT - DR_AMT) OVER(ORDER BY DATE) FROM
         (
-                  SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'Àü±âÀÌ¿ù' AS ACC_CONT, 0 AS DR_AMT, V_YIWOL_AMT AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
+                  SELECT IN_FROMDATE AS DATE, 000 AS ROW_ID,  V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ì „ê¸°ì´ì›”' AS ACC_CONT, 0 AS DR_AMT, V_YIWOL_AMT AS CR_AMT, V_YIWOL_AMT AS JAN_AMT
                     FROM SYSIBM.SYSDUMMY1
                   UNION ALL
-                  SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ÀÏ°èÇ¥¿¡¼­' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                  SELECT VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, MAX(B.ROW_ID) AS ROW_ID, V_CUR_ACC_CD AS ACC_CD, V_CUR_ACC_NM AS ACC_NM, 'ì¼ê³„í‘œì—ì„œ' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
                     FROM GADMIN.ACCOU1 A,
                         (
                             SELECT B.DATE, C.ROW_ID, B.ACC_CONT FROM GADMIN.ACCOU1 B,
@@ -201,33 +201,33 @@ P1: BEGIN
     END IF;	   --
 
     INSERT INTO SESSION.TEMP
-    SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, '¿ù°è' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, NULL AS JAN_AMT
+    SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, 'ì›”ê³„' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, NULL AS JAN_AMT
        FROM SESSION.TEMP
       WHERE ACC_CD = V_CUR_ACC_CD
       GROUP BY ACC_CD;--
 
-    IF V_CUR_DRCR_GB = 'Â÷º¯' THEN
-        IF V_CUR_ACC_CD = '1110101' THEN   --Çö±Ý
+    IF V_CUR_DRCR_GB = 'ì°¨ë³€' THEN
+        IF V_CUR_ACC_CD = '1110101' THEN   --í˜„ê¸ˆ
              INSERT INTO SESSION.TEMP
-             SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+             SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
                FROM (
-                         SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, V_CR_00 AS DR_AMT, V_DR_00 AS CR_AMT, (V_CR_00 + V_DR_00) AS JAN_AMT
+                         SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, V_CR_00 AS DR_AMT, V_DR_00 AS CR_AMT, (V_CR_00 + V_DR_00) AS JAN_AMT
                            FROM SYSIBM.SYSDUMMY1
                          UNION ALL
-                         SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                         SELECT '' AS DATE, '1110101' AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
                            FROM GADMIN.ACCOU1
                           WHERE 1 = 1
-                            AND DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                            AND DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                             AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE )
              ;--
         ELSE
              INSERT INTO SESSION.TEMP
-             SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+             SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
                FROM (
-                         SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, V_DR_00 AS DR_AMT, V_CR_00 AS CR_AMT, (V_DR_00 + V_CR_00) AS JAN_AMT
+                         SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, V_DR_00 AS DR_AMT, V_CR_00 AS CR_AMT, (V_DR_00 + V_CR_00) AS JAN_AMT
                            FROM SYSIBM.SYSDUMMY1
                          UNION ALL
-                         SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT)  AS JAN_AMT
+                         SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(DR_AMT - CR_AMT)  AS JAN_AMT
                            FROM GADMIN.ACCOU1
                           WHERE 1 = 1
                             AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
@@ -237,12 +237,12 @@ P1: BEGIN
         END IF;--
     ELSE
              INSERT INTO SESSION.TEMP
-             SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+             SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
                FROM (
-                         SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, V_DR_00 AS DR_AMT, V_CR_00 AS CR_AMT, (V_DR_00 + V_CR_00) AS JAN_AMT
+                         SELECT '' AS DATE, V_CUR_ACC_CD AS ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, V_DR_00 AS DR_AMT, V_CR_00 AS CR_AMT, (V_DR_00 + V_CR_00) AS JAN_AMT
                            FROM SYSIBM.SYSDUMMY1
                          UNION ALL
-                         SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, '´©°è' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
+                         SELECT '' AS DATE, ACC_CD, '' AS ACC_NM, 'ëˆ„ê³„' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(CR_AMT - DR_AMT) AS JAN_AMT
                            FROM GADMIN.ACCOU1
                           WHERE 1 = 1
                             AND DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
@@ -268,4 +268,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

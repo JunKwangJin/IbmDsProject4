@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1501_UPDATE" 
+CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN1501_UPDATE"
 (
 	IN IN_FROMDATE VARCHAR(10)
   , IN IN_TODATE VARCHAR(10)
@@ -105,13 +105,13 @@ P1: BEGIN
 	SET V_USER_ID = CURRENT CLIENT_USERID;--
     SET V_WORKSTATION = CURRENT CLIENT_WRKSTNNAME;--
     SET V_APPLICATIONINFOMATION = CURRENT CLIENT_APPLNAME;--
-    
+
     SELECT COUNT(*) INTO V_CNT
       FROM GADMIN.HAPJAN
      WHERE YEAR = IN_GISU;--
 
     IF V_CNT > 0 THEN
-        --±‚¡∏ «’¿‹ µ•¿Ã≈Õ πÈæ˜ : ¿¸±‚¿Ãø˘ µ•¿Ã≈Õ »∞øÎ¿ª ¿ß«ÿ ¿˙¿Â«‘
+        --Í∏∞Ï°¥ Ìï©Ïûî Îç∞Ïù¥ÌÑ∞ Î∞±ÏóÖ : Ï†ÑÍ∏∞Ïù¥Ïõî Îç∞Ïù¥ÌÑ∞ ÌôúÏö©ÏùÑ ÏúÑÌï¥ Ï†ÄÏû•Ìï®
         INSERT INTO SESSION.TEMP
                ( YEAR, ACC_CD, ACC_NM, DRCR_GB, MANAGE_ITEM,DR_00,CR_00,DR_01,CR_01,DR_02,CR_02,DR_03,CR_03,DR_04,CR_04,DR_05,CR_05,DR_06,CR_06,DR_07,CR_07,DR_08,CR_08,DR_09,CR_09,DR_10,CR_10,DR_11,CR_11,DR_12,CR_12,DR_JANAEK,CR_JANAEK )
         SELECT          YEAR,ACC_CD,ACC_NM,DRCR_GB,MANAGE_ITEM,DR_00,CR_00,DR_01,CR_01,DR_02,CR_02,DR_03,CR_03,DR_04,CR_04,DR_05,CR_05,DR_06,CR_06,DR_07,CR_07,DR_08,CR_08,DR_09,CR_09,DR_10,CR_10,DR_11,CR_11,DR_12,CR_12,DR_JANAEK,CR_JANAEK
@@ -122,7 +122,7 @@ P1: BEGIN
          WHERE YEAR = IN_GISU;--
     END IF;--
 
-    --«’¿‹ ¿Á∞ËªÍ
+    --Ìï©Ïûî Ïû¨Í≥ÑÏÇ∞
     INSERT INTO GADMIN.HAPJAN (YEAR, ACC_CD, ACC_NM, DRCR_GB, MANAGE_ITEM, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07, DR_08, CR_08, DR_09, CR_09, DR_10, CR_10, DR_11, CR_11, DR_12, CR_12, DR_JANAEK, CR_JANAEK, C_USER, C_DATE )
     SELECT IN_GISU, A.ACC_CD, A.ACC_NM, B.DRCR_GB, ''
             , 0 AS DR_00, 0 AS CR_00
@@ -185,7 +185,7 @@ P1: BEGIN
                  WHERE 1 = 1
                 GROUP BY A.ACC_CD, A.ACC_NM, SUBSTRING(DATE,6,2)
                 UNION ALL
-                SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM
+                SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM
                       , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(CR_AMT,0)) END,0) DR_01
                       , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '01' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_01
 
@@ -223,15 +223,15 @@ P1: BEGIN
                       , COALESCE(CASE SUBSTRING(DATE,6,2) WHEN '12' THEN SUM(COALESCE(DR_AMT,0)) END,0) CR_12
                   FROM GADMIN.ACCOU1 A
                  WHERE 1 = 1
-                    AND DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                GROUP BY SUBSTRING(DATE,6,2)
               ) A LEFT OUTER JOIN GADMIN.BSACC2 B ON ( A.ACC_CD = B.ACC_CD )
     GROUP BY A.ACC_CD, A.ACC_NM, B.DRCR_GB;--
 
---¿Ãø˘¡§∫∏ ≥÷±‚
+--Ïù¥ÏõîÏ†ïÎ≥¥ ÎÑ£Í∏∞
     IF V_CNT > 0 THEN
-        --¿¸±‚ ¿Ãø˘ ±›æ◊ ≥÷±‚
+        --Ï†ÑÍ∏∞ Ïù¥Ïõî Í∏àÏï° ÎÑ£Í∏∞
 --        UPDATE GADMIN.HAPJAN A
 --           SET A.DR_00 = B.DR_00,
 --               A.CR_00 = B.CR_00,
@@ -242,7 +242,7 @@ P1: BEGIN
 --           AND A.ACC_CD = B.ACC_CD
 --           AND A.YEAR = B.YEAR;--
 
--- IDEøÕ DB ∏µŒ ø°∑Ø/∞Ê∞Ì æ¯¿Ã øœ∫Æ«œ∞‘ º“»≠«œ¥¬ πÆπ˝
+-- IDEÏôÄ DB Î™®Îëê ÏóêÎü¨/Í≤ΩÍ≥† ÏóÜÏù¥ ÏôÑÎ≤ΩÌïòÍ≤å ÏÜåÌôîÌïòÎäî Î¨∏Î≤ï
         MERGE INTO GADMIN.HAPJAN A
         USING SESSION.TEMP B
            ON (A.ACC_CD = B.ACC_CD AND A.YEAR = B.YEAR)
@@ -251,16 +251,16 @@ P1: BEGIN
                          A.CR_00 = B.CR_00,
                          A.M_USER = V_USER_ID,
                          A.M_DATE = CURRENT TIMESTAMP;
-         
+
      END IF;--
 
--- ∞Ë¡§ ∏∂∞® ¿€æ˜
+-- Í≥ÑÏ†ï ÎßàÍ∞ê ÏûëÏóÖ
     SELECT COUNT(*) INTO V_CNT
       FROM GADMIN.TRADEKYE
      WHERE YEAR = IN_GISU;--
 
     IF V_CNT > 0 THEN
-        --TRADEKYE πÈæ˜ : ¿¸±‚ ¿Ãø˘ µ•¿Ã≈Õ πÈæ˜
+        --TRADEKYE Î∞±ÏóÖ : Ï†ÑÍ∏∞ Ïù¥Ïõî Îç∞Ïù¥ÌÑ∞ Î∞±ÏóÖ
         INSERT INTO SESSION.TRADEKEY_TEMP (YEAR, ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07
                         , DR_08, CR_08, DR_09, CR_09, DR_10, CR_10, DR_11, CR_11, DR_12, CR_12, DR_JANAEK, CR_JANAEK)
         SELECT YEAR, ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB, DR_00, CR_00, DR_01, CR_01, DR_02, CR_02, DR_03, CR_03, DR_04, CR_04, DR_05, CR_05, DR_06, CR_06, DR_07, CR_07
@@ -421,9 +421,9 @@ P1: BEGIN
                        (
                             SELECT MANAGE_CD AS MANAGE_CD_1, MANAGE_ITEM AS MANAGE_ITEM_1, DETAIL_CD AS MANAGE_CD_2, DETAIL_ITEM AS MANAGE_ITEM_2 FROM GADMIN.BSACC8
                             UNION ALL
-                            SELECT '300' AS MANAGE_CD_1, '∏≈¿‘√≥' AS MANAGE_ITEM_1, SANGHO_CD AS MANAGE_CD_2, SANGHO AS MANAGE_ITEM_2 FROM GADMIN.BSTRADE
+                            SELECT '300' AS MANAGE_CD_1, 'Îß§ÏûÖÏ≤ò' AS MANAGE_ITEM_1, SANGHO_CD AS MANAGE_CD_2, SANGHO AS MANAGE_ITEM_2 FROM GADMIN.BSTRADE
                             UNION ALL
-                            SELECT '400' AS MANAGE_CD_1, '∏≈√‚√≥' AS MANAGE_ITEM_1, SANGHO_CD AS MANAGE_CD_2, SANGHO AS MANAGE_ITEM_2 FROM GADMIN.BSTRADE
+                            SELECT '400' AS MANAGE_CD_1, 'Îß§Ï∂úÏ≤ò' AS MANAGE_ITEM_1, SANGHO_CD AS MANAGE_CD_2, SANGHO AS MANAGE_ITEM_2 FROM GADMIN.BSTRADE
                        ) C
                    WHERE 1 = 1
                      AND A.MANAGE_CD_1 = C.MANAGE_CD_1
@@ -433,12 +433,12 @@ P1: BEGIN
         ) A   LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
         ORDER BY A.ACC_CD;--
 
---¿Ãø˘¡§∫∏ ≥÷±‚
+--Ïù¥ÏõîÏ†ïÎ≥¥ ÎÑ£Í∏∞
     /*
     IF V_CNT > 0 THEN
 
 
-        -- ¿¸±‚¿Ãø˘ ≥÷±‚
+        -- Ï†ÑÍ∏∞Ïù¥Ïõî ÎÑ£Í∏∞
         UPDATE  GADMIN.TRADEKYE A
             SET A.DR_00 = B.DR_00, A.CR_00 = B.CR_00
           FROM  SESSION.TRADEKEY_TEMP B
@@ -477,4 +477,4 @@ P2: BEGIN
 --    OPEN CURSOR_TEMP1;--
 
 END P2;--
-END MAIN 
+END MAIN

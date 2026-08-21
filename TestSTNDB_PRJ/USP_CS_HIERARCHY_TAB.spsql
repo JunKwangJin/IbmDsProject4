@@ -1,28 +1,28 @@
-CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB" 
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB"
 (
-    IN P_TAB_NAME VARCHAR(128),     -- Å×ÀÌºí ÀÌ¸§ (¿¹: gadmin.cs_common_c)
-    IN P_PK_COL VARCHAR(128),       -- °íÀ¯ Å° ÄÃ·³ (ÀÚ½Ä, ¿¹: CD)
-    IN P_FK_COL VARCHAR(128),       -- ¿Ü·¡ Å° ÄÃ·³ (ºÎ¸ð, ¿¹: UP_CD)
-    IN P_TEXT_COL VARCHAR(128),     -- Ç¥½ÃÇÒ ÅØ½ºÆ® ÄÃ·³ (¿¹: CD_NM)
-    IN P_START_VAL VARCHAR(255)     -- ½ÃÀÛ ºÎ¸ð °ª (ÃÖ»óÀ§ ºÎ¸ðÀÇ UP_CD, ¿¹: 'A')
+    IN P_TAB_NAME VARCHAR(128),     -- í…Œì´ë¸” ì´ë¦„ (ì˜ˆ: gadmin.cs_common_c)
+    IN P_PK_COL VARCHAR(128),       -- ê³ ìœ  í‚¤ ì»¬ëŸ¼ (ìžì‹, ì˜ˆ: CD)
+    IN P_FK_COL VARCHAR(128),       -- ì™¸ëž˜ í‚¤ ì»¬ëŸ¼ (ë¶€ëª¨, ì˜ˆ: UP_CD)
+    IN P_TEXT_COL VARCHAR(128),     -- í‘œì‹œí•  í…ìŠ¤íŠ¸ ì»¬ëŸ¼ (ì˜ˆ: CD_NM)
+    IN P_START_VAL VARCHAR(255)     -- ì‹œìž‘ ë¶€ëª¨ ê°’ (ìµœìƒìœ„ ë¶€ëª¨ì˜ UP_CD, ì˜ˆ: 'A')
    , OUT OUT_CNT             VARCHAR(4)
    , OUT OUT_MSG             VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: "GADMIN"."USP_CS_HiERARCHY_TAB" 
-»ý¼ºÀÏÀÚ	: 2025.10.5
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë    	: Table¸¦ Hierarchy Table±¸Á¶·Î ¸¸µç´Ù.
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-INPUT   : IN P_TAB_NAME VARCHAR(128),     -- 1. Å×ÀÌºí ÀÌ¸§ (¿¹: gadmin.cs_common_c) 
-          IN P_PK_COL VARCHAR(128),       -- 2. °íÀ¯ Å° ÄÃ·³ (ÀÚ½Ä, ¿¹: CD)            
-          IN P_FK_COL VARCHAR(128),       -- 3. ¿Ü·¡ Å° ÄÃ·³ (ºÎ¸ð, ¿¹: UP_CD)         
-          IN P_TEXT_COL VARCHAR(128),     -- 4. Ç¥½ÃÇÒ ÅØ½ºÆ® ÄÃ·³ (¿¹: CD_NM)          
-          IN P_START_VAL VARCHAR(255)     -- 5. ½ÃÀÛ ºÎ¸ð °ª (ÃÖ»óÀ§ ºÎ¸ðÀÇ UP_CD, ¿¹: 'A')
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+íŒŒì¼ëª…	: "GADMIN"."USP_CS_HiERARCHY_TAB"
+ìƒì„±ì¼ìž	: 2025.10.5
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©    	: Tableë¥¼ Hierarchy Tableêµ¬ì¡°ë¡œ ë§Œë“ ë‹¤.
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+INPUT   : IN P_TAB_NAME VARCHAR(128),     -- 1. í…Œì´ë¸” ì´ë¦„ (ì˜ˆ: gadmin.cs_common_c)
+          IN P_PK_COL VARCHAR(128),       -- 2. ê³ ìœ  í‚¤ ì»¬ëŸ¼ (ìžì‹, ì˜ˆ: CD)
+          IN P_FK_COL VARCHAR(128),       -- 3. ì™¸ëž˜ í‚¤ ì»¬ëŸ¼ (ë¶€ëª¨, ì˜ˆ: UP_CD)
+          IN P_TEXT_COL VARCHAR(128),     -- 4. í‘œì‹œí•  í…ìŠ¤íŠ¸ ì»¬ëŸ¼ (ì˜ˆ: CD_NM)
+          IN P_START_VAL VARCHAR(255)     -- 5. ì‹œìž‘ ë¶€ëª¨ ê°’ (ìµœìƒìœ„ ë¶€ëª¨ì˜ UP_CD, ì˜ˆ: 'A')
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 
   DYNAMIC RESULT SETS 1
@@ -30,11 +30,11 @@ OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
 
 MAIN: BEGIN ATOMIC
 
-    DECLARE V_SQL_STATEMENT VARCHAR(8000); -- Äõ¸® ±æÀÌ °í·ÁÇØ¼­ Á» ´õ ±æ°Ô ÀâÀ½
+    DECLARE V_SQL_STATEMENT VARCHAR(8000); -- ì¿¼ë¦¬ ê¸¸ì´ ê³ ë ¤í•´ì„œ ì¢€ ë” ê¸¸ê²Œ ìž¡ìŒ
     DECLARE C_RESULT CURSOR WITH RETURN TO CALLER FOR S1;
 
 
-    -- µ¿Àû SQL·Î Äõ¸® »ý¼º ½ÃÀÛ!
+    -- ë™ì  SQLë¡œ ì¿¼ë¦¬ ìƒì„± ì‹œìž‘!
 
     SET V_SQL_STATEMENT = 'WITH LEVEL1 AS (' ||
         'SELECT ' ||
@@ -47,7 +47,7 @@ MAIN: BEGIN ATOMIC
         'FROM ' || P_TAB_NAME || ' AS T ' ||
         'WHERE T.' || P_FK_COL || ' = ''' || P_START_VAL || '''), ' ||
 
-    -- LEVEL2 CTE Ãß°¡        
+    -- LEVEL2 CTE ì¶”ê°€
         'LEVEL2 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -59,7 +59,7 @@ MAIN: BEGIN ATOMIC
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL1 L1 ON C.' || P_FK_COL || ' = L1.CD), ' ||
 
-    -- LEVEL3 CTE Ãß°¡ 
+    -- LEVEL3 CTE ì¶”ê°€
         'LEVEL3 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -70,8 +70,8 @@ MAIN: BEGIN ATOMIC
         'L2.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL2 L2 ON C.' || P_FK_COL || ' = L2.CD), ' ||
-        
-    -- LEVEL4 CTE Ãß°¡
+
+    -- LEVEL4 CTE ì¶”ê°€
         'LEVEL4 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -83,7 +83,7 @@ MAIN: BEGIN ATOMIC
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL3 L3 ON C.' || P_FK_COL || ' = L3.CD) ' ||
 
-    -- ÃÖÁ¾ SELECT¿Í UNION ALL ºÎºÐ (¿ø·¡ µÑ¸®´Ô Äõ¸®Ã³·³)
+    -- ìµœì¢… SELECTì™€ UNION ALL ë¶€ë¶„ (ì›ëž˜ ë‘˜ë¦¬ë‹˜ ì¿¼ë¦¬ì²˜ëŸ¼)
         'SELECT ROWNO, UP_CD, CD, CD_NM, LEVEL, PATH ' ||
         'FROM (' ||
         'SELECT * FROM LEVEL1 ' ||
@@ -93,11 +93,11 @@ MAIN: BEGIN ATOMIC
         ') AS ALL_LEVELS ' ||
         'ORDER BY PATH';
 
-    -- µð¹ö±ë¿ëÀ¸·Î SQL ¹®Àå Ãâ·Â (¼±ÅÃ »çÇ× - ³ªÁß¿¡ ÁÖ¼® Ã³¸®ÇØµµ µÅ)
+    -- ë””ë²„ê¹…ìš©ìœ¼ë¡œ SQL ë¬¸ìž¥ ì¶œë ¥ (ì„ íƒ ì‚¬í•­ - ë‚˜ì¤‘ì— ì£¼ì„ ì²˜ë¦¬í•´ë„ ë¼)
     CALL DBMS_OUTPUT.PUT_LINE(V_SQL_STATEMENT);
 
-    -- µ¿Àû SQL ½ÇÇà!
+    -- ë™ì  SQL ì‹¤í–‰!
     PREPARE S1 FROM V_SQL_STATEMENT;
     OPEN C_RESULT;
 
-END MAIN 
+END MAIN

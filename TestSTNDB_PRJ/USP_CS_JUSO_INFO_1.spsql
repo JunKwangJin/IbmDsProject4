@@ -1,26 +1,26 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_JUSO_INFO"  (
     IN p_keyword VARCHAR(255),
-    IN p_page_size INT DEFAULT 10,  -- ÇÑ ÆäÀÌÁö¿¡ °¡Á®¿Ã ÁÖ¼Ò °³¼ö (±âº» 10°³, ÃÖ´ë 1000)
-    IN p_current_page INT DEFAULT 1, -- °¡Á®¿Ã ÆäÀÌÁö ¹øÈ£ (±âº» 1ÆäÀÌÁö)
-    OUT o_total_page INT,   -- ÃÑÆäÀÌÁö¼ö¸¦ ³Ñ°ÜÁÜ
-    OUT o_error_code VARCHAR(10),   -- ¿¡·¯ ÄÚµå OUT ÆÄ¶ó¹ÌÅÍ
-    OUT o_error_msg VARCHAR(500)    -- ¿¡·¯ ¸Þ½ÃÁö OUT ÆÄ¶ó¹ÌÅÍ
+    IN p_page_size INT DEFAULT 10,  -- í•œ íŽ˜ì´ì§€ì— ê°€ì ¸ì˜¬ ì£¼ì†Œ ê°œìˆ˜ (ê¸°ë³¸ 10ê°œ, ìµœëŒ€ 1000)
+    IN p_current_page INT DEFAULT 1, -- ê°€ì ¸ì˜¬ íŽ˜ì´ì§€ ë²ˆí˜¸ (ê¸°ë³¸ 1íŽ˜ì´ì§€)
+    OUT o_total_page INT,   -- ì´íŽ˜ì´ì§€ìˆ˜ë¥¼ ë„˜ê²¨ì¤Œ
+    OUT o_error_code VARCHAR(10),   -- ì—ëŸ¬ ì½”ë“œ OUT íŒŒë¼ë¯¸í„°
+    OUT o_error_msg VARCHAR(500)    -- ì—ëŸ¬ ë©”ì‹œì§€ OUT íŒŒë¼ë¯¸í„°
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.USP_CS_JUSO_INFO
-»ý¼ºÀÏÀÚ	: 2025.08.11
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ÁÖ¼Ò¸¦ Å°¿öµå·Î ÀÔ·ÂÇÏ¿© ¿ìÆí¹øÈ£¸¦ juso.go.kr¿¡¼­ °¡Á®¿À´Â ÇÁ·Î½ÃÁ®
-USAGE   : GADMIN.USP_CS_JUSO_INFO(ÁÖ¼Ò Å°¿öµå, ÇÑÈ­¸é¿¡ µé¾î°¥ ÆäÀÌÁö¼ö(±âº»10°³), ¼±ÅÃÇÑ ÆäÀÌÁö¹øÈ£, ÃÑÆäÀÌÁö¼ö, ¿¡·¯ÄÚµå, ¿¡·¯¸Þ¼¼Áö)
-¼öÁ¤ÀÏÀÚ	: 2025.08.12
-¼öÁ¤ÀÚ	: Àü±¤Áø
-¼öÁ¤³»¿ë	: ÇÑÆäÀÌÁö¿¡ µé¾î°¥ °¹¼ö¿Í ÆäÀÌÁö¼ö °ü°è¾øÀÌ  Å°¿öµå¿Í ¸Â°í ÆäÀÌÁö ¼ö°¡ ¿À·ù°¡ ³ªÁö ¾Ê´Â ¹üÀ§³»¿¡¼­ ¸ðµÎ °¡Á®¿À´Â°ÍÀ¸·Î ¼öÁ¤
+íŒŒì¼ëª…	: GADMIN.USP_CS_JUSO_INFO
+ìƒì„±ì¼ìž	: 2025.08.11
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ì£¼ì†Œë¥¼ í‚¤ì›Œë“œë¡œ ìž…ë ¥í•˜ì—¬ ìš°íŽ¸ë²ˆí˜¸ë¥¼ juso.go.krì—ì„œ ê°€ì ¸ì˜¤ëŠ” í”„ë¡œì‹œì ¸
+USAGE   : GADMIN.USP_CS_JUSO_INFO(ì£¼ì†Œ í‚¤ì›Œë“œ, í•œí™”ë©´ì— ë“¤ì–´ê°ˆ íŽ˜ì´ì§€ìˆ˜(ê¸°ë³¸10ê°œ), ì„ íƒí•œ íŽ˜ì´ì§€ë²ˆí˜¸, ì´íŽ˜ì´ì§€ìˆ˜, ì—ëŸ¬ì½”ë“œ, ì—ëŸ¬ë©”ì„¸ì§€)
+ìˆ˜ì •ì¼ìž	: 2025.08.12
+ìˆ˜ì •ìž	: ì „ê´‘ì§„
+ìˆ˜ì •ë‚´ìš©	: í•œíŽ˜ì´ì§€ì— ë“¤ì–´ê°ˆ ê°¯ìˆ˜ì™€ íŽ˜ì´ì§€ìˆ˜ ê´€ê³„ì—†ì´  í‚¤ì›Œë“œì™€ ë§žê³  íŽ˜ì´ì§€ ìˆ˜ê°€ ì˜¤ë¥˜ê°€ ë‚˜ì§€ ì•ŠëŠ” ë²”ìœ„ë‚´ì—ì„œ ëª¨ë‘ ê°€ì ¸ì˜¤ëŠ”ê²ƒìœ¼ë¡œ ìˆ˜ì •
 INPUT	: p_keyword VARCHAR(255),
-        : p_page_size INT DEFAULT 10,  -- ÇÑ ÆäÀÌÁö¿¡ °¡Á®¿Ã ÁÖ¼Ò °³¼ö (±âº» 10°³, ÃÖ´ë 1000)
-        : p_current_page INT DEFAULT 1, -- °¡Á®¿Ã ÆäÀÌÁö ¹øÈ£ (±âº» 1ÆäÀÌÁö)
-OUTPUT	: o_total_page INT,   -- ÃÑÆäÀÌÁö¼ö¸¦ ³Ñ°ÜÁÜ
-        : o_error_code VARCHAR(10),   -- ¿¡·¯ ÄÚµå OUT ÆÄ¶ó¹ÌÅÍ
-        : o_error_msg VARCHAR(500)    -- ¿¡·¯ ¸Þ½ÃÁö OUT ÆÄ¶ó¹ÌÅÍ
+        : p_page_size INT DEFAULT 10,  -- í•œ íŽ˜ì´ì§€ì— ê°€ì ¸ì˜¬ ì£¼ì†Œ ê°œìˆ˜ (ê¸°ë³¸ 10ê°œ, ìµœëŒ€ 1000)
+        : p_current_page INT DEFAULT 1, -- ê°€ì ¸ì˜¬ íŽ˜ì´ì§€ ë²ˆí˜¸ (ê¸°ë³¸ 1íŽ˜ì´ì§€)
+OUTPUT	: o_total_page INT,   -- ì´íŽ˜ì´ì§€ìˆ˜ë¥¼ ë„˜ê²¨ì¤Œ
+        : o_error_code VARCHAR(10),   -- ì—ëŸ¬ ì½”ë“œ OUT íŒŒë¼ë¯¸í„°
+        : o_error_msg VARCHAR(500)    -- ì—ëŸ¬ ë©”ì‹œì§€ OUT íŒŒë¼ë¯¸í„°
 *******************************************************************************/
 LANGUAGE SQL
 DYNAMIC RESULT SETS 1
@@ -33,15 +33,15 @@ P1: BEGIN
 
     DECLARE V_SQLSTATE 			CHAR(5) 	DEFAULT '00000';--
 
-    -- ¿©±â¿¡ ³ÊÀÇ juso.go.kr API ÀÎÁõÅ°¸¦ ³Ö¾îÁà!
+    -- ì—¬ê¸°ì— ë„ˆì˜ juso.go.kr API ì¸ì¦í‚¤ë¥¼ ë„£ì–´ì¤˜!
     DECLARE v_api_key VARCHAR(50) DEFAULT 'U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDM=';
     DECLARE v_keyword VARCHAR(255);
     DECLARE v_encoded_keyword VARCHAR(512);
     DECLARE v_api_url VARCHAR(1000);
-    DECLARE v_http_response CLOB; -- HTTP ÀÀ´äÀº CLOBÀ¸·Î ¹Þ¾Æ¼­ XMLPARSER·Î XML·Î º¯È¯
-    DECLARE v_xml_response XML;   -- CLOBÀ» XML·Î ÆÄ½ÌÇÑ °á°ú
-    -- DECLARE v_error_code VARCHAR(10); -- OUT ÆÄ¶ó¹ÌÅÍ·Î ´ëÃ¼
-    -- DECLARE v_error_msg VARCHAR(500); -- OUT ÆÄ¶ó¹ÌÅÍ·Î ´ëÃ¼
+    DECLARE v_http_response CLOB; -- HTTP ì‘ë‹µì€ CLOBìœ¼ë¡œ ë°›ì•„ì„œ XMLPARSERë¡œ XMLë¡œ ë³€í™˜
+    DECLARE v_xml_response XML;   -- CLOBì„ XMLë¡œ íŒŒì‹±í•œ ê²°ê³¼
+    -- DECLARE v_error_code VARCHAR(10); -- OUT íŒŒë¼ë¯¸í„°ë¡œ ëŒ€ì²´
+    -- DECLARE v_error_msg VARCHAR(500); -- OUT íŒŒë¼ë¯¸í„°ë¡œ ëŒ€ì²´
     DECLARE v_total_count INT;
     DECLARE v_total_page INT;
     DECLARE v_page_size_internal INT;
@@ -67,99 +67,99 @@ DECLARE cursor1 CURSOR WITH RETURN for
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
 
 
-    -- ÃÊ±â ¿¡·¯ »óÅÂ¸¦ ¼º°øÀ¸·Î ¼³Á¤
+    -- ì´ˆê¸° ì—ëŸ¬ ìƒíƒœë¥¼ ì„±ê³µìœ¼ë¡œ ì„¤ì •
     SET o_error_code = '0';
-    SET o_error_msg = '¼º°ø';
+    SET o_error_msg = 'ì„±ê³µ';
 
     SET v_page_size_internal = p_page_size;
     SET v_current_page_internal = p_current_page;
 
-    -- p_page_size°¡ À¯È¿ÇÑ ¹üÀ§(1~100)¸¦ ¹þ¾î³ª¸é Á¶Á¤ (juso.go.krÀº ÃÖ´ë 100)
+    -- p_page_sizeê°€ ìœ íš¨í•œ ë²”ìœ„(1~100)ë¥¼ ë²—ì–´ë‚˜ë©´ ì¡°ì • (juso.go.krì€ ìµœëŒ€ 100)
     SET v_page_size_internal = CASE
                                   WHEN v_page_size_internal < 1 THEN 1
-                                  WHEN v_page_size_internal > 200 THEN 200 -- API ÃÖ´ë countPerPage 100
+                                  WHEN v_page_size_internal > 200 THEN 200 -- API ìµœëŒ€ countPerPage 100
                                   ELSE v_page_size_internal
                               END;
 
-    -- p_current_page°¡ 1º¸´Ù ÀÛÀ¸¸é 1·Î Á¶Á¤
+    -- p_current_pageê°€ 1ë³´ë‹¤ ìž‘ìœ¼ë©´ 1ë¡œ ì¡°ì •
     SET v_current_page_internal = CASE
                                     WHEN v_current_page_internal < 1 THEN 1
                                     ELSE v_current_page_internal
                                   END;
 
-    -- 0. °Ë»öÅ°¿öµå Á¢ÇÕ¼º °Ë»ç
+    -- 0. ê²€ìƒ‰í‚¤ì›Œë“œ ì ‘í•©ì„± ê²€ì‚¬
 
-    -- 0.1. »ç¿ëÀÚ ÀÔ·Â°ª À¯È¿¼º °Ë»ç ÇÁ·Î½ÃÀú È£Ãâ
+    -- 0.1. ì‚¬ìš©ìž ìž…ë ¥ê°’ ìœ íš¨ì„± ê²€ì‚¬ í”„ë¡œì‹œì € í˜¸ì¶œ
     CALL GADMIN.USP_CS_VALIDATE_JUSO_KEYWORD(p_keyword, v_validation_code, v_validation_message);
 
-    -- 0.2. À¯È¿¼º °Ë»ç °á°ú¿¡ µû¸¥ ºÐ±â Ã³¸®
---    IF v_validation_code = -1 THEN -- ¿À·ù°¡ ¹ß»ýÇß´Ù¸é
-    IF v_validation_code <> -1 THEN -- ¿À·ù³ª °æ°í  ¹ß»ýÇß´Ù¸é
+    -- 0.2. ìœ íš¨ì„± ê²€ì‚¬ ê²°ê³¼ì— ë”°ë¥¸ ë¶„ê¸° ì²˜ë¦¬
+--    IF v_validation_code = -1 THEN -- ì˜¤ë¥˜ê°€ ë°œìƒí–ˆë‹¤ë©´
+    IF v_validation_code <> -1 THEN -- ì˜¤ë¥˜ë‚˜ ê²½ê³   ë°œìƒí–ˆë‹¤ë©´
         SET o_error_code = 'W999';
-        SET o_error_msg = v_validation_message; -- »ç¿ëÀÚ¿¡°Ô ¿À·ù ¸Þ½ÃÁö Àü´Þ
-        -- ´õ ÀÌ»ó °Ë»ö ÁøÇàÇÏÁö ¾Ê°í Á¾·á
+        SET o_error_msg = v_validation_message; -- ì‚¬ìš©ìžì—ê²Œ ì˜¤ë¥˜ ë©”ì‹œì§€ ì „ë‹¬
+        -- ë” ì´ìƒ ê²€ìƒ‰ ì§„í–‰í•˜ì§€ ì•Šê³  ì¢…ë£Œ
         RETURN;
-    --ELSEIF v_validation_code = 1 THEN -- °æ°í°¡ ¹ß»ýÇß´Ù¸é
-    --    -- °æ°í ¸Þ½ÃÁö¸¦ »ç¿ëÀÚ¿¡°Ô º¸¿©ÁÖ°í (e.g., alert Ã¢)
-    --    -- ±×·¡µµ °Ë»öÀº ÁøÇàÇÏµµ·Ï ÇÏ°Å³ª, »ç¿ëÀÚ¿¡°Ô ´Ù½Ã ÀÔ·Â¹Þµµ·Ï ¼±ÅÃ±Ç ºÎ¿©
-    --    -- ¿©±â¼­´Â °æ°í ¸Þ½ÃÁö¸¦ °á°ú¿¡ Æ÷ÇÔÇÏ°í °Ë»öÀº ÁøÇàÇÏ´Â ¿¹½Ã
-    --    SET o_search_result = v_validation_message || ' °Ë»öÀ» ½ÃµµÇÕ´Ï´Ù.';
-    --    -- ÀÌ¾î¼­ °Ë»ö ·ÎÁ÷ ¼öÇà...
+    --ELSEIF v_validation_code = 1 THEN -- ê²½ê³ ê°€ ë°œìƒí–ˆë‹¤ë©´
+    --    -- ê²½ê³  ë©”ì‹œì§€ë¥¼ ì‚¬ìš©ìžì—ê²Œ ë³´ì—¬ì£¼ê³  (e.g., alert ì°½)
+    --    -- ê·¸ëž˜ë„ ê²€ìƒ‰ì€ ì§„í–‰í•˜ë„ë¡ í•˜ê±°ë‚˜, ì‚¬ìš©ìžì—ê²Œ ë‹¤ì‹œ ìž…ë ¥ë°›ë„ë¡ ì„ íƒê¶Œ ë¶€ì—¬
+    --    -- ì—¬ê¸°ì„œëŠ” ê²½ê³  ë©”ì‹œì§€ë¥¼ ê²°ê³¼ì— í¬í•¨í•˜ê³  ê²€ìƒ‰ì€ ì§„í–‰í•˜ëŠ” ì˜ˆì‹œ
+    --    SET o_search_result = v_validation_message || ' ê²€ìƒ‰ì„ ì‹œë„í•©ë‹ˆë‹¤.';
+    --    -- ì´ì–´ì„œ ê²€ìƒ‰ ë¡œì§ ìˆ˜í–‰...
     --    -- CALL ACTUAL_ADDRESS_SEARCH_PROC(p_user_input_address, ...);
     --ELSE -- v_validation_code = 0 (OK)
-    --    -- ¾Æ¹« ¹®Á¦ ¾øÀ¸´Ï Á¤»óÀûÀ¸·Î °Ë»ö ·ÎÁ÷ ¼öÇà
-    --    SET o_search_result = 'ÀÔ·ÂµÈ ÁÖ¼Ò·Î °Ë»öÀ» ½ÃÀÛÇÕ´Ï´Ù...';
+    --    -- ì•„ë¬´ ë¬¸ì œ ì—†ìœ¼ë‹ˆ ì •ìƒì ìœ¼ë¡œ ê²€ìƒ‰ ë¡œì§ ìˆ˜í–‰
+    --    SET o_search_result = 'ìž…ë ¥ëœ ì£¼ì†Œë¡œ ê²€ìƒ‰ì„ ì‹œìž‘í•©ë‹ˆë‹¤...';
     --    -- CALL ACTUAL_ADDRESS_SEARCH_PROC(p_user_input_address, ...);
     END IF;
-    
 
-    -- 1. °Ë»ö Å°¿öµå¸¦ URL ÀÎÄÚµù
+
+    -- 1. ê²€ìƒ‰ í‚¤ì›Œë“œë¥¼ URL ì¸ì½”ë”©
     SET v_encoded_keyword = DB2XML.URLENCODE(p_keyword, 'UTF-8');
 
-    -- 2. juso.go.kr API URL ±¸¼º (ÆäÀÌÁö³×ÀÌ¼Ç Ãß°¡)
+    -- 2. juso.go.kr API URL êµ¬ì„± (íŽ˜ì´ì§€ë„¤ì´ì…˜ ì¶”ê°€)
     SET v_api_url = CAST('https://business.juso.go.kr/addrlink/addrLinkApi.do' ||
                     '?confmKey=' || v_api_key ||
                     '&currentPage=' || DB2XML.URLENCODE(CHAR(v_current_page_internal), '') ||
                     '&countPerPage=' || DB2XML.URLENCODE(CHAR(v_page_size_internal), '') ||
                     '&keyword=' || v_encoded_keyword ||
-                    '&resultType=xml' AS VARCHAR(1000)); -- ÃæºÐÈ÷ ±æ°Ô ¼³Á¤
+                    '&resultType=xml' AS VARCHAR(1000)); -- ì¶©ë¶„ížˆ ê¸¸ê²Œ ì„¤ì •
 
-    -- 3. HTTP GET ¿äÃ» º¸³»±â (ÀÀ´äÀº CLOBÀ¸·Î ¹ÞÀ½)
+    -- 3. HTTP GET ìš”ì²­ ë³´ë‚´ê¸° (ì‘ë‹µì€ CLOBìœ¼ë¡œ ë°›ìŒ)
     SET v_http_response = DB2XML.HTTPGETCLOB(v_api_url, XMLPARSE(DOCUMENT '<httpHeader/>'));
 
-    -- 4. CLOB ÀÀ´äÀ» XML·Î ÆÄ½Ì
+    -- 4. CLOB ì‘ë‹µì„ XMLë¡œ íŒŒì‹±
     IF CAST(v_http_response AS VARCHAR(10000)) IS NOT NULL AND LENGTH(TRIM(CAST(v_http_response AS VARCHAR(10000)))) > 0 THEN
         SET v_xml_response = XMLPARSE(DOCUMENT v_http_response);
     ELSE
-        -- ÀÀ´äÀÌ NULLÀÌ°Å³ª ºñ¾îÀÖ´Â °æ¿ì ¿¡·¯ Ã³¸®
+        -- ì‘ë‹µì´ NULLì´ê±°ë‚˜ ë¹„ì–´ìžˆëŠ” ê²½ìš° ì—ëŸ¬ ì²˜ë¦¬
         SET o_error_code = 'DB_ERR01';
-        SET o_error_msg = 'API ÀÀ´äÀÌ ºñ¾îÀÖ°Å³ª ³×Æ®¿öÅ© ¹®Á¦·Î ÀÀ´äÀ» ¹ÞÁö ¸øÇß½À´Ï´Ù.';
-        -- ¿¡·¯ ¹ß»ý ½Ã ÇÁ·Î½ÃÀú Á¾·á (´õ ÀÌ»ó ÁøÇàÇÒ ÇÊ¿ä ¾øÀ½)
+        SET o_error_msg = 'API ì‘ë‹µì´ ë¹„ì–´ìžˆê±°ë‚˜ ë„¤íŠ¸ì›Œí¬ ë¬¸ì œë¡œ ì‘ë‹µì„ ë°›ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.';
+        -- ì—ëŸ¬ ë°œìƒ ì‹œ í”„ë¡œì‹œì € ì¢…ë£Œ (ë” ì´ìƒ ì§„í–‰í•  í•„ìš” ì—†ìŒ)
         RETURN;
     END IF;
 
-    -- 5. XML ÀÀ´ä¿¡¼­ °øÅë Á¤º¸(errorCode, totalCount) ÃßÃâ
+    -- 5. XML ì‘ë‹µì—ì„œ ê³µí†µ ì •ë³´(errorCode, totalCount) ì¶”ì¶œ
     SET o_error_code = XMLCAST(XMLQUERY('$X/results/common/errorCode/text()' PASSING v_xml_response AS "X") AS VARCHAR(10));
     SET o_error_msg = XMLCAST(XMLQUERY('$X/results/common/errorMessage/text()' PASSING v_xml_response AS "X") AS VARCHAR(500));
     SET v_total_count = XMLCAST(XMLQUERY('$X/results/common/totalCount/text()' PASSING v_xml_response AS "X") AS INTEGER);
-    SET v_total_page = CEIL(CAST(v_total_count AS DECIMAL(10, 5)) / CAST(v_page_size_internal AS DECIMAL(10, 5)));  -- ºÐÀÚºÐ¸ð°¡ ¸ðµÎ DECIMAL¿À ¼Ò¼öÁ¡ÀÌ ÀÖ´Â tYPE·Î º¯È¯ÇØ¾ß ÇÑ´Ù
+    SET v_total_page = CEIL(CAST(v_total_count AS DECIMAL(10, 5)) / CAST(v_page_size_internal AS DECIMAL(10, 5)));  -- ë¶„ìžë¶„ëª¨ê°€ ëª¨ë‘ DECIMALì˜¤ ì†Œìˆ˜ì ì´ ìžˆëŠ” tYPEë¡œ ë³€í™˜í•´ì•¼ í•œë‹¤
     SET o_total_page = v_total_page;
 --    SET o_total_page = v_total_page;
-    IF v_total_page > 20 THEN 
+    IF v_total_page > 20 THEN
     	SET o_error_code = 'E0006';
     END IF;
-    -- API ¿¡·¯ ÄÚµå°¡ '0'ÀÌ ¾Æ´Ï¸é ¿¡·¯ ¸Þ½ÃÁö ¼³Á¤
+    -- API ì—ëŸ¬ ì½”ë“œê°€ '0'ì´ ì•„ë‹ˆë©´ ì—ëŸ¬ ë©”ì‹œì§€ ì„¤ì •
     IF o_error_code <> '0' THEN
         SET o_error_msg = CASE
-                            WHEN o_error_code = '-999' THEN '¿ìÆí¹øÈ£°¡ Á¤»óÁ¶È¸ µÇÁö ¾Ê½À´Ï´Ù.(°ü¸®ÀÚ¿¡°Ô ¹®ÀÇ ÇÏ¼¼¿ä)'
-                            WHEN o_error_code = 'E0006' THEN 'ÁÖ¼Ò¸¦ »ó¼¼È÷ ÀÔ·ÂÇØ ÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.' -- Specific juso.go.kr error [¡¼2¡½](about:blank)
-                            ELSE REPLACE(o_error_msg,'°Ë»ö¾î','ÁÖ¼Ò') -- ÀÏ¹ÝÀûÀÎ ¸Þ½ÃÁö º¯°æ
+                            WHEN o_error_code = '-999' THEN 'ìš°íŽ¸ë²ˆí˜¸ê°€ ì •ìƒì¡°íšŒ ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.(ê´€ë¦¬ìžì—ê²Œ ë¬¸ì˜ í•˜ì„¸ìš”)'
+                            WHEN o_error_code = 'E0006' THEN 'ì£¼ì†Œë¥¼ ìƒì„¸ížˆ ìž…ë ¥í•´ ì£¼ì‹œê¸° ë°”ëžë‹ˆë‹¤.' -- Specific juso.go.kr error [ã€2ã€‘](about:blank)
+                            ELSE REPLACE(o_error_msg,'ê²€ìƒ‰ì–´','ì£¼ì†Œ') -- ì¼ë°˜ì ì¸ ë©”ì‹œì§€ ë³€ê²½
                           END;
-        -- ¿¡·¯ ¹ß»ý ½Ã ÇÁ·Î½ÃÀú Á¾·á (SELECT ¹® ½ÇÇà ¾È ÇÔ)
+        -- ì—ëŸ¬ ë°œìƒ ì‹œ í”„ë¡œì‹œì € ì¢…ë£Œ (SELECT ë¬¸ ì‹¤í–‰ ì•ˆ í•¨)
         RETURN;
     END IF;
 
-    -- ¼º°øÀûÀ¸·Î ÁÖ¼Ò Á¤º¸¸¦ ¹Þ¾Æ¿ÔÀ» ¶§¸¸ SELECT ¹® ½ÇÇà
-    -- ÇÁ·Î½ÃÀú´Â RESULT SETÀ» Á÷Á¢ RETURNÇÏÁö ¾Ê°í SELECT ¹®À» ÅëÇØ ³»º¸³¿
+    -- ì„±ê³µì ìœ¼ë¡œ ì£¼ì†Œ ì •ë³´ë¥¼ ë°›ì•„ì™”ì„ ë•Œë§Œ SELECT ë¬¸ ì‹¤í–‰
+    -- í”„ë¡œì‹œì €ëŠ” RESULT SETì„ ì§ì ‘ RETURNí•˜ì§€ ì•Šê³  SELECT ë¬¸ì„ í†µí•´ ë‚´ë³´ëƒ„
 	OPEN cursor1;
-END P1 
+END P1

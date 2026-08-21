@@ -28,36 +28,36 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0102_U02"
     , OUT OUT_MSG            VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SP_DRV0102_U02
-»ý¼ºÀÏÀÚ	: 2021.04.01
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	: ¹èÂ÷È¸¼ö ÀúÀå
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë
-INPUT	: IN_USER_ID    1. »ç¿ëÀÚID
-    IN_ROUTE_CD         2. ³ë¼±,
-    IN_PYEON_GB         3. Æí¼º,
-    IN_WEEK_GB          4. ÆòÀÏ±¸ºÐ,
+íŒŒì¼ëª…	: GADMIN.SP_DRV0102_U02
+ìƒì„±ì¼ìž	: 2021.04.01
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	: ë°°ì°¨íšŒìˆ˜ ì €ìž¥
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©
+INPUT	: IN_USER_ID    1. ì‚¬ìš©ìžID
+    IN_ROUTE_CD         2. ë…¸ì„ ,
+    IN_PYEON_GB         3. íŽ¸ì„±,
+    IN_WEEK_GB          4. í‰ì¼êµ¬ë¶„,
 
-    IN_AM10_AMPM_GB       5. ¿ÀÀü¿ÀÈÄ¾ß°£±¸ºÐ(¿ÀÀü),
-    IN_AM10_DRIVE_ST      6. ¿îÇà»óÅÂ(Á¤»ó),
-    IN_AM10_HOISU         7. È¸¼ö,
+    IN_AM10_AMPM_GB       5. ì˜¤ì „ì˜¤í›„ì•¼ê°„êµ¬ë¶„(ì˜¤ì „),
+    IN_AM10_DRIVE_ST      6. ìš´í–‰ìƒíƒœ(ì •ìƒ),
+    IN_AM10_HOISU         7. íšŒìˆ˜,
 
-    IN_PM10_AMPM_GB       8. ¿ÀÀü¿ÀÈÄ¾ß°£±¸ºÐ(¿ÀÈÄ),
-    IN_PM10_DRIVE_ST      9. ¿îÇà»óÅÂ(Á¤»ó),
-    IN_PM10_HOISU         10. È¸¼ö,
+    IN_PM10_AMPM_GB       8. ì˜¤ì „ì˜¤í›„ì•¼ê°„êµ¬ë¶„(ì˜¤í›„),
+    IN_PM10_DRIVE_ST      9. ìš´í–‰ìƒíƒœ(ì •ìƒ),
+    IN_PM10_HOISU         10. íšŒìˆ˜,
 
-    IN_AM40_AMPM_GB       11. ¿ÀÀü¿ÀÈÄ¾ß°£±¸ºÐ(¿ÀÀü),
-    IN_AM40_DRIVE_ST      12. ¿îÇà»óÅÂ(´ÜÃà),
-    IN_AM40_HOISU         13. È¸¼ö,
+    IN_AM40_AMPM_GB       11. ì˜¤ì „ì˜¤í›„ì•¼ê°„êµ¬ë¶„(ì˜¤ì „),
+    IN_AM40_DRIVE_ST      12. ìš´í–‰ìƒíƒœ(ë‹¨ì¶•),
+    IN_AM40_HOISU         13. íšŒìˆ˜,
 
-    IN_PM40_AMPM_GB       14. ¿ÀÀü¿ÀÈÄ¾ß°£±¸ºÐ(¿ÀÈÄ),
-    IN_PM40_DRIVE_ST      15. ¿îÇà»óÅÂ(´ÜÃà),
-    IN_PM40_HOISU         16. È¸¼ö,
+    IN_PM40_AMPM_GB       14. ì˜¤ì „ì˜¤í›„ì•¼ê°„êµ¬ë¶„(ì˜¤í›„),
+    IN_PM40_DRIVE_ST      15. ìš´í–‰ìƒíƒœ(ë‹¨ì¶•),
+    IN_PM40_HOISU         16. íšŒìˆ˜,
 
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 
 
@@ -82,26 +82,26 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
 
-    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEì´ ì—†ì„ë–„
 
 
     DECLARE UNDO HANDLER FOR NOT FOUND
-          SET OUT_MSG = COALESCE(OUT_MSG,'')||'[SQLSTATE:'||SQLSTATE||']' || CHR(13) || 'WRR01: µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..' ;--
+          SET OUT_MSG = COALESCE(OUT_MSG,'')||'[SQLSTATE:'||SQLSTATE||']' || CHR(13) || 'WRR01: ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..' ;--
     DECLARE UNDO HANDLER FOR SQLWARNING
-          SET OUT_MSG = OUT_MSG||'[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'
-                                                                            ELSE              'WRR99: ½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' END; --
+          SET OUT_MSG = OUT_MSG||'[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'
+                                                                            ELSE              'WRR99: ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' END; --
     DECLARE UNDO HANDLER FOR SQLEXCEPTION
-          SET OUT_MSG = COALESCE(OUT_MSG,'') ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'
-                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'
-                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR03: ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'
-                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'
-                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'
+          SET OUT_MSG = COALESCE(OUT_MSG,'') ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'
+                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'
+                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR03: ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'
+                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'
+                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'
                                    END;--
-    -- º¯¼ö Å¬¸®¾î
+    -- ë³€ìˆ˜ í´ë¦¬ì–´
     SET (OUT_CNT, OUT_MSG) =('0','');--
     SET V_SAVE = 0; --
 
@@ -110,8 +110,8 @@ MAIN: BEGIN ATOMIC
     SET (OUT_CNT, OUT_MSG) =('0','');--
 	 --DATA	insert
 
-   -- varchar·Î ³Ñ°Ü¹ÞÀº ¼ýÀÚ¸¦ integer, decimal º¯È¯
-   -- ¿ÀÀü È¸¼ö
+   -- varcharë¡œ ë„˜ê²¨ë°›ì€ ìˆ«ìžë¥¼ integer, decimal ë³€í™˜
+   -- ì˜¤ì „ íšŒìˆ˜
    IF COALESCE(IN_AM10_HOISU,'') = '' THEN
       SET V_IN_AM10_HOISU = 0;--
     ELSE
@@ -122,7 +122,7 @@ MAIN: BEGIN ATOMIC
     ELSE
       SET V_IN_AM40_HOISU = DECIMAL(IN_AM40_HOISU,5,1);--
    END IF;--
-   -- ¿ÀÈÄ È¸¼ö
+   -- ì˜¤í›„ íšŒìˆ˜
    IF COALESCE(IN_PM10_HOISU,'') = '' THEN
       SET V_IN_PM10_HOISU = 0;--
     ELSE
@@ -134,14 +134,14 @@ MAIN: BEGIN ATOMIC
       SET V_IN_PM40_HOISU = DECIMAL(IN_PM40_HOISU,5,1);--
    END IF;--
 
-   -- È­¸é ÁÂ¿ìÀÇ ¿ÀÀü ¿ÀÈÄÀÇ °ªÀ» ¹Ì¸® °¡Á®¿Â´Ù
+   -- í™”ë©´ ì¢Œìš°ì˜ ì˜¤ì „ ì˜¤í›„ì˜ ê°’ì„ ë¯¸ë¦¬ ê°€ì ¸ì˜¨ë‹¤
    SELECT MAX(CD) INTO V_AM
-     FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'L','','','','','',''));  -- IN_AMPM_GB [DRV06 : ³ë¼±(CD3:ÁÖ¾ß³ë¼±±¸ºÐ), DRV07 : ÁÖ¾ß½É¾ß ±¸ºÐ]
+     FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'L','','','','','',''));  -- IN_AMPM_GB [DRV06 : ë…¸ì„ (CD3:ì£¼ì•¼ë…¸ì„ êµ¬ë¶„), DRV07 : ì£¼ì•¼ì‹¬ì•¼ êµ¬ë¶„]
    SELECT MAX(CD) INTO V_PM
      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'R','','','','','',''));--
 --SET OUT_MSG = OUT_MSG||CHR(13)||'[IN_ROUTE_CD='||COALESCE(IN_ROUTE_CD,'**NULL**')||'][IN_PYEON_GB='||COALESCE(IN_PYEON_GB,'**NULL**')||'][IN_WEEK_GB='||COALESCE(IN_WEEK_GB,'**NULL**')||'][V_AM='||COALESCE(V_AM,'**NULL**')||'][V_PM='||COALESCE(V_PM,'**NULL**')||'][V_AM='||COALESCE(V_AM,'**NULL**')||']';--
 
-   -- ½É¾ßÀÇ °æ¿ì ¿ÀÀü ¶Ç´Â ¿ÀÈÄ¸¸ ÀÔ·ÂÇÑ´Ù.  ¿ÀÀü°ú ¿ÀÈÄ µÑ´Ù µé¾î ÀÖÀ» °æ¿ì ¸Þ¼¼Áö¸¦ º¸¿©ÁÖ°í  ÀúÀåÀº ¹«½ÃÇÑ´Ù.
+   -- ì‹¬ì•¼ì˜ ê²½ìš° ì˜¤ì „ ë˜ëŠ” ì˜¤í›„ë§Œ ìž…ë ¥í•œë‹¤.  ì˜¤ì „ê³¼ ì˜¤í›„ ë‘˜ë‹¤ ë“¤ì–´ ìžˆì„ ê²½ìš° ë©”ì„¸ì§€ë¥¼ ë³´ì—¬ì£¼ê³   ì €ìž¥ì€ ë¬´ì‹œí•œë‹¤.
    SELECT LISTAGG(CD4)  WITHIN GROUP (ORDER BY CASE CD4 WHEN 'L' THEN 1 WHEN 'R' THEN 2 ELSE 3 END)
      INTO V_CHK
      FROM TABLE(GADMIN.SF_COMMON_LST01('',
@@ -153,18 +153,18 @@ MAIN: BEGIN ATOMIC
 
 --SET OUT_MSG = OUT_MSG||CHR(13)||'[IN_ROUTE_CD='||COALESCE(IN_ROUTE_CD,'**NULL**')||'][IN_PYEON_GB='||COALESCE(IN_PYEON_GB,'**NULL**')||'][IN_WEEK_GB='||COALESCE(IN_WEEK_GB,'**NULL**')||'][V_AM='||COALESCE(V_AM,'**NULL**')||'][V_PM='||COALESCE(V_PM,'**NULL**')||'][V_AM='||COALESCE(V_AM,'**NULL**')||'][V_CHK='||COALESCE(V_CHK,'**NULL**')||']';--
    IF V_CHK = 'L' AND (COALESCE(IN_PM10_HOISU,'') <> '' OR COALESCE(IN_PM40_HOISU,'') <> '') THEN
-      SET OUT_MSG = OUT_MSG||'³ë¼±"'||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'"Àº ¿ÀÈÄ¿¡ ÀÔ·ÂÇÑ µ¥ÀÌÅÍ´Â »èÁ¦µË´Ï´Ù..';--
+      SET OUT_MSG = OUT_MSG||'ë…¸ì„ "'||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'"ì€ ì˜¤í›„ì— ìž…ë ¥í•œ ë°ì´í„°ëŠ” ì‚­ì œë©ë‹ˆë‹¤..';--
    END IF;   --
    IF V_CHK = 'R' AND (COALESCE(IN_AM10_HOISU,'') <> '' OR COALESCE(IN_AM40_HOISU,'') <> '') THEN
-      SET OUT_MSG = OUT_MSG||'³ë¼±"'||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'"Àº ¿ÀÀü¿¡ ÀÔ·ÂÇÑ µ¥ÀÌÅÍ´Â »èÁ¦µË´Ï´Ù..';--
+      SET OUT_MSG = OUT_MSG||'ë…¸ì„ "'||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'"ì€ ì˜¤ì „ì— ìž…ë ¥í•œ ë°ì´í„°ëŠ” ì‚­ì œë©ë‹ˆë‹¤..';--
    END IF;   --
 
-   -- µ¥ÀÌÅÍ ÀúÀå Ã³¸®
-   -- 1. ¿ÞÂÊ(¿ÀÀü),Á¤»ó µ¥ÀÌÅÍ Ã³¸®
+   -- ë°ì´í„° ì €ìž¥ ì²˜ë¦¬
+   -- 1. ì™¼ìª½(ì˜¤ì „),ì •ìƒ ë°ì´í„° ì²˜ë¦¬
    IF V_CHK IN ('L','LR') THEN
           IF COALESCE(IN_AM10_AMPM_GB,'') ='' THEN
 
-             --ÀÔ·ÂµÈ°ªÀÌ NULL ÀÎ°æ¿ì
+             --ìž…ë ¥ëœê°’ì´ NULL ì¸ê²½ìš°
              IF COALESCE(IN_AM10_HOISU,'') = '' THEN
               ELSE
                  SELECT
@@ -176,9 +176,9 @@ MAIN: BEGIN ATOMIC
                     AND AMPM_GB    = V_AM
                     AND DRIVE_ST   = '10'
                   ;--
-                 -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ °¡ º¯°æµÇ¾úÀ¸¸é UPDATE
+                 -- ìž…ë ¥ëœ ë°ì´í„° ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë©´ UPDATE
                  IF  V_CNT > 0 THEN
-                     SET OUT_MSG = OUT_MSG||CHR(13)||'µ¥ÀÌÅÍ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù.';--
+                     SET OUT_MSG = OUT_MSG||CHR(13)||'ë°ì´í„°ê°€ ì´ë¯¸ ì¡´ìž¬ í•©ë‹ˆë‹¤.';--
                  ELSE
                     INSERT INTO BSUNHA2B_M VALUES
                           ( IN_ROUTE_CD
@@ -195,7 +195,7 @@ MAIN: BEGIN ATOMIC
                  END IF;    --
              END IF;--
            ELSE
-              -- µ¥ÀÌÅÍ°¡ º¯°æµÇ¾úˆpÁö ºñ±³ °Ë»ç
+              -- ë°ì´í„°ê°€ ë³€ê²½ë˜ì—ˆëŠ©ì§€ ë¹„êµ ê²€ì‚¬
               SELECT
                      COUNT(*) INTO V_CNT
                 FROM GADMIN.BSUNHA2B_M
@@ -209,7 +209,7 @@ MAIN: BEGIN ATOMIC
                      OR WEEK_GB   <> IN_WEEK_GB
                      OR HOISU     <> V_IN_AM10_HOISU)
                ;--
-              -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ °¡ º¯°æµÇ¾úÀ¸¸é UPDATE
+              -- ìž…ë ¥ëœ ë°ì´í„° ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë©´ UPDATE
               IF  V_CNT > 0 THEN
                  UPDATE BSUNHA2B_M
                      SET  ROUTE_CD   = IN_ROUTE_CD
@@ -228,10 +228,10 @@ MAIN: BEGIN ATOMIC
               END IF;    --
           END IF;--
    END IF;   --
-    -- 2. ¿À¸¥ÂÊ(¿ÀÈÄ) Á¤»ó µ¥ÀÌÅÍ Ã³¸®
+    -- 2. ì˜¤ë¥¸ìª½(ì˜¤í›„) ì •ìƒ ë°ì´í„° ì²˜ë¦¬
    IF V_CHK IN ('R','LR') THEN
           IF COALESCE(IN_PM10_AMPM_GB,'') = '' THEN
-            IF COALESCE(IN_PM10_HOISU,'') = '' THEN --ÀÔ·ÂµÈ°ªÀÌ NULL ÀÎ°æ¿ì
+            IF COALESCE(IN_PM10_HOISU,'') = '' THEN --ìž…ë ¥ëœê°’ì´ NULL ì¸ê²½ìš°
              ELSE
                  SELECT
                         COUNT(*) INTO V_CNT
@@ -242,9 +242,9 @@ MAIN: BEGIN ATOMIC
                     AND AMPM_GB    = V_PM
                     AND DRIVE_ST   = '10'
                   ;--
-                 -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ °¡ º¯°æµÇ¾úÀ¸¸é UPDATE
+                 -- ìž…ë ¥ëœ ë°ì´í„° ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë©´ UPDATE
                  IF  V_CNT > 0 THEN
-                     SET OUT_MSG = OUT_MSG||CHR(13)||'µ¥ÀÌÅÍ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù.';--
+                     SET OUT_MSG = OUT_MSG||CHR(13)||'ë°ì´í„°ê°€ ì´ë¯¸ ì¡´ìž¬ í•©ë‹ˆë‹¤.';--
                  ELSE
                     INSERT INTO BSUNHA2B_M VALUES
                           ( IN_ROUTE_CD
@@ -263,7 +263,7 @@ MAIN: BEGIN ATOMIC
             END IF;--
            ELSE
 
-              -- µ¥ÀÌÅÍ°¡ º¯°æµÇ¾úˆpÁö °Ë»ç
+              -- ë°ì´í„°ê°€ ë³€ê²½ë˜ì—ˆëŠ©ì§€ ê²€ì‚¬
               SELECT
                      COUNT(*) INTO V_CNT
                 FROM GADMIN.BSUNHA2B_M
@@ -278,7 +278,7 @@ MAIN: BEGIN ATOMIC
                      OR HOISU     <> V_IN_PM10_HOISU)
                ;--
 
-              -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ¿Í ÀÌ¹Ì ÀúÀåµÇ¾îÀÖ´Â µ¥ÀÌÅÍ°¡ º¯°æµÇ¾úˆpÁö ºñ±³
+              -- ìž…ë ¥ëœ ë°ì´í„°ì™€ ì´ë¯¸ ì €ìž¥ë˜ì–´ìžˆëŠ” ë°ì´í„°ê°€ ë³€ê²½ë˜ì—ˆëŠ©ì§€ ë¹„êµ
               IF V_CNT > 0        THEN
                   UPDATE BSUNHA2B_M
                       SET ROUTE_CD   = IN_ROUTE_CD
@@ -297,10 +297,10 @@ MAIN: BEGIN ATOMIC
               END IF;             --
           END IF;--
    END IF;   --
-   -- 3. ¿ÞÂÊ(¿ÀÀü),´ÜÃà µ¥ÀÌÅÍ Ã³¸®
+   -- 3. ì™¼ìª½(ì˜¤ì „),ë‹¨ì¶• ë°ì´í„° ì²˜ë¦¬
    IF V_CHK IN ('L','LR') THEN
           IF COALESCE(IN_AM40_AMPM_GB,'') = '' THEN
-             --ÀÔ·ÂµÈ°ªÀÌ NULL ÀÎ°æ¿ì
+             --ìž…ë ¥ëœê°’ì´ NULL ì¸ê²½ìš°
              IF COALESCE(IN_AM40_HOISU,'') = '' THEN
               ELSE
                  SELECT
@@ -312,9 +312,9 @@ MAIN: BEGIN ATOMIC
                     AND AMPM_GB    = V_AM
                     AND DRIVE_ST   = '40'
                   ;--
-                 -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ °¡ º¯°æµÇ¾úÀ¸¸é UPDATE
+                 -- ìž…ë ¥ëœ ë°ì´í„° ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë©´ UPDATE
                  IF  V_CNT > 0 THEN
-                     SET OUT_MSG = OUT_MSG||CHR(13)||'µ¥ÀÌÅÍ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù.';--
+                     SET OUT_MSG = OUT_MSG||CHR(13)||'ë°ì´í„°ê°€ ì´ë¯¸ ì¡´ìž¬ í•©ë‹ˆë‹¤.';--
                  ELSE
                     INSERT INTO BSUNHA2B_M VALUES
                           ( IN_ROUTE_CD
@@ -331,7 +331,7 @@ MAIN: BEGIN ATOMIC
                  END IF;--
              END IF;--
            ELSE
-              -- µ¥ÀÌÅÍ°¡ º¯°æµÇ¾úˆpÁö ºñ±³ °Ë»ç
+              -- ë°ì´í„°ê°€ ë³€ê²½ë˜ì—ˆëŠ©ì§€ ë¹„êµ ê²€ì‚¬
               SELECT
                      COUNT(*) INTO V_CNT
                 FROM GADMIN.BSUNHA2B_M
@@ -345,7 +345,7 @@ MAIN: BEGIN ATOMIC
                      OR WEEK_GB   <> IN_WEEK_GB
                      OR HOISU     <> V_IN_AM40_HOISU)
                ;--
-              -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ °¡ º¯°æµÇ¾úÀ¸¸é UPDATE
+              -- ìž…ë ¥ëœ ë°ì´í„° ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë©´ UPDATE
               IF  V_CNT > 0 THEN
                  UPDATE BSUNHA2B_M
                      SET  ROUTE_CD   = IN_ROUTE_CD
@@ -362,10 +362,10 @@ MAIN: BEGIN ATOMIC
               END IF;    --
           END IF;--
    END IF;    				 --
-    -- 4. ¿À¸¥ÂÊ(¿ÀÈÄ) ´ÜÃà µ¥ÀÌÅÍ Ã³¸®
+    -- 4. ì˜¤ë¥¸ìª½(ì˜¤í›„) ë‹¨ì¶• ë°ì´í„° ì²˜ë¦¬
    IF V_CHK IN ('R','LR') THEN
           IF COALESCE(IN_PM40_AMPM_GB,'') = '' THEN
-            IF COALESCE(IN_PM40_HOISU,'') = '' THEN --ÀÔ·ÂµÈ°ªÀÌ NULL ÀÎ°æ¿ì
+            IF COALESCE(IN_PM40_HOISU,'') = '' THEN --ìž…ë ¥ëœê°’ì´ NULL ì¸ê²½ìš°
              ELSE
                  SELECT
                         COUNT(*) INTO V_CNT
@@ -376,9 +376,9 @@ MAIN: BEGIN ATOMIC
                     AND AMPM_GB    = V_PM
                     AND DRIVE_ST   = '40'
                   ;--
-                 -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ °¡ º¯°æµÇ¾úÀ¸¸é UPDATE
+                 -- ìž…ë ¥ëœ ë°ì´í„° ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë©´ UPDATE
                  IF  V_CNT > 0 THEN
-                     SET OUT_MSG = OUT_MSG||CHR(13)||'µ¥ÀÌÅÍ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù.';--
+                     SET OUT_MSG = OUT_MSG||CHR(13)||'ë°ì´í„°ê°€ ì´ë¯¸ ì¡´ìž¬ í•©ë‹ˆë‹¤.';--
                  ELSE
                    INSERT INTO BSUNHA2B_M VALUES
                          ( IN_ROUTE_CD
@@ -397,7 +397,7 @@ MAIN: BEGIN ATOMIC
             END IF;--
            ELSE
 
-              -- µ¥ÀÌÅÍ°¡ º¯°æµÇ¾úˆpÁö °Ë»ç
+              -- ë°ì´í„°ê°€ ë³€ê²½ë˜ì—ˆëŠ©ì§€ ê²€ì‚¬
               SELECT
                      COUNT(*) INTO V_CNT
                 FROM GADMIN.BSUNHA2B_M
@@ -412,7 +412,7 @@ MAIN: BEGIN ATOMIC
                      OR HOISU     <> V_IN_PM40_HOISU)
                ;--
 
-              -- ÀÔ·ÂµÈ µ¥ÀÌÅÍ¿Í ÀÌ¹Ì ÀúÀåµÇ¾îÀÖ´Â µ¥ÀÌÅÍ°¡ º¯°æµÇ¾úˆpÁö ºñ±³
+              -- ìž…ë ¥ëœ ë°ì´í„°ì™€ ì´ë¯¸ ì €ìž¥ë˜ì–´ìžˆëŠ” ë°ì´í„°ê°€ ë³€ê²½ë˜ì—ˆëŠ©ì§€ ë¹„êµ
               IF V_CNT > 0        THEN
                   UPDATE BSUNHA2B_M
                      SET  ROUTE_CD   = IN_ROUTE_CD
@@ -434,9 +434,9 @@ MAIN: BEGIN ATOMIC
 
 
 
-   IF V_SAVE > 0 THEN SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'ÀúÀåµÇ¾ú½À´Ï´Ù.'); --
+   IF V_SAVE > 0 THEN SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'ì €ìž¥ë˜ì—ˆìŠµë‹ˆë‹¤.'); --
     ELSE
-       SET (OUT_CNT, OUT_MSG) = ('0', OUT_MSG||CHR(13)||'ÀúÀåÇÒ µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù.');--
+       SET (OUT_CNT, OUT_MSG) = ('0', OUT_MSG||CHR(13)||'ì €ìž¥í•  ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤.');--
    END IF; --
 
-END MAIN 
+END MAIN

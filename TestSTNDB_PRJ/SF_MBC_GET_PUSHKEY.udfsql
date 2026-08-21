@@ -1,13 +1,13 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_GET_PUSHKEY"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_GET_PUSHKEY
-»ý¼ºÀÏÀÚ	: 2022. 3.3
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ÈÞ´ëÆù Á¤º¸ °¡Á®¿À±â
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
+íŒŒì¼ëª…	: GADMIN.SF_MBC_GET_PUSHKEY
+ìƒì„±ì¼ìž	: 2022. 3.3
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : íœ´ëŒ€í° ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
 SELECT * FROM GADMIN.SF_MBC_(UID)
 *******************************************************************************/
 (
@@ -27,7 +27,7 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_USERID     VARCHAR(15);-- »ç¿ëÀÚ ID
+   DECLARE V_USERID     VARCHAR(15);-- ì‚¬ìš©ìž ID
 
 
    SET V_USERID = COALESCE(IN_USERID,'');--

@@ -34,16 +34,16 @@ MAIN: BEGIN
         SET V_PRICE = CAST(IN_PRICE AS DECIMAL(13,0));--
         SET V_DR_AMT = CAST(IN_DR_AMT AS DECIMAL(13,0));--
         SET V_CR_AMT = CAST(IN_CR_AMT AS DECIMAL(13,0));--
-        IF IN_STATUS = 'Ãß°¡' THEN
-            --Ãß°¡
+        IF IN_STATUS = 'ì¶”ê°€' THEN
+            --ì¶”ê°€
             SELECT COALESCE(MAX(ROW_ID),0) + 1  INTO V_ROW_ID
               FROM GADMIN.ACCOU1;--
 
             INSERT INTO GADMIN.ACCOU1 ( ROW_ID, DATE, ACC_NO, DRCR_GB, ACC_CD, ACC_NM, ACC_CONT, PRICE, JEUNGBING_DOC, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, DR_AMT, CR_AMT, C_USER, C_DATE, M_USER, M_DATE)
             VALUES( V_ROW_ID, IN_DATE, IN_ACC_NO, IN_DRCR_GB, IN_ACC_CD, IN_ACC_NM, IN_ACC_CONT, V_PRICE, IN_JEUNGBING_DOC, IN_MANAGE_CD_1, IN_MANAGE_ITEM_1, IN_MANAGE_CD_2, IN_MANAGE_ITEM_2, V_DR_AMT, V_CR_AMT, IN_USER_ID, NOW, NULL, NULL);--
 
-        ELSEIF IN_STATUS = '¼öÁ¤' THEN
-            --¼öÁ¤
+        ELSEIF IN_STATUS = 'ìˆ˜ì •' THEN
+            --ìˆ˜ì •
             UPDATE GADMIN.ACCOU1
                SET DATE = IN_DATE,
                     ACC_NO = IN_ACC_NO,
@@ -63,12 +63,12 @@ MAIN: BEGIN
                     M_DATE = NOW
               WHERE ROW_ID = V_ROW_ID;--
 
-        ELSEIF IN_STATUS = '»èÁ¦' THEN
-	        --»èÁ¦
+        ELSEIF IN_STATUS = 'ì‚­ì œ' THEN
+	        --ì‚­ì œ
 	        DELETE GADMIN.ACCOU1
 	         WHERE ROW_ID = V_ROW_ID;--
 
 	    END IF;--
 
     END P1;--   END P1;--
-END MAIN 
+END MAIN

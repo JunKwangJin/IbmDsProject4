@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0201_TAB1_SELECT"
 (
-    IN IN_FROMDATE VARCHAR(10), -- yyyy-mm-dd Çü½Ä
+    IN IN_FROMDATE VARCHAR(10), -- yyyy-mm-dd í˜•ì‹
        IN_TODATE   VARCHAR(10),
        IN_USER_ID  VARCHAR(25)
 )
@@ -47,7 +47,7 @@ MAIN: BEGIN
         FETCH FROM C_JAGUMA1 INTO V_DATE, V_SANGHO_CD;--
 	    WHILE (SQLSTATE = '00000' )
 	    DO
-            -- µ¥ÀÌÅÍ Ãß°¡
+            -- ë°ì´í„° ì¶”ê°€
             INSERT INTO  GADMIN.EBUS_FIN0201(SANGHO_CD, SANGHO, DATE, PRODUC_NO, PRODUC_NM, SPEC, AMT, CLASS, USER_ID)   --SESSION.TEMP
             SELECT A.SANGHO_CD, A.SANGHO, A.DATE, A.PRODUC_NO, A.PRODUC_NM, B.SPEC, SUM(A.SUPPLY_PRICE) AS AMT, B.CLASS, IN_USER_ID
               FROM GADMIN.JAGUMA1 A
@@ -56,7 +56,7 @@ MAIN: BEGIN
                AND A.SANGHO_CD = V_SANGHO_CD
             GROUP BY A.SANGHO_CD, A.SANGHO, A.DATE, A.PRODUC_NO, A.PRODUC_NM, B.SPEC, B.CLASS;--
 
-             --¼Ò°è Ãß°¡
+             --ì†Œê³„ ì¶”ê°€
            	SET V_CNT = 0;--
 
 			SELECT COUNT(*) INTO V_CNT
@@ -70,7 +70,7 @@ MAIN: BEGIN
 
            	IF V_CNT > 1 THEN
 
-                    --Ã¹¹øÂ° Ç°¸í °¡Á®¿À±â
+                    --ì²«ë²ˆì§¸ í’ˆëª… ê°€ì ¸ì˜¤ê¸°
                     SELECT A.PRODUC_NM INTO V_PRODUC_NM
                       FROM GADMIN.JAGUMA1 A
                      WHERE A.DATE = V_DATE
@@ -78,18 +78,18 @@ MAIN: BEGIN
                       ORDER BY PRODUC_NO
                       FETCH FIRST 1 ROWS ONLY;--
 
-                    -- ¼Ò°è ÀúÀå :´Ù¼ö
+                    -- ì†Œê³„ ì €ìž¥ :ë‹¤ìˆ˜
                     INSERT INTO GADMIN.EBUS_FIN0201(SANGHO_CD, SANGHO, DATE, PRODUC_NO, PRODUC_NM, SPEC, AMT, CLASS, USER_ID)  --SESSION.TEMP
-                    SELECT A.SANGHO_CD, A.SANGHO, A.DATE, '¼Ò°è' AS PRODUC_NO, V_PRODUC_NM || '¿Ü ' || TO_CHAR(V_CNT - 1) || '°Ç' AS PRODUC_NM, '' AS SPEC, SUM(A.SUPPLY_PRICE) AS AMT, '' AS CLASS, IN_USER_ID
+                    SELECT A.SANGHO_CD, A.SANGHO, A.DATE, 'ì†Œê³„' AS PRODUC_NO, V_PRODUC_NM || 'ì™¸ ' || TO_CHAR(V_CNT - 1) || 'ê±´' AS PRODUC_NM, '' AS SPEC, SUM(A.SUPPLY_PRICE) AS AMT, '' AS CLASS, IN_USER_ID
                       FROM GADMIN.JAGUMA1 A
                      WHERE A.DATE = V_DATE
                        AND A.SANGHO_CD = V_SANGHO_CD
                     GROUP BY A.SANGHO_CD, A.SANGHO, A.DATE;--
 
                 ELSE
-                    -- ¼Ò°è ÀúÀå : 1°Ç
+                    -- ì†Œê³„ ì €ìž¥ : 1ê±´
                     INSERT INTO GADMIN.EBUS_FIN0201(SANGHO_CD, SANGHO, DATE, PRODUC_NO, PRODUC_NM, SPEC, AMT, CLASS, USER_ID) --SESSION.TEMP
-                    SELECT A.SANGHO_CD, A.SANGHO, A.DATE, '¼Ò°è' AS PRODUC_NO, A.PRODUC_NM, '' AS SPEC, SUM(A.SUPPLY_PRICE) AS AMT, '' AS CLASS, IN_USER_ID
+                    SELECT A.SANGHO_CD, A.SANGHO, A.DATE, 'ì†Œê³„' AS PRODUC_NO, A.PRODUC_NM, '' AS SPEC, SUM(A.SUPPLY_PRICE) AS AMT, '' AS CLASS, IN_USER_ID
                       FROM GADMIN.JAGUMA1 A
                      WHERE A.DATE = V_DATE
                        AND A.SANGHO_CD = V_SANGHO_CD
@@ -99,9 +99,9 @@ MAIN: BEGIN
 			FETCH FROM C_JAGUMA1 INTO V_DATE, V_SANGHO_CD;--
 		END WHILE;--
 
-        --ÇÕ°è ÀúÀå
+        --í•©ê³„ ì €ìž¥
         INSERT INTO GADMIN.EBUS_FIN0201(SANGHO_CD, SANGHO, DATE, PRODUC_NO, PRODUC_NM, SPEC, AMT, CLASS, USER_ID)  --SESSION.TEMP
-        SELECT 'ÇÕ°è' AS SANGHO_CD, '' AS SANGHO, TO_DATE(NULL) AS DATE, '' AS PRODUC_NO, '' AS PRODUC_NM, '' AS SPEC, SUM(A.SUPPLY_PRICE) AS AMT, '' AS CLASS, IN_USER_ID
+        SELECT 'í•©ê³„' AS SANGHO_CD, '' AS SANGHO, TO_DATE(NULL) AS DATE, '' AS PRODUC_NO, '' AS PRODUC_NM, '' AS SPEC, SUM(A.SUPPLY_PRICE) AS AMT, '' AS CLASS, IN_USER_ID
           FROM GADMIN.JAGUMA1 A
          WHERE A.DATE BETWEEN IN_FROMDATE AND IN_TODATE; --
 
@@ -118,4 +118,4 @@ MAIN: BEGIN
 
 		OPEN CURSOR_TEMP;--
     END P2;--
-END MAIN 
+END MAIN

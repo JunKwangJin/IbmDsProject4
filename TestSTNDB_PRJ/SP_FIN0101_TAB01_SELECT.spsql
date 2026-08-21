@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_TAB01_SELECT"
 (
-    IN IN_DATE VARCHAR(10) -- yyyymmdd Çü½Ä
-       , IN_USER_ID VARCHAR(25)  -- yyyymmdd Çü½Ä
+    IN IN_DATE VARCHAR(10) -- yyyymmdd í˜•ì‹
+       , IN_USER_ID VARCHAR(25)  -- yyyymmdd í˜•ì‹
 )
   DYNAMIC RESULT SETS 1
   LANGUAGE SQL
@@ -16,4 +16,4 @@ MAIN: BEGIN
         WHERE DATE = IN_DATE;--
 	OPEN CURSOR_ACC;--
    END P1;--
-END MAIN 
+END MAIN

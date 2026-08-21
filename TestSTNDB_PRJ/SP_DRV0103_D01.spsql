@@ -20,7 +20,7 @@ MAIN: BEGIN
 
         DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                E1: BEGIN
-                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR03: '||V_KEY_MSG||'½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.' ; --
+                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR03: '||V_KEY_MSG||'ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
                      SET OUT_CNT = '-1'; --
                      RETURN; --
                END E1;--
@@ -28,13 +28,13 @@ MAIN: BEGIN
         SET OUT_MSG              = ''; --
         SET OUT_CNT              = ''; --
 
- -- CRUD°¡ ¹ß»ýÇÏ´Â KEY
-    SELECT '[³ë¼± ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][Æí¼º±¸ºÐ : '||GADMIN.SF_EBUS_COMMON_CD('DRV04',IN_PYEON_GB,'')||']' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
+ -- CRUDê°€ ë°œìƒí•˜ëŠ” KEY
+    SELECT '[ë…¸ì„  ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][íŽ¸ì„±êµ¬ë¶„ : '||GADMIN.SF_EBUS_COMMON_CD('DRV04',IN_PYEON_GB,'')||']' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
 
        P1: BEGIN
                  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                         E2: BEGIN
-                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: ÀÚ·á ÀúÀå ½Ã ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' ; --
+                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: ìžë£Œ ì €ìž¥ ì‹œ ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' ; --
                              SET OUT_CNT = '-1'; --
                              ROLLBACK ; --
                              RETURN ;--
@@ -69,8 +69,8 @@ MAIN: BEGIN
             END IF;--
         END P1 ;--
 
-        SET OUT_MSG = '»èÁ¦ µÇ¾ú½À´Ï´Ù.' ; --
+        SET OUT_MSG = 'ì‚­ì œ ë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
         SET OUT_CNT = '1';            --
 
 
-END MAIN 
+END MAIN

@@ -15,23 +15,23 @@ MAIN: BEGIN
             SELECT DATE, ACC_NO, GUBUN, ROUTE, CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, IN_QTY, OUT_QTY,
                     SUM(IN_QTY - OUT_QTY) OVER(PARTITION BY PRODUC_NO  ORDER BY DATE, PRODUC_NO, ROWNUMBER() OVER()) AS SUM_JAEGO
                     , SUPPLY_PRICE, PRICE, CHANGGO, MANAGER
-              FROM (   -- ¿Ãø˘¿Á∞Ì + ±∏∏≈¿Á∞Ì + ¿Ãµø¿‘∞Ì - √‚∞Ì - ¿Ãµø√‚∞Ì
-                        SELECT YEAR||'-01-01' AS DATE, '' AS ACC_NO, '¿Ãø˘' AS GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, '' AS SPEC, '' AS UNIT, EWOL_01 AS IN_QTY, 0 AS OUT_QTY, CASE WHEN (UNIT_PRICE_01 * EWOL_01) = 0 THEN 0 ELSE  (UNIT_PRICE_01 / EWOL_01) END AS SUPPLY_PRICE, UNIT_PRICE_01 AS PRICE, '' AS CHANGGO, '' AS MANAGER
+              FROM (   -- Ïù¥ÏõîÏû¨Í≥† + Íµ¨Îß§Ïû¨Í≥† + Ïù¥ÎèôÏûÖÍ≥† - Ï∂úÍ≥† - Ïù¥ÎèôÏ∂úÍ≥†
+                        SELECT YEAR||'-01-01' AS DATE, '' AS ACC_NO, 'Ïù¥Ïõî' AS GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, '' AS SPEC, '' AS UNIT, EWOL_01 AS IN_QTY, 0 AS OUT_QTY, CASE WHEN (UNIT_PRICE_01 * EWOL_01) = 0 THEN 0 ELSE  (UNIT_PRICE_01 / EWOL_01) END AS SUPPLY_PRICE, UNIT_PRICE_01 AS PRICE, '' AS CHANGGO, '' AS MANAGER
                           FROM GADMIN.JAGUJAGO
                         UNION ALL
-                        SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, CASE WHEN GUBUN = 'π›«∞' THEN QTY * -1 ELSE QTY END AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, SUPPLY_PRICE AS PRICE, CHANGGO, '' AS MANAGER
+                        SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, CASE WHEN GUBUN = 'Î∞òÌíà' THEN QTY * -1 ELSE QTY END AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, SUPPLY_PRICE AS PRICE, CHANGGO, '' AS MANAGER
                           FROM GADMIN.JAGUMA1
                         UNION ALL
                         SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, QTY AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, PRICE, FROM_CHANGGO_CD, MANAGER
                           FROM GADMIN.JACHUL2
-                         WHERE CHANGGO = IN_CHANGGO  -- ¿Ãµø¿‘∞Ì
+                         WHERE CHANGGO = IN_CHANGGO  -- Ïù¥ÎèôÏûÖÍ≥†
                         UNION ALL
                         SELECT DATE, ACC_NO, GUBUN,       ROUTE,       CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, 0 AS IN_QTY, CASE WHEN QTY < 0 THEN QTY * -1 ELSE QTY END  AS OUT_QTY, UNIT_PRICE, PRICE, CHANGGO, MANAGER
                            FROM GADMIN.JACHUL1
                         UNION ALL
                         SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, QTY AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, PRICE, FROM_CHANGGO_CD, MANAGER
                           FROM GADMIN.JACHUL2
-                         WHERE FROM_CHANGGO_CD = IN_CHANGGO  --¿Ãµø√‚∞Ì
+                         WHERE FROM_CHANGGO_CD = IN_CHANGGO  --Ïù¥ÎèôÏ∂úÍ≥†
                      )
              WHERE 1 = 1
                AND DATE BETWEEN SUBSTRING(IN_DATE,1,4)||'-01-01' AND IN_DATE
@@ -42,4 +42,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

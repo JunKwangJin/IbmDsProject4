@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_TAB01_PRINT02"
 (
-    IN IN_FROMDATE VARCHAR(10), -- yyyymmdd «¸Ωƒ
+    IN IN_FROMDATE VARCHAR(10), -- yyyymmdd ÌòïÏãù
     IN IN_TODATE   VARCHAR(10),
     IN IN_ACC_NM   VARCHAR(60),
     IN IN_ACC_CD   VARCHAR(10),
@@ -52,19 +52,19 @@ MAIN: BEGIN
 
 	         ACC_SUM AS (
                        	  SELECT DATE,
-                                 SUM(CASE WHEN DRCR_GB = '¿‘±›' THEN CR_AMT ELSE 0 END) AS SUM_IN,
-                                 SUM(CASE WHEN DRCR_GB = '√‚±›' THEN DR_AMT ELSE 0 END) AS SUM_OUT,
-                                 SUM(CASE WHEN DRCR_GB = '¬˜∫Ø' THEN DR_AMT ELSE 0 END) AS SUM_DR,
-                                 SUM(CASE WHEN DRCR_GB = '¥Î∫Ø' THEN CR_AMT ELSE 0 END) AS SUM_CR
+                                 SUM(CASE WHEN DRCR_GB = 'ÏûÖÍ∏à' THEN CR_AMT ELSE 0 END) AS SUM_IN,
+                                 SUM(CASE WHEN DRCR_GB = 'Ï∂úÍ∏à' THEN DR_AMT ELSE 0 END) AS SUM_OUT,
+                                 SUM(CASE WHEN DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT ELSE 0 END) AS SUM_DR,
+                                 SUM(CASE WHEN DRCR_GB = 'ÎåÄÎ≥Ä' THEN CR_AMT ELSE 0 END) AS SUM_CR
                             FROM GADMIN.ACCOU1
                            WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
            	               GROUP BY DATE),
 
 	         ACC_TOT AS (
-                       	  SELECT SUM(CASE WHEN DRCR_GB = '¿‘±›' THEN CR_AMT ELSE 0 END) AS TOT_IN,
-                                 SUM(CASE WHEN DRCR_GB = '√‚±›' THEN DR_AMT ELSE 0 END) AS TOT_OUT,
-                                 SUM(CASE WHEN DRCR_GB = '¬˜∫Ø' THEN DR_AMT ELSE 0 END) AS TOT_DR,
-                                 SUM(CASE WHEN DRCR_GB = '¥Î∫Ø' THEN CR_AMT ELSE 0 END) AS TOT_CR
+                       	  SELECT SUM(CASE WHEN DRCR_GB = 'ÏûÖÍ∏à' THEN CR_AMT ELSE 0 END) AS TOT_IN,
+                                 SUM(CASE WHEN DRCR_GB = 'Ï∂úÍ∏à' THEN DR_AMT ELSE 0 END) AS TOT_OUT,
+                                 SUM(CASE WHEN DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT ELSE 0 END) AS TOT_DR,
+                                 SUM(CASE WHEN DRCR_GB = 'ÎåÄÎ≥Ä' THEN CR_AMT ELSE 0 END) AS TOT_CR
                             FROM GADMIN.ACCOU1
                            WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE)
 
@@ -125,4 +125,4 @@ MAIN: BEGIN
    END P1;--
 
 
-END MAIN 
+END MAIN

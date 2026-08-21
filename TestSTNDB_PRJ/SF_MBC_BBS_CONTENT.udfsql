@@ -1,17 +1,17 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_BBS_CONTENT"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_BBS_CONTENT
-»ý¼ºÀÏÀÚ	: 2021.12.21
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : °Ô½ÃÆÇ ¸ñ·Ï ¸®½ºÆ®
-¼öÁ¤ÀÏÀÚ	: 2022. 6. 13
-¼öÁ¤ÀÚ	: Àü±¤Áø
-¼öÁ¤³»¿ë    : °Ô½ÃÆÇ Á¦¸ñ°ú °Ô½ÃÀÏÀÚ¸¦ ¸®ÅÏÅ×ÀÌºí¿¡ Ãß°¡ÇÑ´Ù.
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MBC_BBS_CONTENT(ÈÞ´ëÆù¹øÈ£, BBSID)
+íŒŒì¼ëª…	: GADMIN.SF_MBC_BBS_CONTENT
+ìƒì„±ì¼ìž	: 2021.12.21
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ê²Œì‹œíŒ ëª©ë¡ ë¦¬ìŠ¤íŠ¸
+ìˆ˜ì •ì¼ìž	: 2022. 6. 13
+ìˆ˜ì •ìž	: ì „ê´‘ì§„
+ìˆ˜ì •ë‚´ìš©    : ê²Œì‹œíŒ ì œëª©ê³¼ ê²Œì‹œì¼ìžë¥¼ ë¦¬í„´í…Œì´ë¸”ì— ì¶”ê°€í•œë‹¤.
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MBC_BBS_CONTENT(íœ´ëŒ€í°ë²ˆí˜¸, BBSID)
 *******************************************************************************/
 (
-    IN IN_CELLPHONE  VARCHAR(11)  -- ÀüÈ­¹øÈ£
+    IN IN_CELLPHONE  VARCHAR(11)  -- ì „í™”ë²ˆí˜¸
   , IN IN_BBSID      VARCHAR(14)  -- BBSID
 )
 
@@ -26,10 +26,10 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_CELLPHONE  VARCHAR(11);-- ÀüÈ­¹øÈ£
+   DECLARE V_CELLPHONE  VARCHAR(11);-- ì „í™”ë²ˆí˜¸
    DECLARE V_BBSID      VARCHAR(14);-- BBSID
    DECLARE V_BBS_GROUP_GB
-                        VARCHAR(1);-- °Ô½ÃÆÇ »ç¿ëÀÚ ±×·ë(1:°³º°, 2:ÀüÃ¼)
+                        VARCHAR(1);-- ê²Œì‹œíŒ ì‚¬ìš©ìž ê·¸ë£¸(1:ê°œë³„, 2:ì „ì²´)
 
    SET V_CELLPHONE = COALESCE(IN_CELLPHONE,'');--
    SET V_BBSID     = COALESCE(IN_BBSID,'');--

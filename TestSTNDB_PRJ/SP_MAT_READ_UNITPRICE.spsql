@@ -26,13 +26,13 @@ MAIN: BEGIN
 
     SELECT COALESCE(SUM(IN_QTY - OUT_QTY),0) AS JAEGO   INTO V_JAEGO
       FROM (
-                SELECT YEAR||'-01-01' AS DATE, '' AS ACC_NO, '¿Ãø˘' AS GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, '' AS SPEC, '' AS UNIT, EWOL_01 AS IN_QTY, 0 AS OUT_QTY,  (UNIT_PRICE_01 / EWOL_01) AS SUPPLY_PRICE, UNIT_PRICE_01 AS PRICE, '' AS CHANGGO, '' AS MANAGER
+                SELECT YEAR||'-01-01' AS DATE, '' AS ACC_NO, 'Ïù¥Ïõî' AS GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, '' AS SPEC, '' AS UNIT, EWOL_01 AS IN_QTY, 0 AS OUT_QTY,  (UNIT_PRICE_01 / EWOL_01) AS SUPPLY_PRICE, UNIT_PRICE_01 AS PRICE, '' AS CHANGGO, '' AS MANAGER
                   FROM GADMIN.JAGUJAGO
                  WHERE 1 = 1
                     AND YEAR = SUBSTRING(IN_FROMDATE,1,4)
                     AND PRODUC_NO = IN_PRODUC_NO
                 UNION ALL
-                SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, CASE WHEN GUBUN = 'π›«∞' THEN QTY * -1 ELSE QTY END AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, SUPPLY_PRICE AS PRICE, CHANGGO, '' AS MANAGER
+                SELECT DATE, ACC_NO, GUBUN, '' AS ROUTE, '' AS CAR_NO, PRODUC_NO, PRODUC_NM, SPEC, UNIT, CASE WHEN GUBUN = 'Î∞òÌíà' THEN QTY * -1 ELSE QTY END AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, SUPPLY_PRICE AS PRICE, CHANGGO, '' AS MANAGER
                   FROM GADMIN.JAGUMA1
                  WHERE 1 = 1
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
@@ -60,13 +60,13 @@ P1: BEGIN
                        AND YEAR = SUBSTRING(IN_FROMDATE,1,4)
                        AND PRODUC_NO = IN_PRODUC_NO
                     UNION ALL
-                    SELECT DATE, CASE WHEN GUBUN = 'π›«∞' THEN QTY * -1 ELSE QTY END AS QTY, UNIT_PRICE
+                    SELECT DATE, CASE WHEN GUBUN = 'Î∞òÌíà' THEN QTY * -1 ELSE QTY END AS QTY, UNIT_PRICE
                       FROM GADMIN.JAGUMA1
                      WHERE 1 = 1
                        AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                        AND PRODUC_NO = IN_PRODUC_NO
                        AND CHANGGO_CD = IN_CHANGGO
-                       AND GUBUN = '∏≈¿‘'
+                       AND GUBUN = 'Îß§ÏûÖ'
                      ORDER BY DATE DESC
                 );--
 
@@ -76,18 +76,18 @@ P1: BEGIN
 
     WHILE (SQLSTATE = '00000' )
     DO
-        IF V_JAEGO <= 0 THEN          -- ∏∂¿Ã≥ Ω∫ √‚∞Ì
+        IF V_JAEGO <= 0 THEN          -- ÎßàÏù¥ÎÑàÏä§ Ï∂úÍ≥†
                 INSERT INTO SESSION.TEMP
                 VALUES( V_DATE, V_UNITPRICE, 0 );    --
                 GOTO P2;        --
         END IF;--
         SET V_JAEGO = V_JAEGO - V_QTY;--
-        IF V_JAEGO < 0 THEN           -- ¿Á∞Ì∞° 0 ¿Ã«œ¿Ã∏È √÷±Ÿ ¿¸«•∞° «ÿ¥Á ¿¸«•¿”
+        IF V_JAEGO < 0 THEN           -- Ïû¨Í≥†Í∞Ä 0 Ïù¥ÌïòÏù¥Î©¥ ÏµúÍ∑º Ï†ÑÌëúÍ∞Ä Ìï¥Îãπ Ï†ÑÌëúÏûÑ
                 INSERT INTO SESSION.TEMP
                 VALUES( V_DATE, V_UNITPRICE, V_JAEGO + V_QTY );    --
                 GOTO P2;--
         ELSE
-                -- 0 ¿Ã«œ µ«¥¬ ¿¸æi∞° √÷¡æ ¿‘∞Ì ¿¸«•¿”
+                -- 0 Ïù¥Ìïò ÎêòÎäî Ï†ÑÌëùÍ∞Ä ÏµúÏ¢Ö ÏûÖÍ≥† Ï†ÑÌëúÏûÑ
                 INSERT INTO SESSION.TEMP
                 VALUES( V_DATE, V_UNITPRICE, V_JAEGO + V_QTY );--
         END IF;        --
@@ -100,12 +100,12 @@ END P1;--
 P2: BEGIN
 
     DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
-    SELECT * FROM SESSION.TEMP --FETCH FIRST 1 ROWS ONLY  --√π¡Ÿ∏∏ √‚∑¬ EXIT
+    SELECT * FROM SESSION.TEMP --FETCH FIRST 1 ROWS ONLY  --Ï≤´Ï§ÑÎßå Ï∂úÎ†• EXIT
      WHERE 1 = 1
      ORDER BY DATE ASC
-     --FETCH FIRST 1 ROWS ONLY  --√π¡Ÿ∏∏ √‚∑¬ EXIT
+     --FETCH FIRST 1 ROWS ONLY  --Ï≤´Ï§ÑÎßå Ï∂úÎ†• EXIT
     ;--
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END 
+END

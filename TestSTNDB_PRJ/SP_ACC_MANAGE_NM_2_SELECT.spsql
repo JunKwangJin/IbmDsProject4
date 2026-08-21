@@ -19,7 +19,7 @@ MAIN: BEGIN
              OR DETAIL_ITEM LIKE '%'||IN_NM||'%' )
             AND MANAGE_CD LIKE '%'||IN_M_CD||'%'
             AND COALESCE(USE,'') != 'N'
-         ORDER BY MANAGE_ITEM, regexp_replace(DETAIL_ITEM,'\(.\)|\(..\)|[[:punct:]]|[0-9]|¥°|¥±|¥²|¥³|¥´|¥µ|¥¶|¥·|¥¸|¥¹| ');-- (ÁÖ)¿Í °°Àº ¸Ó¸®¸» •û°í ¸íÄªÀ¸·Î¸¸ Á¤·Ä(21.9.2/Àü±¤Áø)
+         ORDER BY MANAGE_ITEM, regexp_replace(DETAIL_ITEM,'\(.\)|\(..\)|[[:punct:]]|[0-9]|â… |â…¡|â…¢|â…£|â…¤|â…¥|â…¦|â…§|â…¨|â…©| ');-- (ì£¼)ì™€ ê°™ì€ ë¨¸ë¦¬ë§ ëº´ê³  ëª…ì¹­ìœ¼ë¡œë§Œ ì •ë ¬(21.9.2/ì „ê´‘ì§„)
 	    OPEN CURSOR_MNG;--
     END P1;--
-END MAIN 
+END MAIN

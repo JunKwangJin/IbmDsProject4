@@ -8,10 +8,10 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0201_BOTTOM1_SELECT"
 
 MAIN: BEGIN
 	-- #######################################################################
-	-- # ÀÛ¼ºÀÚ : Àü±¤Áø
-	-- # ÀÛ¼ºÀÏ : 2020.07.01
-	-- # ¼³¸í : ¹ö½º ¹èÂ÷¿¡ ¿À·ù°¡ ÀÖ´Â ¹ö½º ¹øÈ£¸¦ º¸¿© ÁÝ´Ï´Ù.
-	-- #      GADMIN.SP_DRV0201_BOTTOM1_SELECT(³¯Â¥, ¿ÀÀü¿ÀÈÄ±¸ºÐ(10,20), ³ë¼±)
+	-- # ìž‘ì„±ìž : ì „ê´‘ì§„
+	-- # ìž‘ì„±ì¼ : 2020.07.01
+	-- # ì„¤ëª… : ë²„ìŠ¤ ë°°ì°¨ì— ì˜¤ë¥˜ê°€ ìžˆëŠ” ë²„ìŠ¤ ë²ˆí˜¸ë¥¼ ë³´ì—¬ ì¤ë‹ˆë‹¤.
+	-- #      GADMIN.SP_DRV0201_BOTTOM1_SELECT(ë‚ ì§œ, ì˜¤ì „ì˜¤í›„êµ¬ë¶„(10,20), ë…¸ì„ )
 	-- #######################################################################
 
 
@@ -26,7 +26,7 @@ MAIN: BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
 --                    OUT_RESULT_CD  := '1';--
---                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.±¸¸Å»ó¼¼³»¿ª Áö±ÞÀÏÀÚ ¾÷µ¥ÀÌÆ® °úÁ¤ Áß ¿À·ù°¡ ¹ß»ýÇß½À´Ï´Ù. ' ; --
+--                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.êµ¬ë§¤ìƒì„¸ë‚´ì—­ ì§€ê¸‰ì¼ìž ì—…ë°ì´íŠ¸ ê³¼ì • ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. ' ; --
 --                    ROLLBACK;--
 --                    RETURN;--
 
@@ -35,8 +35,8 @@ MAIN: BEGIN
 		DECLARE CURSOR_DRVO1 CURSOR WITH RETURN FOR
 		    SELECT CASE WHEN COUNT(*) > 0 THEN
 		                MAX(GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM,'CD1_NM'))
-		                ||'¿îÇà ¿À·ù : '
-		                ||count(*)||'´ë'||CHR(13)
+		                ||'ìš´í–‰ ì˜¤ë¥˜ : '
+		                ||count(*)||'ëŒ€'||CHR(13)
 		           ELSE '' END
 		        ||LISTAGG(CAR_NO||GADMIN.SF_EBUS_COMMON_CD('DRV07',AMPM,'CD2'), ', ')
 		           WITHIN GROUP
@@ -50,4 +50,4 @@ MAIN: BEGIN
 
 	    OPEN CURSOR_DRVO1;--
    END P1;--
-END MAIN 
+END MAIN

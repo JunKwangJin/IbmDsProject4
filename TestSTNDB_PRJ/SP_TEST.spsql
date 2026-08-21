@@ -1,44 +1,44 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_TEST" (
-    /** ÆÄ¶ó¹ÌÅÍ ¼³Á¤( IN, OUT, INOUT ) **/
+    /** íŒŒë¼ë¯¸í„° ì„¤ì •( IN, OUT, INOUT ) **/
     IN    I_STRD_DT    VARCHAR(8),
     IN    I_PARAM_1    VARCHAR(50),
     IN    I_PARAM_2    BIGINT,
     OUT   O_MESSAGE    VARCHAR(1000)
 )
 BEGIN
-    /** ½ÃÀÛ½Ã°£À» ´ãÀº º¯¼ö **/
+    /** ì‹œìž‘ì‹œê°„ì„ ë‹´ì€ ë³€ìˆ˜ **/
     DECLARE V_STA_TIME VARCHAR(14);--
 
-    /** ÆÄ¸¶¸®ÅÍ¸¦ ´ãÀ» º¯¼ö **/
+    /** íŒŒë§ˆë¦¬í„°ë¥¼ ë‹´ì„ ë³€ìˆ˜ **/
     DECLARE V_STRD_DT VARCHAR(8);--
     DECLARE V_PARAM_1 VARCHAR(50);--
     DECLARE V_PARAM_2 BIGINT;--
 
-    /** °è»ê°ªÀ» ´ãÀ» º¯¼ö **/
+    /** ê³„ì‚°ê°’ì„ ë‹´ì„ ë³€ìˆ˜ **/
     DECLARE V_NUM     BIGINT;--
     DECLARE V_TOT     BIGINT;--
 
-    /** ¹¬½ÃÀû Ä¿¼­ÀÇ °á°ú º¯¼ö **/
+    /** ë¬µì‹œì  ì»¤ì„œì˜ ê²°ê³¼ ë³€ìˆ˜ **/
     DECLARE V_INSERT_CNT DECIMAL(13, 0);--
     DECLARE V_UPDATE_CNT DECIMAL(13, 0);--
     DECLARE V_DELETE_CNT DECIMAL(13, 0);--
 
-    /** ¿À·ù ¸Þ½ÃÁö º¯¼ö **/
+    /** ì˜¤ë¥˜ ë©”ì‹œì§€ ë³€ìˆ˜ **/
     DECLARE V_ERR_MSG VARCHAR(50);--
 
-    /** µ¿ÀûÄõ¸® º¯¼ö **/
+    /** ë™ì ì¿¼ë¦¬ ë³€ìˆ˜ **/
     DECLARE V_QRY VARCHAR(4000);--
 
-    /** Ä¿¼­ **/
+    /** ì»¤ì„œ **/
     DECLARE CUR1 CURSOR;--
 
-    /** SQL»óÅÂº¯¼ö **/
+    /** SQLìƒíƒœë³€ìˆ˜ **/
     DECLARE SQLCODE INT;--
     DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
 
 
     BEGIN
-        /** ¿¹¿ÜÃ³¸® **/
+        /** ì˜ˆì™¸ì²˜ë¦¬ **/
         DECLARE EXIT HANDLER FOR SQLEXCEPTION
         BEGIN
             SET V_ERR_MSG = 'EXCEPTION > SQLSTATE=['||SQLSTATE||'], SQLCODE=['||TO_CHAR(SQLCODE)||']';--
@@ -47,7 +47,7 @@ BEGIN
         END
         ;--
 
-        /** º¯¼ö ÃÊ±âÈ­ **/
+        /** ë³€ìˆ˜ ì´ˆê¸°í™” **/
         SET V_STA_TIME = TO_CHAR(CURRENT TIMESTAMP, 'YYYYMMDDHH24MISS');--
 
         SET V_STRD_DT = I_STRD_DT;--
@@ -65,12 +65,12 @@ BEGIN
         SET O_MESSAGE = 'SUCCESS';--
 
         /**
-         * WITH¼øÈ¯Àý
-         * 1~N ±îÁöÀÇ ¼ö¸¦ Ãâ·ÂÇÏ°í ¸ðµÎ ´õÇÏ½Ã¿À.
-         * NÀº V_PARAM_2À» »ç¿ë.
+         * WITHìˆœí™˜ì ˆ
+         * 1~N ê¹Œì§€ì˜ ìˆ˜ë¥¼ ì¶œë ¥í•˜ê³  ëª¨ë‘ ë”í•˜ì‹œì˜¤.
+         * Nì€ V_PARAM_2ì„ ì‚¬ìš©.
          **/
 
-        /** µ¿ÀûÄõ¸® »ý¼º **/
+        /** ë™ì ì¿¼ë¦¬ ìƒì„± **/
         SET V_QRY = '
         WITH COUNTING ( NUM ) AS (
             SELECT 1 AS NUM
@@ -85,11 +85,11 @@ BEGIN
           FROM COUNTING
         ';--
 
-        /** µ¿ÀûÄõ¸® Ä¿¼­ »ý¼º **/
+        /** ë™ì ì¿¼ë¦¬ ì»¤ì„œ ìƒì„± **/
         PREPARE STMT1 FROM V_QRY;--
         SET CUR1 = CURSOR WITH HOLD FOR STMT1;--
 
-        /** Ä¿¼­ ½ÇÇà **/
+        /** ì»¤ì„œ ì‹¤í–‰ **/
         OPEN CUR1;--
             FETCH FROM CUR1 INTO V_NUM;--
             WHILE SQLCODE = '00000' DO
@@ -107,4 +107,4 @@ BEGIN
 
     END
     ;--
-END 
+END

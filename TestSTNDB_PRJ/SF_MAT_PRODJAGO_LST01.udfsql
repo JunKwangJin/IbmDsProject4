@@ -1,20 +1,20 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MAT_PRODJAGO_LST01"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MAT_PRODJAGO_LST01
-»ý¼ºÀÏÀÚ	: 2022.4.8
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : Àç°í¸¦ Æ÷ÇÔÇÑ Ç°¸ñ¸®½ºÆ®(jachul1)
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MAT_PRODJAGO_LST01(APPLICATIONID, Ãâ°íÀÏÀÚ, Ã¢°íÄÚµå, ±¸ºÐÄÚµå, Ç°¸ñÄÚµå, Ç°¸ñ¸í, SEQ)
+íŒŒì¼ëª…	: GADMIN.SF_MAT_PRODJAGO_LST01
+ìƒì„±ì¼ìž	: 2022.4.8
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ìž¬ê³ ë¥¼ í¬í•¨í•œ í’ˆëª©ë¦¬ìŠ¤íŠ¸(jachul1)
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MAT_PRODJAGO_LST01(APPLICATIONID, ì¶œê³ ì¼ìž, ì°½ê³ ì½”ë“œ, êµ¬ë¶„ì½”ë“œ, í’ˆëª©ì½”ë“œ, í’ˆëª©ëª…, SEQ)
 * IPADDR: SYSPROC.MON_GET_APPLICATION_ID()
 *******************************************************************************/
                          ( IN_IPADDR     VARCHAR(50)  --
                          , IN_CHULGO_DT  DATE
                          , IN_CHANGGO_CD VARCHAR(5)
-                         , IN_GUBUN_CD   VARCHAR(2) -- 10: Ãâ°í , 20: ÀÌµ¿Ãâ°í, 30: °øµ¿Ãâ°í, 40: ±âÅ¸Ãâ°í
+                         , IN_GUBUN_CD   VARCHAR(2) -- 10: ì¶œê³  , 20: ì´ë™ì¶œê³ , 30: ê³µë™ì¶œê³ , 40: ê¸°íƒ€ì¶œê³ 
                          , IN_PRODUC_NO  VARCHAR(60)
                          , IN_PRODUC_NM  VARCHAR(60)
                          , IN_SEQ        VARCHAR(3)

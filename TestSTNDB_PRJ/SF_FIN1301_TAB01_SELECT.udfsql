@@ -14,20 +14,20 @@ LANGUAGE SQL
 BEGIN ATOMIC
    RETURN
         WITH SON_ACC AS (
-            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '¬˜∫Ø'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '¥Î∫Ø'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '¬˜∞®' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN 'ÎåÄÎ≥Ä'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = 'Ï∞®Í∞ê' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
                FROM (
-                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                   FROM (
                                              SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
                                                FROM GADMIN.ACCOU1
                                               WHERE SUBSTRING(DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                                              UNION ALL
-                                             SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                             SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                FROM GADMIN.ACCOU1
-                                              WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                              WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                 AND SUBSTRING(DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                                              UNION ALL
-                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --¿¸±‚¿Ãø˘ ∆˜«‘
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --Ï†ÑÍ∏∞Ïù¥Ïõî Ìè¨Ìï®
                                                FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(SUBSTRING(IN_FROMMONTH,1,4)||'-01-01'))
                                         ) A, GADMIN.BSACC2 B
                          WHERE 1 = 1
@@ -54,7 +54,7 @@ BEGIN ATOMIC
                                  START WITH acc_cd = main.acc_cd
                                CONNECT BY PRIOR acc_cd = LEVELUP_CD
                                ) as CU_CR_AMT,
-                               CASE WHEN DRCR_GB IN ('¬˜∫Ø','√‚±›') THEN
+                               CASE WHEN DRCR_GB IN ('Ï∞®Î≥Ä','Ï∂úÍ∏à') THEN
                                      (SELECT coalesce(SUM(sign * DR_AMT),0)
                                           FROM SON_ACC
                                          START WITH acc_cd = main.acc_cd

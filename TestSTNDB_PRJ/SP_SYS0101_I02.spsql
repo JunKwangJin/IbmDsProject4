@@ -28,38 +28,38 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_SYS0101_I02"
 
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SP_SYS0101_I02
-»ý¼ºÀÏÀÚ	: 2021.03.03
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	: °øÅëÄÚµå ½Å±Ô ÀúÀå
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë
-INPUT	: IN IN_UP_CD		1.ºÐ·ùÄÚµå
-	: IN IN_CD		2.°øÅëÄÚµå
-	: IN IN_CD_NM		3.ÄÚµå¸í
-	: IN IN_CD_ENM		4.ÄÚµå¿µ¹®¸í
-	: IN IN_CD_SNM		5.ÄÚµå¾à¾î
-	: IN IN_CD_ESNM		6.ÄÚµå¾à¾î¿µ¹®¸í
-	: IN IN_CD_LEN		7.ÄÚµåÀÚ¸®¼ö
-	: IN IN_SORT		8.Á¤·Ä¼ø¼­
-	: IN IN_CD1		9.±×·ì1
-	: IN IN_CD2		10.±×·ì2
-	: IN IN_CD3		11.±×·ì3
-	: IN IN_CD4		12.±×·ì4
-	: IN IN_CD5		13.±×·ì5
-	: IN IN_CD6		14.±×·ì6
-	: IN IN_CD7		15.±×·ì7
-	: IN IN_CD8		16.±×·ì8
-	: IN IN_CD9		17.±×·ì9
-	: IN IN_CD10		18.±×·ì10
-	: IN IN_BIGO		19.ºñ°í
-	: IN IN_SAYONG_YN	20.»ç¿ë¿©ºÎ
-	: IN IN_SUJEONG_YN	21.¼öÁ¤°¡´É¿©ºÎ
-	: IN IN_C_USER		22.ÀÔ·ÂÀÚID
+íŒŒì¼ëª…	: GADMIN.SP_SYS0101_I02
+ìƒì„±ì¼ìž	: 2021.03.03
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	: ê³µí†µì½”ë“œ ì‹ ê·œ ì €ìž¥
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©
+INPUT	: IN IN_UP_CD		1.ë¶„ë¥˜ì½”ë“œ
+	: IN IN_CD		2.ê³µí†µì½”ë“œ
+	: IN IN_CD_NM		3.ì½”ë“œëª…
+	: IN IN_CD_ENM		4.ì½”ë“œì˜ë¬¸ëª…
+	: IN IN_CD_SNM		5.ì½”ë“œì•½ì–´
+	: IN IN_CD_ESNM		6.ì½”ë“œì•½ì–´ì˜ë¬¸ëª…
+	: IN IN_CD_LEN		7.ì½”ë“œìžë¦¬ìˆ˜
+	: IN IN_SORT		8.ì •ë ¬ìˆœì„œ
+	: IN IN_CD1		9.ê·¸ë£¹1
+	: IN IN_CD2		10.ê·¸ë£¹2
+	: IN IN_CD3		11.ê·¸ë£¹3
+	: IN IN_CD4		12.ê·¸ë£¹4
+	: IN IN_CD5		13.ê·¸ë£¹5
+	: IN IN_CD6		14.ê·¸ë£¹6
+	: IN IN_CD7		15.ê·¸ë£¹7
+	: IN IN_CD8		16.ê·¸ë£¹8
+	: IN IN_CD9		17.ê·¸ë£¹9
+	: IN IN_CD10		18.ê·¸ë£¹10
+	: IN IN_BIGO		19.ë¹„ê³ 
+	: IN IN_SAYONG_YN	20.ì‚¬ìš©ì—¬ë¶€
+	: IN IN_SUJEONG_YN	21.ìˆ˜ì •ê°€ëŠ¥ì—¬ë¶€
+	: IN IN_C_USER		22.ìž…ë ¥ìžID
 
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 
 
@@ -74,25 +74,25 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
 
-    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEì´ ì—†ì„ë–„
 
 
     DECLARE UNDO HANDLER FOR NOT FOUND
-          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..' ;--
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..' ;--
     DECLARE UNDO HANDLER FOR SQLWARNING
-          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'
-                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: ½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' END; --
+          SET OUT_MSG = CASE SQLSTATE WHEN '01004' THEN SQLSTATE || CHR(13) || 'WRR01: ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'
+                                        ELSE               SQLSTATE || CHR(13) || 'WRR99: ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' END; --
     DECLARE UNDO HANDLER FOR SQLEXCEPTION
-          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'
-                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'
-                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'
-                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'
-                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.' END;--
-    -- º¯¼ö ÃÊ±âÈ­
+          SET OUT_MSG = CASE SQLSTATE WHEN '42704' THEN SQLSTATE || CHR(13) || 'ERR01: ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'
+                                        ELSE               SQLSTATE || CHR(13) || 'ERR99: ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.' END;--
+    -- ë³€ìˆ˜ ì´ˆê¸°í™”
     SET (OUT_CNT, OUT_MSG) = ('0', '');--
 
 	 --DATA	insert
@@ -147,7 +147,7 @@ MAIN: BEGIN ATOMIC
 				 );--
 
 
-   SET OUT_MSG = 'ÀúÀåµÇ¾ú½À´Ï´Ù.' ; --
+   SET OUT_MSG = 'ì €ìž¥ë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
 
 
-END MAIN 
+END MAIN

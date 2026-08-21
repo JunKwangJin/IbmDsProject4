@@ -1,19 +1,19 @@
-CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB2" 
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB2"
 (
-    IN P_TAB_NAME VARCHAR(128),     -- Å×ÀÌºí ÀÌ¸§ (¿¹: gadmin.cs_common_c)
-    IN P_PK_COL VARCHAR(128),       -- °íÀ¯ Å° ÄÃ·³ (ÀÚ½Ä, ¿¹: CD)
-    IN P_FK_COL VARCHAR(128),       -- ¿Ü·¡ Å° ÄÃ·³ (ºÎ¸ð, ¿¹: UP_CD)
-    IN P_TEXT_COL VARCHAR(128),     -- Ç¥½ÃÇÒ ÅØ½ºÆ® ÄÃ·³ (¿¹: CD_NM)
-    IN P_START_VAL VARCHAR(255)     -- ½ÃÀÛ ºÎ¸ð °ª (ÃÖ»óÀ§ ºÎ¸ðÀÇ UP_CD, ¿¹: 'A')
+    IN P_TAB_NAME VARCHAR(128),     -- í…Œì´ë¸” ì´ë¦„ (ì˜ˆ: gadmin.cs_common_c)
+    IN P_PK_COL VARCHAR(128),       -- ê³ ìœ  í‚¤ ì»¬ëŸ¼ (ìžì‹, ì˜ˆ: CD)
+    IN P_FK_COL VARCHAR(128),       -- ì™¸ëž˜ í‚¤ ì»¬ëŸ¼ (ë¶€ëª¨, ì˜ˆ: UP_CD)
+    IN P_TEXT_COL VARCHAR(128),     -- í‘œì‹œí•  í…ìŠ¤íŠ¸ ì»¬ëŸ¼ (ì˜ˆ: CD_NM)
+    IN P_START_VAL VARCHAR(255)     -- ì‹œìž‘ ë¶€ëª¨ ê°’ (ìµœìƒìœ„ ë¶€ëª¨ì˜ UP_CD, ì˜ˆ: 'A')
    , OUT OUT_CNT             VARCHAR(4)
    , OUT OUT_MSG             VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: "GADMIN"."USP_CS_HIERARCHY_TAB" 
-»ý¼ºÀÏÀÚ	: 2025.10.8
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë    	: ºÒÆ¯Á¤ Å×ÀÌºíÀÇ °èÃþ ±¸Á¶¸¦ Global Temp Table¿¡ »ý¼º
-»ç¿ë¿¹	:
+íŒŒì¼ëª…	: "GADMIN"."USP_CS_HIERARCHY_TAB"
+ìƒì„±ì¼ìž	: 2025.10.8
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©    	: ë¶ˆíŠ¹ì • í…Œì´ë¸”ì˜ ê³„ì¸µ êµ¬ì¡°ë¥¼ Global Temp Tableì— ìƒì„±
+ì‚¬ìš©ì˜ˆ	:
     CALL GADMIN.USP_BUILD_HIERARCHY(
         'GADMIN.CS_COMMON_C', 'CD', 'UP_CD', 'CD_NM', 'A', ?, ?
     );
@@ -44,13 +44,13 @@ BEGIN
         SET V_SQLSTATUS = DB2_RETURN_STATUS;
         GET DIAGNOSTICS EXCEPTION 1
             V_ERROR_MSG = MESSAGE_TEXT;
-        
+
         SET OUT_CNT = -1;
-        SET OUT_MSG = 'ERROR [' || V_SQLSTATE || '/' || 
-                      CAST(V_SQLCODE AS VARCHAR(10)) || ']: ' || 
+        SET OUT_MSG = 'ERROR [' || V_SQLSTATE || '/' ||
+                      CAST(V_SQLCODE AS VARCHAR(10)) || ']: ' ||
                       COALESCE(V_ERROR_MSG, 'Unknown error');
     END;
-    
+
     DECLARE CONTINUE HANDLER FOR SQLWARNING
     BEGIN
         SET V_SQLCODE = SQLCODE;
@@ -59,11 +59,11 @@ BEGIN
         SET V_SQLSTATUS = DB2_RETURN_STATUS;
         GET DIAGNOSTICS EXCEPTION 1
             V_ERROR_MSG = MESSAGE_TEXT;
-        
-        SET OUT_MSG = 'WARNING [' || V_SQLSTATE || ']: ' || 
+
+        SET OUT_MSG = 'WARNING [' || V_SQLSTATE || ']: ' ||
                       COALESCE(V_ERROR_MSG, 'Unknown warning');
     END;
-    
+
     DECLARE CONTINUE HANDLER FOR NOT FOUND
     BEGIN
         SET OUT_CNT = 0;
@@ -80,15 +80,15 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
     PATH VARCHAR(1000)
 ) ON COMMIT PRESERVE ROWS NOT LOGGED;
 
-    -- ±âÁ¸ µ¥ÀÌÅÍ »èÁ¦
+    -- ê¸°ì¡´ ë°ì´í„° ì‚­ì œ
     BEGIN
         DELETE FROM SESSION.GTT_HIERARCHY;
     END;
 
-    -- µ¿Àû SQL »ý¼º
-    SET V_SQL_STATEMENT = 
+    -- ë™ì  SQL ìƒì„±
+    SET V_SQL_STATEMENT =
         'INSERT INTO SESSION.GTT_HIERARCHY ' ||
-    -- LEVEL1 CTE Ãß°¡    
+    -- LEVEL1 CTE ì¶”ê°€
         'WITH LEVEL1 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY T.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -99,8 +99,8 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         'CAST(T.' || P_PK_COL || ' AS VARCHAR(1000)) AS PATH ' ||
         'FROM ' || P_TAB_NAME || ' AS T ' ||
         'WHERE T.' || P_FK_COL || ' = ''' || P_START_VAL || '''), ' ||
-        
-    -- LEVEL2 CTE Ãß°¡        
+
+    -- LEVEL2 CTE ì¶”ê°€
         'LEVEL2 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -112,7 +112,7 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL1 L1 ON C.' || P_FK_COL || ' = L1.CD), ' ||
 
-    -- LEVEL3 CTE Ãß°¡ 
+    -- LEVEL3 CTE ì¶”ê°€
         'LEVEL3 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -123,8 +123,8 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         'L2.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL2 L2 ON C.' || P_FK_COL || ' = L2.CD), ' ||
-        
-    -- LEVEL4 CTE Ãß°¡
+
+    -- LEVEL4 CTE ì¶”ê°€
         'LEVEL4 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -136,7 +136,7 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL3 L3 ON C.' || P_FK_COL || ' = L3.CD), ' ||
 
-    -- LEVEL5 CTE Ãß°¡            
+    -- LEVEL5 CTE ì¶”ê°€
         'LEVEL5 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -147,8 +147,8 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         'L4.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
         'FROM ' || P_TAB_NAME || ' C ' ||
         'JOIN LEVEL4 L4 ON C.' || P_FK_COL || ' = L4.CD) ' ||
-        
-    -- ÃÖÁ¾ SELECT¿Í UNION ALL ºÎºÐ 
+
+    -- ìµœì¢… SELECTì™€ UNION ALL ë¶€ë¶„
         'SELECT ROWNO, UP_CD, CD, CD_NM, LEVEL, PATH ' ||
         'FROM (' ||
         'SELECT * FROM LEVEL1 ' ||
@@ -158,14 +158,14 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         'UNION ALL SELECT * FROM LEVEL5 ' ||
         ') AS ALL_LEVELS';
 
-    -- µ¿Àû SQL ½ÇÇà
+    -- ë™ì  SQL ì‹¤í–‰
         EXECUTE IMMEDIATE V_SQL_STATEMENT;
-        
-        -- Ã³¸®µÈ Çà ¼ö È®ÀÎ
+
+        -- ì²˜ë¦¬ëœ í–‰ ìˆ˜ í™•ì¸
         GET DIAGNOSTICS V_CNT = ROW_COUNT;
-        
-    
-    -- ¼º°ø ¸Þ½ÃÁö
+
+
+    -- ì„±ê³µ ë©”ì‹œì§€
     IF V_CNT > 0 THEN
         SET OUT_CNT = V_CNT;
         SET OUT_MSG = 'SUCCESS: ' || CAST(V_CNT AS VARCHAR(10)) || ' rows inserted into hierarchy table';
@@ -174,4 +174,4 @@ DECLARE GLOBAL TEMPORARY TABLE GTT_HIERARCHY (
         SET OUT_MSG = 'WARNING: No rows inserted. Check if starting value exists.';
     END IF;
 
-END 
+END

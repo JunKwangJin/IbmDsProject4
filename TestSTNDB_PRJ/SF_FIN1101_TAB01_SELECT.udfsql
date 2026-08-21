@@ -15,25 +15,25 @@ BEGIN ATOMIC
                 FROM (
                         SELECT ACC_CD, ACC_NM, 0 AS AMT, CHAGAM_GB
                           FROM GADMIN.BSACC2
-                         --WHERE ACC_GB IN ('ºˆ¿Õ','∫ÒøÎ','ø¯∞°')
+                         --WHERE ACC_GB IN ('ÏàòÏùµ','ÎπÑÏö©','ÏõêÍ∞Ä')
 
                         UNION ALL
                         SELECT
-                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
                           FROM GADMIN.BSACC2 A
                                 LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,2) = SUBSTRING(B.ACC_CD,1,2))
                          WHERE 1 = 1
-                           --AND A.ACC_GB IN ('ºˆ¿Õ','∫ÒøÎ')
+                           --AND A.ACC_GB IN ('ÏàòÏùµ','ÎπÑÏö©')
                            AND ( SUBSTRING(A.ACC_CD,3, 5) = '00000' OR A.ACC_CD = '6100100')
                            AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                         GROUP BY A.ACC_CD, A.ACC_NM
                         UNION ALL
                         SELECT
-                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
                           FROM GADMIN.BSACC2 A
                                 LEFT OUTER JOIN ACCOU1 B ON (A.ACC_CD = B.ACC_CD)
                          WHERE 1 = 1
-                           AND A.ACC_GB IN ('ºˆ¿Õ','∫ÒøÎ')
+                           AND A.ACC_GB IN ('ÏàòÏùµ','ÎπÑÏö©')
                            AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                         GROUP BY A.ACC_CD, A.ACC_NM
                 	) A

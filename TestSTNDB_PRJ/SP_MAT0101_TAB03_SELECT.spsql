@@ -19,21 +19,21 @@ MAIN: BEGIN
                        FROM GADMIN.JAGUMA1
                       WHERE 1 = 1
                         AND  DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                        AND TRIM(CHANGGO)  = '∫ªªÁ'
+                        AND TRIM(CHANGGO)  = 'Î≥∏ÏÇ¨'
                     GROUP BY PRODUC_NO, PRODUC_NM
                     UNION ALL
                     SELECT PRODUC_NO, PRODUC_NM, 0 AS BONSA_QTY, 0 AS BONSA_AMT, SUM(QTY) AS SEOKSU_QTY, SUM(SUPPLY_PRICE) AS SEOKSU_AMT, 0 AS ONSU_QTY, 0 AS ONSU_AMT
                        FROM GADMIN.JAGUMA1
                       WHERE 1 = 1
                         AND  DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                        AND TRIM(CHANGGO)  = 'ºÆºˆ'
+                        AND TRIM(CHANGGO)  = 'ÏÑùÏàò'
                     GROUP BY PRODUC_NO, PRODUC_NM
                     UNION ALL
                     SELECT PRODUC_NO, PRODUC_NM, 0 AS BONSA_QTY, 0 AS BONSA_AMT, 0 AS SEOKSU_QTY, 0 AS SEOKSU_AMT, SUM(QTY) AS ONSU_QTY, SUM(SUPPLY_PRICE) AS ONSU_AMT
                        FROM GADMIN.JAGUMA1
                       WHERE 1 = 1
                         AND  DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                        AND TRIM(CHANGGO)  = 'ø¬ºˆ'
+                        AND TRIM(CHANGGO)  = 'Ïò®Ïàò'
                     GROUP BY PRODUC_NO, PRODUC_NM
               ) A
               LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -44,4 +44,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

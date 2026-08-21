@@ -1,4 +1,4 @@
-CREATE PROCEDURE GADMIN.USP_CS_TABCOLGET 
+CREATE PROCEDURE GADMIN.USP_CS_TABCOLGET
 (
     IN IN_COLTYPE VARCHAR(128),
     IN IN_VALUE VARCHAR(1000)
@@ -9,8 +9,8 @@ LANGUAGE SQL
 MAIN: BEGIN
     DECLARE v_sql VARCHAR(1000);
     DECLARE v_outvar VARCHAR(1000);
-    DECLARE v_indatatype VARCHAR(128); -- Ã£°íÀÚ ÇÏ´Â Æ¯Á¤ °ª
-    DECLARE v_value VARCHAR(1000); -- Ã£°íÀÚ ÇÏ´Â Æ¯Á¤ °ª
+    DECLARE v_indatatype VARCHAR(128); -- ì°¾ê³ ìž í•˜ëŠ” íŠ¹ì • ê°’
+    DECLARE v_value VARCHAR(1000); -- ì°¾ê³ ìž í•˜ëŠ” íŠ¹ì • ê°’
     DECLARE v_resultcnt DECIMAL(9,0);
     DECLARE v_getcnt DECIMAL(9,0);
     DECLARE v_schema_name VARCHAR(128);
@@ -26,7 +26,7 @@ MAIN: BEGIN
     FROM SYSCAT.COLUMNS AS C INNER JOIN SYSCAT.TABLES AS T ON C.TABSCHEMA = T.TABSCHEMA AND C.TABNAME = T.TABNAME
     WHERE C.TABSCHEMA = 'GADMIN'
     AND T.TYPE = 'T'
-    ORDER BY C.TABSCHEMA, C.TABNAME, C.COLNAME;  -- Æ¯Á¤ ½ºÅ°¸¶ (¿¹: GADMIN)·Î Á¦ÇÑ
+    ORDER BY C.TABSCHEMA, C.TABNAME, C.COLNAME;  -- íŠ¹ì • ìŠ¤í‚¤ë§ˆ (ì˜ˆ: GADMIN)ë¡œ ì œí•œ
 
     P1: BEGIN
         DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMP_RESULT (
@@ -39,9 +39,9 @@ MAIN: BEGIN
         --ON COMMIT DELETE ROWS
         ;
 
-        -- Ã£°íÀÚ ÇÏ´Â °ªÀ» ¼³Á¤ (¿¹: 'Æ¯Á¤°ª')
+        -- ì°¾ê³ ìž í•˜ëŠ” ê°’ì„ ì„¤ì • (ì˜ˆ: 'íŠ¹ì •ê°’')
         SET v_indatatype = IN_COLTYPE;
-        SET v_value = IN_VALUE; -- IN_VALUEÀ» »ç¿ëÇÏ¿© ÀÔ·Â°ªÀ» ¼³Á¤
+        SET v_value = IN_VALUE; -- IN_VALUEì„ ì‚¬ìš©í•˜ì—¬ ìž…ë ¥ê°’ì„ ì„¤ì •
 
     END P1;
 
@@ -53,93 +53,93 @@ MAIN: BEGIN
 
         DECLARE get_cursor CURSOR FOR get_sql;
 
-        -- Ä¿¼­¸¦ ¼±¾ðÇÏ¿© Æ¯Á¤ ½ºÅ°¸¶ÀÇ ¸ðµç Å×ÀÌºí°ú ÄÃ·³À» Á¶È¸ÇÕ´Ï´Ù.
+        -- ì»¤ì„œë¥¼ ì„ ì–¸í•˜ì—¬ íŠ¹ì • ìŠ¤í‚¤ë§ˆì˜ ëª¨ë“  í…Œì´ë¸”ê³¼ ì»¬ëŸ¼ì„ ì¡°íšŒí•©ë‹ˆë‹¤.
         OPEN tabcol_cursor;
 
-        -- Ä¿¼­¿¡¼­ µ¥ÀÌÅÍ¸¦ ÇÏ³ª¾¿ °¡Á®¿Í Ã³¸®ÇÕ´Ï´Ù.
+        -- ì»¤ì„œì—ì„œ ë°ì´í„°ë¥¼ í•˜ë‚˜ì”© ê°€ì ¸ì™€ ì²˜ë¦¬í•©ë‹ˆë‹¤.
         FETCH tabcol_cursor INTO v_schema_name, v_table_name, v_column_name, v_data_type;
 
-        -- ÄÃ·³¿¡ Æ¯Á¤ °ªÀ» °Ë»öÇÏ´Â µ¿Àû SQL ½ÇÇà
+        -- ì»¬ëŸ¼ì— íŠ¹ì • ê°’ì„ ê²€ìƒ‰í•˜ëŠ” ë™ì  SQL ì‹¤í–‰
         WHILE SQLSTATE = '00000' DO
             SELECT count(*) INTO v_resultcnt FROM SESSION.TEMP_RESULT WHERE SCHEMA_NAME = v_schema_name AND TABLE_NAME = v_table_name AND COLUMN_NAME = v_column_name;
             SET v_sql = 'SELECT COUNT(*) FROM ' || TRIM(v_schema_name) || '.' || v_table_name;
             IF v_data_type IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') AND v_indatatype IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') THEN
-                -- ¹®ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+                -- ë¬¸ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                 SET v_sql =  v_sql || ' WHERE ' || v_column_name || ' LIKE ''' ||'%' || v_value || '%' || '''';
             ELSEIF v_data_type IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') AND v_indatatype IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') THEN
-                -- ¼ýÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+                -- ìˆ«ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                 SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DECIMAL(''' || v_value ||''',10,5)';
             ELSEIF v_data_type IN ('DATE') AND v_indatatype IN ('DATE')  THEN
-                -- ³¯ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+                -- ë‚ ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                 SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DATE(''' || v_value ||''')';
             ELSEIF v_data_type IN ('TIMESTAMP') AND v_indatatype IN ('TIMESTAMP')  THEN
-                -- ³¯ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+                -- ë‚ ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                 SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIMESTSAMP(''' || v_value ||''')';
             ELSEIF v_data_type IN ('TIME') AND v_indatatype IN ('TIME')  THEN
-                -- ³¯ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+                -- ë‚ ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                 SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIME(''' || v_value ||''')';
             ELSE
                 SET v_sql = 'SELECT 0' || ' FROM SYSIBM.SYSDUMMY1';
             END IF;
 
-	    	-- EXECUTE IMMEDIATE·Î µ¿Àû SQL ½ÇÇà ÈÄ °á°ú¸¦ v_getcnt¿¡ ÀúÀå
-	    	-- µ¿Àû SQL¿¡¼­ SELECT °á°ú¸¦ º¯¼ö¿¡ ÀúÀåÇÏ´Â ¹æ½ÄÀº Ä¿¼­¸¦ »ç¿ëÇÏ°Å³ª ´Ù¸¥ ¹æ½ÄÀ¸·Î Ã³¸®ÇØ¾ß ÇÕ´Ï´Ù.
-	    	    -- µ¿Àû SQL »ý¼º
+	    	-- EXECUTE IMMEDIATEë¡œ ë™ì  SQL ì‹¤í–‰ í›„ ê²°ê³¼ë¥¼ v_getcntì— ì €ìž¥
+	    	-- ë™ì  SQLì—ì„œ SELECT ê²°ê³¼ë¥¼ ë³€ìˆ˜ì— ì €ìž¥í•˜ëŠ” ë°©ì‹ì€ ì»¤ì„œë¥¼ ì‚¬ìš©í•˜ê±°ë‚˜ ë‹¤ë¥¸ ë°©ì‹ìœ¼ë¡œ ì²˜ë¦¬í•´ì•¼ í•©ë‹ˆë‹¤.
+	    	    -- ë™ì  SQL ìƒì„±
 
-        	-- PREPARE »ç¿ëÇÏ¿© µ¿Àû SQLÀ» ½ÇÇà °¡´ÉÇÏµµ·Ï ÁØºñ
-        	-- Dynamic SqlÀ» ÀÌ¿ëÇØ Å×ÀÌºíÀÇ µ¥ÀÌÅÍ Ä«¿îÆ®
+        	-- PREPARE ì‚¬ìš©í•˜ì—¬ ë™ì  SQLì„ ì‹¤í–‰ ê°€ëŠ¥í•˜ë„ë¡ ì¤€ë¹„
+        	-- Dynamic Sqlì„ ì´ìš©í•´ í…Œì´ë¸”ì˜ ë°ì´í„° ì¹´ìš´íŠ¸
 	        PREPARE get_sql FROM v_sql;
 
-	        -- OPENÀ» ÅëÇØ Ä¿¼­¸¦ ½ÇÇàÇÏ°í °á°ú¸¦ FETCH
+	        -- OPENì„ í†µí•´ ì»¤ì„œë¥¼ ì‹¤í–‰í•˜ê³  ê²°ê³¼ë¥¼ FETCH
 	        OPEN get_cursor;
 
-	        -- °á°ú¸¦ º¯¼ö¿¡ FETCH
+	        -- ê²°ê³¼ë¥¼ ë³€ìˆ˜ì— FETCH
 	        FETCH get_cursor INTO v_getcnt;
 
-	    	-- Ä¿¼­ ´Ý±â
+	    	-- ì»¤ì„œ ë‹«ê¸°
 	    	CLOSE get_cursor;
 
 
             IF v_resultcnt = 0 AND v_getcnt > 0 THEN
-            	-- µ¥ÀÌÅÍ Å¸ÀÔ¿¡ ¸Â´Â Á¶°ÇÀ» »ý¼ºÇÕ´Ï´Ù.
+            	-- ë°ì´í„° íƒ€ìž…ì— ë§žëŠ” ì¡°ê±´ì„ ìƒì„±í•©ë‹ˆë‹¤.
             	SET v_sql = 'SELECT ''' || v_schema_name || ''', ''' || v_table_name || ''', ''' || v_column_name || ''' FROM ' || TRIM(v_schema_name) || '.' || v_table_name;
 	            IF v_data_type IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') AND v_indatatype IN ('CHARACTER', 'VARCHAR', 'CLOB', 'TEXT') THEN
-	                -- ¹®ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+	                -- ë¬¸ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                     SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = ''' || v_value || ''' FETCH FIRST 1 ROWS ONLY';
 
 	            ELSEIF v_data_type IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') AND  v_indatatype IN ('SMALLINT','INTEGER','INT','BIGINT','DECIMAL','NUMERIC','DECFLOAT','REAL','DOUBLE') THEN
-                    -- ¼ýÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+                    -- ìˆ«ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                     SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DECIMAL(''' || v_value ||''',10,5) FETCH FIRST 1 ROWS ONLY';
 
 	            ELSEIF v_data_type IN ('DATE') AND v_indatatype IN ('DATE') THEN
-	                -- ³¶ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+	                -- ë‚­ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                     SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = DATE(''' || v_value ||''') FETCH FIRST 1 ROWS ONLY';
 
 	            ELSEIF v_data_type IN ('TIMESTAMP') AND  v_indatatype IN ('TIMESTAMP') THEN
-	                -- ³¶ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+	                -- ë‚­ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                     SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIMESTSAMP(''' || v_value ||''') FETCH FIRST 1 ROWS ONLY';
 
 	            ELSEIF v_data_type IN ('TIME') THEN
-	                -- ³¶ÀÚÇü µ¥ÀÌÅÍ Å¸ÀÔÀÎ °æ¿ì
+	                -- ë‚­ìží˜• ë°ì´í„° íƒ€ìž…ì¸ ê²½ìš°
                     SET v_sql = v_sql || ' WHERE ' || v_column_name || ' = TIME(''' || v_value ||''') FETCH FIRST 1 ROWS ONLY';
 
                 ELSE
 	                SET v_sql = null;
                 END IF;
 
-                -- µ¿Àû SQLÀ» ÀÓ½Ã Å×ÀÌºí¿¡ ÀúÀåÇÏ´Â ¹æ½ÄÀ¸·Î Ã³¸®
-                -- µ¿Àû SQLÀ» ½ÇÇàÇÏ¿© °á°ú¸¦ ÀÓ½Ã Å×ÀÌºí¿¡ »ðÀÔ
+                -- ë™ì  SQLì„ ìž„ì‹œ í…Œì´ë¸”ì— ì €ìž¥í•˜ëŠ” ë°©ì‹ìœ¼ë¡œ ì²˜ë¦¬
+                -- ë™ì  SQLì„ ì‹¤í–‰í•˜ì—¬ ê²°ê³¼ë¥¼ ìž„ì‹œ í…Œì´ë¸”ì— ì‚½ìž…
                 SET v_sql = 'INSERT INTO SESSION.TEMP_RESULT (SCHEMA_NAME, TABLE_NAME, COLUMN_NAME) ' || v_sql;
                 EXECUTE IMMEDIATE v_sql;
                 select count(*) into tempcnt from SESSION.TEMP_RESULT;
             END IF;
 
-                -- ´ÙÀ½ ·¹ÄÚµå·Î ÀÌµ¿
+                -- ë‹¤ìŒ ë ˆì½”ë“œë¡œ ì´ë™
                 FETCH tabcol_cursor INTO v_schema_name, v_table_name, v_column_name, v_data_type;
             END WHILE;
 
-            -- Ä¿¼­ ´Ý±â
+            -- ì»¤ì„œ ë‹«ê¸°
             CLOSE tabcol_cursor;
             OPEN result_cursor;
     END P2;
-END MAIN 
+END MAIN

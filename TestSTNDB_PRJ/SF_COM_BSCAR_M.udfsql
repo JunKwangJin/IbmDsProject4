@@ -1,19 +1,19 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_COM_BSCAR_M"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_COM_BSCAR_M
-»ý¼ºÀÏÀÚ	: 2021.12.17
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ³ë¼±
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
+íŒŒì¼ëª…	: GADMIN.SF_COM_BSCAR_M
+ìƒì„±ì¼ìž	: 2021.12.17
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ë…¸ì„ 
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
 SELECT * FROM GADMIN.SF_COM_BSCAR_M('','','')
 *******************************************************************************/
 (
-    IN IN_ROUTE_CD    VARCHAR(3)   -- ¹èÂ÷½Ã°£
-  , IN IN_CAR_CD      VARCHAR(5)  -- ±â»çÀüÈ­¹øÈ£
-  , IN IN_CARBODY_CD  VARCHAR(6)  -- ±â»çÀüÈ­¹øÈ£
+    IN IN_ROUTE_CD    VARCHAR(3)   -- ë°°ì°¨ì‹œê°„
+  , IN IN_CAR_CD      VARCHAR(5)  -- ê¸°ì‚¬ì „í™”ë²ˆí˜¸
+  , IN IN_CARBODY_CD  VARCHAR(6)  -- ê¸°ì‚¬ì „í™”ë²ˆí˜¸
 )
 
 
@@ -202,10 +202,10 @@ SELECT
 --      , C.BIGO
 FROM    GADMIN.BSCAR_M C
 INNER JOIN GADMIN.EBUS_COMMON_C R
-        ON R.UP_CD='DRV15'    -- Â÷·®µî·Ï¹øÈ£
+        ON R.UP_CD='DRV15'    -- ì°¨ëŸ‰ë“±ë¡ë²ˆí˜¸
        AND R.CD = C.CAR_CD
 INNER JOIN GADMIN.EBUS_COMMON_C N
-        ON N.UP_CD = 'DRV06'  -- ¹ö½º³ë¼±
+        ON N.UP_CD = 'DRV06'  -- ë²„ìŠ¤ë…¸ì„ 
        AND N.CD = R.CD1
 WHERE  N.CD         LIKE IN_ROUTE_CD||'%'
   AND  R.CD         LIKE IN_CAR_CD||'%'

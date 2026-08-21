@@ -1,8 +1,8 @@
-CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_VALIDATE_JUSO_KEYWORD" 
+CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_VALIDATE_JUSO_KEYWORD"
 (
-    IN p_raw_keyword VARCHAR(255),   -- »ç¿ëÀÚ ÀÔ·Â ¿øº» °Ë»ö¾î
-    OUT p_validation_code INTEGER,   -- 0: OK, 1: °æ°í (Warning), -1: ¿À·ù (Error)
-    OUT p_validation_message VARCHAR(500) -- »ç¿ëÀÚ¿¡°Ô º¸¿©ÁÙ ¸Þ½ÃÁö
+    IN p_raw_keyword VARCHAR(255),   -- ì‚¬ìš©ìž ìž…ë ¥ ì›ë³¸ ê²€ìƒ‰ì–´
+    OUT p_validation_code INTEGER,   -- 0: OK, 1: ê²½ê³  (Warning), -1: ì˜¤ë¥˜ (Error)
+    OUT p_validation_message VARCHAR(500) -- ì‚¬ìš©ìžì—ê²Œ ë³´ì—¬ì¤„ ë©”ì‹œì§€
 )
 P1: BEGIN
     DECLARE v_trimmed_keyword VARCHAR(255);
@@ -10,34 +10,34 @@ P1: BEGIN
     DECLARE v_contains_special_char INTEGER;
     DECLARE v_is_sql_injection_attempt INTEGER;
 
-    -- ÃÊ±âÈ­
+    -- ì´ˆê¸°í™”
     SET p_validation_code = 0;
-    SET p_validation_message = '°Ë»ö¾î¸¦ »ç¿ëÇØµµ ¾ÈÀüÇÕ´Ï´Ù.';
+    SET p_validation_message = 'ê²€ìƒ‰ì–´ë¥¼ ì‚¬ìš©í•´ë„ ì•ˆì „í•©ë‹ˆë‹¤.';
 
-    -- 1. ¾ÕµÚ °ø¹é Á¦°Å
+    -- 1. ì•žë’¤ ê³µë°± ì œê±°
     SET v_trimmed_keyword = TRIM(p_raw_keyword);
 
-    -- 2. °Ë»ö¾î°¡ ºñ¾ú°Å³ª ³Ê¹« ÂªÀº °æ¿ì (¿À·ù Ã³¸®)
+    -- 2. ê²€ìƒ‰ì–´ê°€ ë¹„ì—ˆê±°ë‚˜ ë„ˆë¬´ ì§§ì€ ê²½ìš° (ì˜¤ë¥˜ ì²˜ë¦¬)
     IF v_trimmed_keyword IS NULL OR LENGTH(v_trimmed_keyword) < 2 THEN
-        SET p_validation_code = -1; -- ¿À·ù ÄÚµå
-        SET p_validation_message = '? ¿À·ù: °Ë»ö¾î¸¦ 2±ÛÀÚ ÀÌ»ó ÀÔ·ÂÇØÁÖ¼¼¿ä.';
+        SET p_validation_code = -1; -- ì˜¤ë¥˜ ì½”ë“œ
+        SET p_validation_message = '? ì˜¤ë¥˜: ê²€ìƒ‰ì–´ë¥¼ 2ê¸€ìž ì´ìƒ ìž…ë ¥í•´ì£¼ì„¸ìš”.';
         RETURN;
     END IF;
 
-    -- 3. ¼ýÀÚ·Î¸¸ ±¸¼ºµÇ¾î ÀÖ´ÂÁö ÆÇ´Ü (°æ°í ´ë»ó)
-    -- ¿ì¸® ¸¸µç IS_NUMBER_UDF ÇÔ¼ö È°¿ë. (½ºÅ°¸¶¸í ²À ³Ö¾îÁà¾ß ÇÔ!)
+    -- 3. ìˆ«ìžë¡œë§Œ êµ¬ì„±ë˜ì–´ ìžˆëŠ”ì§€ íŒë‹¨ (ê²½ê³  ëŒ€ìƒ)
+    -- ìš°ë¦¬ ë§Œë“  IS_NUMBER_UDF í•¨ìˆ˜ í™œìš©. (ìŠ¤í‚¤ë§ˆëª… ê¼­ ë„£ì–´ì¤˜ì•¼ í•¨!)
     SET v_is_numeric_only = GADMIN.USF_CS_ISNUMBER(v_trimmed_keyword);
 
     IF v_is_numeric_only = 1 THEN
-        SET p_validation_code = 1; -- °æ°í ÄÚµå
-        SET p_validation_message = '?? °æ°í: ÀÔ·ÂµÈ ³»¿ëÀÌ ¼ýÀÚ·Î¸¸ µÇ¾î ÀÖ½À´Ï´Ù. °Ç¹° ¹øÈ£ÀÏ °æ¿ì Á¤È®ÇÑ ÁÖ¼Ò °Ë»öÀÌ ¾î·Á¿ï ¼ö ÀÖ½À´Ï´Ù.';
-        RETURN; -- °æ°í ¸Þ½ÃÁö´Â ÇÏ³ª¸¸ º¸³»¹Ç·Î ¹Ù·Î ¸®ÅÏ. ¿©·¯ °æ°í¸¦ º¸³»°í ½ÍÀ¸¸é RETURN »èÁ¦ ÈÄ p_validation_message¿¡ ¸Þ½ÃÁöµé ÇÕÄ¡±â.
+        SET p_validation_code = 1; -- ê²½ê³  ì½”ë“œ
+        SET p_validation_message = '?? ê²½ê³ : ìž…ë ¥ëœ ë‚´ìš©ì´ ìˆ«ìžë¡œë§Œ ë˜ì–´ ìžˆìŠµë‹ˆë‹¤. ê±´ë¬¼ ë²ˆí˜¸ì¼ ê²½ìš° ì •í™•í•œ ì£¼ì†Œ ê²€ìƒ‰ì´ ì–´ë ¤ìš¸ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.';
+        RETURN; -- ê²½ê³  ë©”ì‹œì§€ëŠ” í•˜ë‚˜ë§Œ ë³´ë‚´ë¯€ë¡œ ë°”ë¡œ ë¦¬í„´. ì—¬ëŸ¬ ê²½ê³ ë¥¼ ë³´ë‚´ê³  ì‹¶ìœ¼ë©´ RETURN ì‚­ì œ í›„ p_validation_messageì— ë©”ì‹œì§€ë“¤ í•©ì¹˜ê¸°.
     END IF;
 
-    -- 4. SQL ¸í·É¾î Æ÷ÇÔ ¿©ºÎ ÆÇ´Ü (SQL Injection ÀÇ½É -> °æ°í/¿À·ù Ã³¸®)
-    -- °£´ÜÇÑ Å°¿öµå Ã¼Å© (AND, OR, SELECT, DELETE, DROP µî)
-    -- ÀÌ ºÎºÐÀº ¿Ïº®ÇÑ SQL Injection ¹æÁö´Â ¸øÇÔ. ¹æÁö´Â PREPARED STATEMENT°¡ ÇÙ½É!
-    -- ´ë¼Ò¹®ÀÚ ±¸ºÐ ¾øÀÌ Ã¼Å©ÇÏ±â À§ÇØ LOWER ÇÔ¼ö »ç¿ë
+    -- 4. SQL ëª…ë ¹ì–´ í¬í•¨ ì—¬ë¶€ íŒë‹¨ (SQL Injection ì˜ì‹¬ -> ê²½ê³ /ì˜¤ë¥˜ ì²˜ë¦¬)
+    -- ê°„ë‹¨í•œ í‚¤ì›Œë“œ ì²´í¬ (AND, OR, SELECT, DELETE, DROP ë“±)
+    -- ì´ ë¶€ë¶„ì€ ì™„ë²½í•œ SQL Injection ë°©ì§€ëŠ” ëª»í•¨. ë°©ì§€ëŠ” PREPARED STATEMENTê°€ í•µì‹¬!
+    -- ëŒ€ì†Œë¬¸ìž êµ¬ë¶„ ì—†ì´ ì²´í¬í•˜ê¸° ìœ„í•´ LOWER í•¨ìˆ˜ ì‚¬ìš©
     SET v_is_sql_injection_attempt = 0;
 
     IF LOCATE(LOWER(v_trimmed_keyword), ' or ') > 0 OR
@@ -47,39 +47,39 @@ P1: BEGIN
        LOCATE(LOWER(v_trimmed_keyword), ' drop ') > 0 OR
        LOCATE(LOWER(v_trimmed_keyword), ' update ') > 0 OR
        LOCATE(LOWER(v_trimmed_keyword), ' insert ') > 0 OR
-       LOCATE(v_trimmed_keyword, ';') > 0 OR -- ´ÙÁß SQL ¸í·É ½Ãµµ
-       LOCATE(v_trimmed_keyword, '--') > 0 THEN -- ÁÖ¼® Ã³¸® ½Ãµµ
+       LOCATE(v_trimmed_keyword, ';') > 0 OR -- ë‹¤ì¤‘ SQL ëª…ë ¹ ì‹œë„
+       LOCATE(v_trimmed_keyword, '--') > 0 THEN -- ì£¼ì„ ì²˜ë¦¬ ì‹œë„
         SET v_is_sql_injection_attempt = 1;
     END IF;
 
     IF v_is_sql_injection_attempt = 1 THEN
-        SET p_validation_code = -1; -- ¿À·ù ÄÚµå (ÀÌ°Ç °æ°íº¸´Ù´Â À§ÇèÇÑ ½Ãµµ·Î ÆÇ´Ü)
-        SET p_validation_message = '? ¿À·ù: SQL ¸í·É¾î ¶Ç´Â Æ¯¼ö ¹®ÀÚ°¡ Æ÷ÇÔµÈ °Ë»ö¾î´Â Çã¿ëµÇÁö ¾Ê½À´Ï´Ù.';
+        SET p_validation_code = -1; -- ì˜¤ë¥˜ ì½”ë“œ (ì´ê±´ ê²½ê³ ë³´ë‹¤ëŠ” ìœ„í—˜í•œ ì‹œë„ë¡œ íŒë‹¨)
+        SET p_validation_message = '? ì˜¤ë¥˜: SQL ëª…ë ¹ì–´ ë˜ëŠ” íŠ¹ìˆ˜ ë¬¸ìžê°€ í¬í•¨ëœ ê²€ìƒ‰ì–´ëŠ” í—ˆìš©ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.';
         RETURN;
     END IF;
 
-    -- 5. ÀÏ¹ÝÀûÀÎ Æ¯¼ö¹®ÀÚ Æ÷ÇÔ ¿©ºÎ ÆÇ´Ü (°æ°í ´ë»ó)
-    -- ÁÖ¼Ò¿¡ ÈçÈ÷ ¾²ÀÌ´Â Æ¯¼ö¹®ÀÚ (¿¹: -,(),/,.,#,')´Â Á¦¿ÜÇÏ°í °Ë»ç.
-    -- Á¤±Ô½ÄÀ» Áö¿øÇÏ´Â DB2 ¹öÀü (10.5 ÀÌ»ó)¿¡¼­´Â REGEXP_LIKE È°¿ë
-    -- `[^°¡-ÆRa-zA-Z0-9\s.,()-/]` : ÇÑ±Û, ¿µ¹®, ¼ýÀÚ, °ø¹é, . , ( ) - / ¸¦ Á¦¿ÜÇÑ ¸ðµç ¹®ÀÚ
-    -- ÀÌ·± ÆÐÅÏÀÌ ¹ß°ßµÇ¸é Æ¯¼ö¹®ÀÚ°¡ Æ÷ÇÔµÈ °ÍÀ¸·Î °£ÁÖ.
+    -- 5. ì¼ë°˜ì ì¸ íŠ¹ìˆ˜ë¬¸ìž í¬í•¨ ì—¬ë¶€ íŒë‹¨ (ê²½ê³  ëŒ€ìƒ)
+    -- ì£¼ì†Œì— í”ížˆ ì“°ì´ëŠ” íŠ¹ìˆ˜ë¬¸ìž (ì˜ˆ: -,(),/,.,#,')ëŠ” ì œì™¸í•˜ê³  ê²€ì‚¬.
+    -- ì •ê·œì‹ì„ ì§€ì›í•˜ëŠ” DB2 ë²„ì „ (10.5 ì´ìƒ)ì—ì„œëŠ” REGEXP_LIKE í™œìš©
+    -- `[^ê°€-íž£a-zA-Z0-9\s.,()-/]` : í•œê¸€, ì˜ë¬¸, ìˆ«ìž, ê³µë°±, . , ( ) - / ë¥¼ ì œì™¸í•œ ëª¨ë“  ë¬¸ìž
+    -- ì´ëŸ° íŒ¨í„´ì´ ë°œê²¬ë˜ë©´ íŠ¹ìˆ˜ë¬¸ìžê°€ í¬í•¨ëœ ê²ƒìœ¼ë¡œ ê°„ì£¼.
     SET v_contains_special_char = 0;
-    IF REGEXP_LIKE(v_trimmed_keyword, '[^°¡-ÆRa-zA-Z0-9\\s.,()\\-/]') = 1 THEN -- v10.5ºÎÅÍ´Â \\°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
+    IF REGEXP_LIKE(v_trimmed_keyword, '[^ê°€-íž£a-zA-Z0-9\\s.,()\\-/]') = 1 THEN -- v10.5ë¶€í„°ëŠ” \\ê°€ í•„ìš”í•  ìˆ˜ ìžˆìŒ
          SET v_contains_special_char = 1;
     END IF;
 
     IF v_contains_special_char = 1 THEN
-        -- ÀÌ¹Ì ¼ýÀÚ·Î¸¸ ±¸¼ºµÇ¾î ÀÖ´Ù´Â °æ°í°¡ ³ª°¬À¸¸é µ¤¾î¾²Áö ¾ÊÀ½
-        -- ¸¸¾à ¿©·¯ °æ°í¸¦ ÇÑ ¸Þ½ÃÁö¿¡ ´ã°í ½Í´Ù¸é p_validation_message = p_validation_message || ' ±×¸®°í Æ¯¼ö¹®ÀÚµµ Æ÷ÇÔµÊ' ÀÌ·± ½ÄÀ¸·Î Ãß°¡
-        IF p_validation_code = 0 THEN -- ¾ÆÁ÷ °æ°í³ª ¿À·ù°¡ ¾ø¾úÀ» ¶§¸¸
-            SET p_validation_code = 1; -- °æ°í ÄÚµå
-            SET p_validation_message = '?? °æ°í: °Ë»ö¾î¿¡ Æ¯¼ö¹®ÀÚ°¡ Æ÷ÇÔµÇ¾î ÀÖ½À´Ï´Ù. °Ë»ö °á°ú°¡ ¿¹»ó°ú ´Ù¸¦ ¼ö ÀÖ½À´Ï´Ù.';
+        -- ì´ë¯¸ ìˆ«ìžë¡œë§Œ êµ¬ì„±ë˜ì–´ ìžˆë‹¤ëŠ” ê²½ê³ ê°€ ë‚˜ê°”ìœ¼ë©´ ë®ì–´ì“°ì§€ ì•ŠìŒ
+        -- ë§Œì•½ ì—¬ëŸ¬ ê²½ê³ ë¥¼ í•œ ë©”ì‹œì§€ì— ë‹´ê³  ì‹¶ë‹¤ë©´ p_validation_message = p_validation_message || ' ê·¸ë¦¬ê³  íŠ¹ìˆ˜ë¬¸ìžë„ í¬í•¨ë¨' ì´ëŸ° ì‹ìœ¼ë¡œ ì¶”ê°€
+        IF p_validation_code = 0 THEN -- ì•„ì§ ê²½ê³ ë‚˜ ì˜¤ë¥˜ê°€ ì—†ì—ˆì„ ë•Œë§Œ
+            SET p_validation_code = 1; -- ê²½ê³  ì½”ë“œ
+            SET p_validation_message = '?? ê²½ê³ : ê²€ìƒ‰ì–´ì— íŠ¹ìˆ˜ë¬¸ìžê°€ í¬í•¨ë˜ì–´ ìžˆìŠµë‹ˆë‹¤. ê²€ìƒ‰ ê²°ê³¼ê°€ ì˜ˆìƒê³¼ ë‹¤ë¥¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.';
         END IF;
     END IF;
 
-    -- ÃÖÁ¾ ¹ÝÈ¯ ¸Þ½ÃÁö°¡ ºñ¾îÀÖ´Ù¸é, OK
+    -- ìµœì¢… ë°˜í™˜ ë©”ì‹œì§€ê°€ ë¹„ì–´ìžˆë‹¤ë©´, OK
     IF p_validation_code = 0 THEN
-        SET p_validation_message = '°Ë»ö¾î À¯È¿¼º °Ë»ç ¿Ï·á.';
+        SET p_validation_message = 'ê²€ìƒ‰ì–´ ìœ íš¨ì„± ê²€ì‚¬ ì™„ë£Œ.';
     END IF;
 
-END P1 
+END P1

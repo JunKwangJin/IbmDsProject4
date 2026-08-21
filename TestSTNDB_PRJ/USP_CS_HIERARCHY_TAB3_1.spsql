@@ -1,22 +1,22 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_HIERARCHY_TAB3"
 (
-    IN P_TAB_NAME VARCHAR(128),     -- Å×ÀÌºí ÀÌ¸§ (¿¹: gadmin.cs_common_c)
-    IN P_PK_COL VARCHAR(128),       -- °íÀ¯ Å° ÄÃ·³ (ÀÚ½Ä, ¿¹: CD)
-    IN P_FK_COL VARCHAR(128),       -- ¿Ü·¡ Å° ÄÃ·³ (ºÎ¸ð, ¿¹: UP_CD)
-    IN P_TEXT_COL VARCHAR(128),     -- Ç¥½ÃÇÒ ÅØ½ºÆ® ÄÃ·³ (¿¹: CD_NM)
-    IN P_TEXT_COL2 VARCHAR(128),     -- Ç¥½ÃÇÒ ÅØ½ºÆ® ÄÃ·³ (¿¹: CD_NM)
-    IN P_TEXT_COL3 VARCHAR(128),     -- Ç¥½ÃÇÒ ÅØ½ºÆ® ÄÃ·³ (¿¹: CD_NM)
-    IN P_START_VAL VARCHAR(255)     -- ½ÃÀÛ ºÎ¸ð °ª (ÃÖ»óÀ§ ºÎ¸ðÀÇ UP_CD, ¿¹: 'A')
+    IN P_TAB_NAME VARCHAR(128),     -- í…Œì´ë¸” ì´ë¦„ (ì˜ˆ: gadmin.cs_common_c)
+    IN P_PK_COL VARCHAR(128),       -- ê³ ìœ  í‚¤ ì»¬ëŸ¼ (ìžì‹, ì˜ˆ: CD)
+    IN P_FK_COL VARCHAR(128),       -- ì™¸ëž˜ í‚¤ ì»¬ëŸ¼ (ë¶€ëª¨, ì˜ˆ: UP_CD)
+    IN P_TEXT_COL VARCHAR(128),     -- í‘œì‹œí•  í…ìŠ¤íŠ¸ ì»¬ëŸ¼ (ì˜ˆ: CD_NM)
+    IN P_TEXT_COL2 VARCHAR(128),     -- í‘œì‹œí•  í…ìŠ¤íŠ¸ ì»¬ëŸ¼ (ì˜ˆ: CD_NM)
+    IN P_TEXT_COL3 VARCHAR(128),     -- í‘œì‹œí•  í…ìŠ¤íŠ¸ ì»¬ëŸ¼ (ì˜ˆ: CD_NM)
+    IN P_START_VAL VARCHAR(255)     -- ì‹œìž‘ ë¶€ëª¨ ê°’ (ìµœìƒìœ„ ë¶€ëª¨ì˜ UP_CD, ì˜ˆ: 'A')
    , OUT OUT_CNT             VARCHAR(4)
    , OUT OUT_MSG             VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: "GADMIN"."USP_CS_HIERARCHY_TAB" 
-»ý¼ºÀÏÀÚ	: 2025.10.8
-¿Ï·áÀÏÀÚ	: 2025.10.12
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë    	: ºÒÆ¯Á¤ Å×ÀÌºíÀÇ °èÃþ ±¸Á¶¸¦ Global Temp Table¿¡ »ý¼º
-»ç¿ë¿¹	:
+íŒŒì¼ëª…	: "GADMIN"."USP_CS_HIERARCHY_TAB"
+ìƒì„±ì¼ìž	: 2025.10.8
+ì™„ë£Œì¼ìž	: 2025.10.12
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©    	: ë¶ˆíŠ¹ì • í…Œì´ë¸”ì˜ ê³„ì¸µ êµ¬ì¡°ë¥¼ Global Temp Tableì— ìƒì„±
+ì‚¬ìš©ì˜ˆ	:
     CALL GADMIN.USP_BUILD_HIERARCHY(
         'GADMIN.CS_COMMON_C', 'CD', 'UP_CD', 'CD_NM', 'A', ?, ?
     );
@@ -50,13 +50,13 @@ BEGIN
         SET V_SQLSTATUS = DB2_RETURN_STATUS;
         GET DIAGNOSTICS EXCEPTION 1
             V_ERROR_MSG = MESSAGE_TEXT;
-        
+
         SET OUT_CNT = -1;
-    --     SET OUT_MSG = 'ERROR [' || V_SQLSTATE || '/' || 
-    --                   CAST(V_SQLCODE AS VARCHAR(10)) || ']: ' || 
+    --     SET OUT_MSG = 'ERROR [' || V_SQLSTATE || '/' ||
+    --                   CAST(V_SQLCODE AS VARCHAR(10)) || ']: ' ||
     --                   COALESCE(V_ERROR_MSG, 'Unknown error');
     END;
-    
+
     DECLARE CONTINUE HANDLER FOR SQLWARNING
     BEGIN
         SET V_SQLCODE = SQLCODE;
@@ -65,65 +65,65 @@ BEGIN
         SET V_SQLSTATUS = DB2_RETURN_STATUS;
         GET DIAGNOSTICS EXCEPTION 1
             V_ERROR_MSG = MESSAGE_TEXT;
-        
-    --     SET OUT_MSG = 'WARNING [' || V_SQLSTATE || ']: ' || 
+
+    --     SET OUT_MSG = 'WARNING [' || V_SQLSTATE || ']: ' ||
     --                   COALESCE(V_ERROR_MSG, 'Unknown warning');
     END;
-    
+
     DECLARE CONTINUE HANDLER FOR NOT FOUND
     BEGIN
         SET OUT_CNT = 0;
         SET OUT_MSG = 'WARNING: No data found for the given criteria';
     END;
 
-    -- µ¿Àû SQL »ý¼º
-    SET V_SQL_STATEMENT = 
-    -- LEVEL0 CTE Ãß°¡    
+    -- ë™ì  SQL ìƒì„±
+    SET V_SQL_STATEMENT =
+    -- LEVEL0 CTE ì¶”ê°€
         'WITH LEVEL0 AS (' ||
         'SELECT ' ||
         '0 AS ROWNO, ' ||
         'CAST((CASE T.' || P_PK_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_FK_COL || ' ELSE '''' END ) AS VARCHAR(255)) AS UP_CD, ' ||
         'CAST((CASE T.' || P_PK_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_PK_COL || ' ELSE T.' || P_FK_COL || ' END ) AS VARCHAR(255)) AS CD, ';
     IF COALESCE(P_TEXT_COL,'') <> '' THEN
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT || 
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'CAST((CASE T.' || P_TEXT_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_TEXT_COL || ' ELSE '''' END ) AS VARCHAR(500)) AS CD_NM, ';
     END IF;
     IF COALESCE(P_TEXT_COL2,'') <> '' THEN
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'CAST((CASE T.' || P_TEXT_COL2 || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_TEXT_COL2 || ' ELSE '''' END ) AS VARCHAR(500)) AS CD2, ';
     END IF;
     IF COALESCE(P_TEXT_COL3,'') <> '' THEN
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'CAST((CASE T.' || P_TEXT_COL3 || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_TEXT_COL3 || ' ELSE '''' END ) AS VARCHAR(500)) AS CD3, ';
     END IF;
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         '1 AS LEVEL, ' ||
         'CAST((CASE T.' || P_FK_COL || ' WHEN ''' || P_START_VAL || ''' THEN T.' || P_FK_COL || ' ELSE '''' END )AS VARCHAR(1000)) AS PATH ' ||
-        'FROM ' || P_TAB_NAME || ' AS T ' || 
+        'FROM ' || P_TAB_NAME || ' AS T ' ||
         'WHERE ''' || P_START_VAL || ''' IN ( T.' || P_PK_COL || ', ' || ' T.' || P_FK_COL || ') ' ||
         'ORDER BY T.' || P_FK_COL || ' DESC FETCH FIRST 1 ROW ONLY )';
 
 
     SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
-    -- LEVEL1 CTE Ãß°¡    
+    -- LEVEL1 CTE ì¶”ê°€
         ', LEVEL1 AS (' ||
         'SELECT ' ||
         'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
         'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
         'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ';
     IF COALESCE(P_TEXT_COL,'') <> '' THEN
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT || 
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ';
     END IF;
     IF COALESCE(P_TEXT_COL2,'') <> '' THEN
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ';
     END IF;
     IF COALESCE(P_TEXT_COL3,'') <> '' THEN
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ';
     END IF;
-        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         '1 AS LEVEL, ' ||
         'L_PREV.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
         'FROM ' || P_TAB_NAME || ' C ' ||
@@ -132,57 +132,57 @@ BEGIN
 
 
 
-    -- ¿©±âºÎÅÍ ¹Ýº¹¹® ½ÃÀÛ (WHILE ·çÇÁ·Î ´ëÃ¼)
+    -- ì—¬ê¸°ë¶€í„° ë°˜ë³µë¬¸ ì‹œìž‘ (WHILE ë£¨í”„ë¡œ ëŒ€ì²´)
     BEGIN
         DECLARE V_LEVEL_PREV_NAME VARCHAR(100) DEFAULT 'LEVEL1';
         DECLARE V_LEVEL_CURRENT_NAME VARCHAR(100);
-        DECLARE I_LVL INT DEFAULT 2; -- ·çÇÁ Ä«¿îÅÍ, 2ºÎÅÍ ½ÃÀÛ (P_MAX_LEVELÀº 5·Î °íÁ¤ÇÑ´Ù°í °¡Á¤)
-        DECLARE P_MAX_LEVEL INT DEFAULT 5; -- ÀÏ´Ü 5·Î °íÁ¤ÇØº¼°Ô¿ä! (ÇÁ·Î½ÃÀú ÆÄ¶ó¹ÌÅÍ°¡ ¾Æ´Ï¶ó ¿©±â¼­ Á÷Á¢ ¼±¾ð/»ç¿ë)
-    
-    
-        WHILE I_LVL <= P_MAX_LEVEL DO -- P_MAX_LEVEL (¿©±â¼­´Â 5)±îÁö ¹Ýº¹
+        DECLARE I_LVL INT DEFAULT 2; -- ë£¨í”„ ì¹´ìš´í„°, 2ë¶€í„° ì‹œìž‘ (P_MAX_LEVELì€ 5ë¡œ ê³ ì •í•œë‹¤ê³  ê°€ì •)
+        DECLARE P_MAX_LEVEL INT DEFAULT 5; -- ì¼ë‹¨ 5ë¡œ ê³ ì •í•´ë³¼ê²Œìš”! (í”„ë¡œì‹œì € íŒŒë¼ë¯¸í„°ê°€ ì•„ë‹ˆë¼ ì—¬ê¸°ì„œ ì§ì ‘ ì„ ì–¸/ì‚¬ìš©)
+
+
+        WHILE I_LVL <= P_MAX_LEVEL DO -- P_MAX_LEVEL (ì—¬ê¸°ì„œëŠ” 5)ê¹Œì§€ ë°˜ë³µ
             SET V_LEVEL_CURRENT_NAME = 'LEVEL' || I_LVL;
-    
-            -- ´ÙÀ½ ·¹º§ CTE Ãß°¡ ½ÃÀÛ!
+
+            -- ë‹¤ìŒ ë ˆë²¨ CTE ì¶”ê°€ ì‹œìž‘!
             SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
                 ', ' || V_LEVEL_CURRENT_NAME || ' AS (' ||
                 'SELECT ' ||
                 'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
                 'CAST(C.' || P_FK_COL || ' AS VARCHAR(255)) AS UP_CD, ' ||
                 'CAST(C.' || P_PK_COL || ' AS VARCHAR(255)) AS CD, ';
-    
+
             IF COALESCE(P_TEXT_COL,'') <> '' THEN
                 SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
                 'CAST(C.' || P_TEXT_COL || ' AS VARCHAR(500)) AS CD_NM, ';
             END IF;
-    
+
             IF COALESCE(P_TEXT_COL2,'') <> '' THEN
                 SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
                 'CAST(C.' || P_TEXT_COL2 || ' AS VARCHAR(500)) AS CD2, ';
             END IF;
-    
+
             IF COALESCE(P_TEXT_COL3,'') <> '' THEN
                 SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
                 'CAST(C.' || P_TEXT_COL3 || ' AS VARCHAR(500)) AS CD3, ';
             END IF;
-    
-            -- ÇöÀç ·¹º§°ú ÀÌÀü ·¹º§ PATH¸¦ ÀÌ¾î¼­ »õ·Î¿î PATH »ý¼º
+
+            -- í˜„ìž¬ ë ˆë²¨ê³¼ ì´ì „ ë ˆë²¨ PATHë¥¼ ì´ì–´ì„œ ìƒˆë¡œìš´ PATH ìƒì„±
             SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
-                I_LVL || ' AS LEVEL, ' || 
+                I_LVL || ' AS LEVEL, ' ||
                 'L_PREV.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
                 'FROM ' || P_TAB_NAME || ' C ' ||
                 'JOIN ' || V_LEVEL_PREV_NAME || ' L_PREV ON C.' || P_FK_COL || ' = L_PREV.CD) ';
-    
-            -- ´ÙÀ½ ¹Ýº¹À» À§ÇØ ÀÌÀü ·¹º§ ÀÌ¸§À» ÇöÀç ·¹º§ ÀÌ¸§À¸·Î ¾÷µ¥ÀÌÆ®!
+
+            -- ë‹¤ìŒ ë°˜ë³µì„ ìœ„í•´ ì´ì „ ë ˆë²¨ ì´ë¦„ì„ í˜„ìž¬ ë ˆë²¨ ì´ë¦„ìœ¼ë¡œ ì—…ë°ì´íŠ¸!
             SET V_LEVEL_PREV_NAME = V_LEVEL_CURRENT_NAME;
-            SET I_LVL = I_LVL + 1; -- **WHILE ·çÇÁ¿¡¼­´Â Ä«¿îÅÍ¸¦ Á÷Á¢ Áõ°¡½ÃÄÑÁà¾ß ÇÔ!**
-    
-        END WHILE; -- WHILE ·çÇÁ ³¡
+            SET I_LVL = I_LVL + 1; -- **WHILE ë£¨í”„ì—ì„œëŠ” ì¹´ìš´í„°ë¥¼ ì§ì ‘ ì¦ê°€ì‹œì¼œì¤˜ì•¼ í•¨!**
+
+        END WHILE; -- WHILE ë£¨í”„ ë
     END; -- BEGIN
 
-    -- ¹Ýº¹¹® ³¡
+    -- ë°˜ë³µë¬¸ ë
 
-    -- ÃÖÁ¾ SELECT ¹® (»ý¼ºµÈ ¸ðµç LEVEL CTEµéÀ» UNION ALL ÇØ¼­ ¹ÝÈ¯ÇÏ´Â ¹æ½Ä)
+    -- ìµœì¢… SELECT ë¬¸ (ìƒì„±ëœ ëª¨ë“  LEVEL CTEë“¤ì„ UNION ALL í•´ì„œ ë°˜í™˜í•˜ëŠ” ë°©ì‹)
     SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
         'SELECT ROWNO, UP_CD AS '||P_FK_COL||', CD AS '||P_PK_COL;
 
@@ -205,30 +205,30 @@ BEGIN
     ', LEVEL, PATH ' ||
              'FROM (' ||
              'SELECT * FROM LEVEL0 ';
-    
-    -- 2·¹º§ºÎÅÍ P_MAX_LEVEL(5)±îÁö UNION ALL Ãß°¡
+
+    -- 2ë ˆë²¨ë¶€í„° P_MAX_LEVEL(5)ê¹Œì§€ UNION ALL ì¶”ê°€
     BEGIN
         DECLARE I_UNION_LVL INT DEFAULT 1;
-        DECLARE P_MAX_LEVEL_UNION INT DEFAULT 5; -- ¿©±â¼­µµ 5·Î °íÁ¤ÇØº¼°Ô¿ä
-    
+        DECLARE P_MAX_LEVEL_UNION INT DEFAULT 5; -- ì—¬ê¸°ì„œë„ 5ë¡œ ê³ ì •í•´ë³¼ê²Œìš”
+
         WHILE I_UNION_LVL <= P_MAX_LEVEL_UNION DO
             SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
             'UNION ALL ' ||
-            'SELECT * FROM LEVEL' || I_UNION_LVL || ' '; -- ¿©±â CD_NM, CD2, CD3 µµ Ãß°¡
+            'SELECT * FROM LEVEL' || I_UNION_LVL || ' '; -- ì—¬ê¸° CD_NM, CD2, CD3 ë„ ì¶”ê°€
             SET I_UNION_LVL = I_UNION_LVL + 1;
         END WHILE;
     END;
             SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
              ') AS ALL_LEVELS ' ||
              'ORDER BY PATH';
-    
 
 
 
 
 
---    -- LEVEL2 CTE Ãß°¡ 
---        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||    
+
+--    -- LEVEL2 CTE ì¶”ê°€
+--        SET V_SQL_STATEMENT = V_SQL_STATEMENT ||
 --        'LEVEL2 AS (' ||
 --        'SELECT ' ||
 --        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -242,7 +242,7 @@ BEGIN
 --        'FROM ' || P_TAB_NAME || ' C ' ||
 --        'JOIN LEVEL1 L1 ON C.' || P_FK_COL || ' = L1.CD), ' ||
 --
---    -- LEVEL3 CTE Ãß°¡ 
+--    -- LEVEL3 CTE ì¶”ê°€
 --        'LEVEL3 AS (' ||
 --        'SELECT ' ||
 --        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -255,8 +255,8 @@ BEGIN
 --        'L2.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
 --        'FROM ' || P_TAB_NAME || ' C ' ||
 --        'JOIN LEVEL2 L2 ON C.' || P_FK_COL || ' = L2.CD), ' ||
---        
---    -- LEVEL4 CTE Ãß°¡
+--
+--    -- LEVEL4 CTE ì¶”ê°€
 --        'LEVEL4 AS (' ||
 --        'SELECT ' ||
 --        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -270,7 +270,7 @@ BEGIN
 --        'FROM ' || P_TAB_NAME || ' C ' ||
 --        'JOIN LEVEL3 L3 ON C.' || P_FK_COL || ' = L3.CD), ' ||
 --
---    -- LEVEL5 CTE Ãß°¡            
+--    -- LEVEL5 CTE ì¶”ê°€
 --        'LEVEL5 AS (' ||
 --        'SELECT ' ||
 --        'ROW_NUMBER() OVER(ORDER BY C.' || P_PK_COL || ') AS ROWNO, ' ||
@@ -283,8 +283,8 @@ BEGIN
 --        'L4.PATH || ''->'' || C.' || P_PK_COL || ' AS PATH ' ||
 --        'FROM ' || P_TAB_NAME || ' C ' ||
 --        'JOIN LEVEL4 L4 ON C.' || P_FK_COL || ' = L4.CD) ' ||
-        
---     -- ÃÖÁ¾ SELECT¿Í UNION ALL ºÎºÐ 
+
+--     -- ìµœì¢… SELECTì™€ UNION ALL ë¶€ë¶„
 --         'SELECT ROWNO, UP_CD AS '||P_FK_COL||', CD AS '||P_PK_COL||', CD_NM AS '||P_TEXT_COL||', CD2 AS '||P_TEXT_COL2||', CD3 AS '||P_TEXT_COL3||', LEVEL, PATH ' ||
 --         'FROM (' ||
 --         'SELECT * FROM LEVEL1 ' ||
@@ -295,16 +295,16 @@ BEGIN
 --         ') AS ALL_LEVELS ' ||
 --         'ORDER BY PATH';
 
-    -- µð¹ö±ë¿ëÀ¸·Î SQL ¹®Àå Ãâ·Â (¼±ÅÃ »çÇ× - ³ªÁß¿¡ ÁÖ¼® Ã³¸®ÇØµµ µÅ)
+    -- ë””ë²„ê¹…ìš©ìœ¼ë¡œ SQL ë¬¸ìž¥ ì¶œë ¥ (ì„ íƒ ì‚¬í•­ - ë‚˜ì¤‘ì— ì£¼ì„ ì²˜ë¦¬í•´ë„ ë¼)
     -- CALL DBMS_OUTPUT.PUT_LINE(V_SQL_STATEMENT);
     --SET OUT_MSG = V_SQL_STATEMENT;
-    -- µ¿Àû SQL ½ÇÇà!
+    -- ë™ì  SQL ì‹¤í–‰!
     PREPARE S1 FROM V_SQL_STATEMENT;
     OPEN C_RESULT;
-        
-    -- Ã³¸®µÈ Çà ¼ö È®ÀÎ / DML(INSERT, UPDATE, DELETE) ¹®ÀÏ‹š Ã³¸®°Ç¼ö Ãþ ³ªÅ¸³¾‹š ROW_COUNT¸¦ »ç¿ëÇÒ¼ö ÀÖ´Ù.
+
+    -- ì²˜ë¦¬ëœ í–‰ ìˆ˜ í™•ì¸ / DML(INSERT, UPDATE, DELETE) ë¬¸ì¼ë–„ ì²˜ë¦¬ê±´ìˆ˜ ì¸µ ë‚˜íƒ€ë‚¼ë–„ ROW_COUNTë¥¼ ì‚¬ìš©í• ìˆ˜ ìžˆë‹¤.
     -- GET DIAGNOSTICS V_CNT = ROW_COUNT;
-    -- -- ¼º°ø ¸Þ½ÃÁö
+    -- -- ì„±ê³µ ë©”ì‹œì§€
     -- IF V_CNT > 0 THEN
     --     SET OUT_CNT = V_CNT;
     --     SET OUT_MSG = 'SUCCESS: ' || CAST(V_CNT AS VARCHAR(10)) || ' rows inserted into hierarchy table';
@@ -313,4 +313,4 @@ BEGIN
     --     SET OUT_MSG = 'WARNING: No rows inserted. Check if starting value exists.';
     -- END IF;
 
-END 
+END

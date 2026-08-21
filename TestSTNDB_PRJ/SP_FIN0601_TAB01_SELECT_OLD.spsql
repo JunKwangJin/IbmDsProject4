@@ -52,7 +52,7 @@ MAIN: BEGIN
   WITH REPLACE
   NOT LOGGED;--
 
-	--±â¼ö Ã£±â
+	--ê¸°ìˆ˜ ì°¾ê¸°
 	SELECT GISU INTO V_GISU
 	  FROM GADMIN.BSACC9
 	 WHERE START <= IN_FROMDATE
@@ -60,7 +60,7 @@ MAIN: BEGIN
 
     SET V_MONTH = SUBSTRING(IN_FROMDATE,6,2);		   --
 
-	--Àü¿ùÀÌ¿ù ±Ý¾× Ã£±â
+	--ì „ì›”ì´ì›” ê¸ˆì•¡ ì°¾ê¸°
 	SELECT DR_00, CR_00 INTO V_DR_AMT, V_CR_AMT
 	  FROM GADMIN.HAPJAN
 	 WHERE YEAR = V_GISU
@@ -74,16 +74,16 @@ MAIN: BEGIN
 
         select sum(cr_amt) as dr_amt , sum(dr_amt) as cr_amt INTO V_NU_DR_AMT, V_NU_CR_AMT from gadmin.ACCOU1
          where date between SUBSTR(IN_FROMDATE,1,4)||'-01-01' and V_LAST_DAY
-           AND drcr_gb in ('ÀÔ±Ý','Ãâ±Ý')   ;--
+           AND drcr_gb in ('ìž…ê¸ˆ','ì¶œê¸ˆ')   ;--
 
         SET V_JAN_TOT_AMT = V_JAN_TOT_AMT + V_NU_DR_AMT - V_NU_CR_AMT;   --
 	END IF;--
 
 	SET V_JAN_LAST_AMT = V_JAN_TOT_AMT;--
 
-	 --Àü±âÀÌ¿ù
+	 --ì „ê¸°ì´ì›”
     INSERT INTO SESSION.TEMP
-	SELECT '' AS DATE, '' AS ACC_NO, '' AS ACC_CD, 'Àü±âÀÌ¿ù' AS ACC_NM, '' AS ACC_CONT, NULL AS IN_AMT, NULL AS OUT_AMT, V_JAN_TOT_AMT AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
+	SELECT '' AS DATE, '' AS ACC_NO, '' AS ACC_CD, 'ì „ê¸°ì´ì›”' AS ACC_NM, '' AS ACC_CONT, NULL AS IN_AMT, NULL AS OUT_AMT, V_JAN_TOT_AMT AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
 	FROM SYSIBM.SYSDUMMY1;--
 
     P1: BEGIN
@@ -91,7 +91,7 @@ MAIN: BEGIN
 		DECLARE C_CASH_INOUT CURSOR FOR
 		SELECT VARCHAR_FORMAT(DATE, 'YYYY-MM-DD') AS DATE, ACC_NO, ACC_CD, ACC_NM, ACC_CONT, CR_AMT AS IN_AMT, DR_AMT AS OUT_AMT, CR_AMT - DR_AMT AS JAN_AMT, MANAGE_ITEM_1, MANAGE_ITEM_2
 		  FROM GADMIN.ACCOU1
-		 WHERE DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+		 WHERE DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
 		   AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
 		 ORDER BY DATE, ACC_NO;--
 
@@ -109,28 +109,28 @@ MAIN: BEGIN
 		IF V_DAY != V_DATE THEN
 
             /*
-			IF V_DAY_CHK = '' THEN    --ÃÊ±âÀÏÀÚ ÀÏ°è °è»ê (ÀÏÈ¸ ½ÇÇà)
+			IF V_DAY_CHK = '' THEN    --ì´ˆê¸°ì¼ìž ì¼ê³„ ê³„ì‚° (ì¼íšŒ ì‹¤í–‰)
                 INSERT INTO SESSION.TEMP
-                SELECT V_DAY AS DATE, 'ZZ' AS ACC_NO, '' AS ACC_CD, 'ÀÏ°è' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) AS IN_AMT, SUM(DR_AMT) AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
+                SELECT V_DAY AS DATE, 'ZZ' AS ACC_NO, '' AS ACC_CD, 'ì¼ê³„' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) AS IN_AMT, SUM(DR_AMT) AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
                   FROM GADMIN.ACCOU1
-                 WHERE DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                 WHERE DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                    AND DATE = V_DAY;	--
 
                  SET V_DAY_CHK = 'Y'; --
              END IF;--
         	*/
-      			--ÀÏ°è°è»ê
+      			--ì¼ê³„ê³„ì‚°
 			INSERT INTO SESSION.TEMP
-			SELECT V_DAY AS DATE, 'ZZ' AS ACC_NO, '' AS ACC_CD, 'ÀÏ°è' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) AS IN_AMT, SUM(DR_AMT) AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
+			SELECT V_DAY AS DATE, 'ZZ' AS ACC_NO, '' AS ACC_CD, 'ì¼ê³„' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) AS IN_AMT, SUM(DR_AMT) AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
 			  FROM GADMIN.ACCOU1
-			 WHERE DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+			 WHERE DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
 			   AND DATE = V_DAY;--
 
 			SET V_DAY = V_DATE;--
             ---------------------------------------------------------------------------------------------
 			SET V_JAN_TOT_AMT = V_JAN_TOT_AMT + V_JAN_AMT;--
 
-			--ÀüÇ¥³»¿ªµî·Ï
+			--ì „í‘œë‚´ì—­ë“±ë¡
 			INSERT INTO SESSION.TEMP
 			SELECT V_DATE, V_ACC_NO, V_ACC_CD, V_ACC_NM, V_ACC_CONT, V_IN_AMT, V_OUT_AMT, V_JAN_TOT_AMT AS JAN_AMT, V_MANAGE_ITEM_1, V_MANAGE_ITEM_2
 			  FROM SYSIBM.SYSDUMMY1;--
@@ -139,7 +139,7 @@ MAIN: BEGIN
 
 			SET V_JAN_TOT_AMT = V_JAN_TOT_AMT + V_JAN_AMT;--
 
-			--ÀüÇ¥³»¿ªµî·Ï
+			--ì „í‘œë‚´ì—­ë“±ë¡
 			INSERT INTO SESSION.TEMP
 			SELECT V_DATE, V_ACC_NO, V_ACC_CD, V_ACC_NM, V_ACC_CONT, V_IN_AMT, V_OUT_AMT, V_JAN_TOT_AMT AS JAN_AMT, V_MANAGE_ITEM_1, V_MANAGE_ITEM_2
 			  FROM SYSIBM.SYSDUMMY1;--
@@ -150,31 +150,31 @@ MAIN: BEGIN
 
 		END WHILE;--
 
-		IF V_CNT = 1 THEN   --µ¥ÀÌÅÍ°¡ ÇÑ°Çµµ ¾øÀ»¶§
+		IF V_CNT = 1 THEN   --ë°ì´í„°ê°€ í•œê±´ë„ ì—†ì„ë•Œ
 			SET V_DAY = IN_FROMDATE;--
 
             /*
 			INSERT INTO SESSION.TEMP
-			SELECT V_DAY AS DATE, 'ZZ' AS ACC_NO, '' AS ACC_CD, 'ÀÏ°è' AS ACC_NM, '' AS ACC_CONT, 0 AS IN_AMT, 0 AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
+			SELECT V_DAY AS DATE, 'ZZ' AS ACC_NO, '' AS ACC_CD, 'ì¼ê³„' AS ACC_NM, '' AS ACC_CONT, 0 AS IN_AMT, 0 AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
 			  FROM SYSIBM.SYSDUMMY1;--
 			*/
 		END IF; --
 
 		/*
-		--¿ù°è°è»ê
+		--ì›”ê³„ê³„ì‚°
         INSERT INTO SESSION.TEMP
-        SELECT SUBSTRING(V_DAY, 1, 7)||'-99' AS DATE, 'ZZZ' AS ACC_NO, '' AS ACC_CD, '¿ù°è' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) AS IN_AMT, SUM(DR_AMT) AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
+        SELECT SUBSTRING(V_DAY, 1, 7)||'-99' AS DATE, 'ZZZ' AS ACC_NO, '' AS ACC_CD, 'ì›”ê³„' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) AS IN_AMT, SUM(DR_AMT) AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
           FROM GADMIN.ACCOU1
-         WHERE DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+         WHERE DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
            AND SUBSTRING(DATE, 1, 7) = SUBSTRING(V_DAY, 1, 7);--
         */
 
-        --´©°è°è»ê
+        --ëˆ„ê³„ê³„ì‚°
 
 		INSERT INTO SESSION.TEMP
-        SELECT SUBSTRING(V_DAY, 1, 7)||'-99' AS DATE, 'ZZZZ' AS ACC_NO, '' AS ACC_CD, '´©°è' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) + V_DR_AMT + V_NU_DR_AMT AS IN_AMT, SUM(DR_AMT) + V_CR_AMT + V_NU_CR_AMT AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
+        SELECT SUBSTRING(V_DAY, 1, 7)||'-99' AS DATE, 'ZZZZ' AS ACC_NO, '' AS ACC_CD, 'ëˆ„ê³„' AS ACC_NM, '' AS ACC_CONT, SUM(CR_AMT) + V_DR_AMT + V_NU_DR_AMT AS IN_AMT, SUM(DR_AMT) + V_CR_AMT + V_NU_CR_AMT AS OUT_AMT, NULL AS JAN_AMT, '' AS MANAGE_ITEM_1, '' AS MANAGE_ITEM_2
           FROM GADMIN.ACCOU1
-         WHERE DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+         WHERE DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
            --AND SUBSTRING(DATE, 1, 7) BETWEEN SUBSTRING(V_DAY, 1, 5)||'01' AND SUBSTRING(IN_TODATE, 1, 7);--
            AND DATE BETWEEN IN_FROMDATE AND IN_TODATE;--
 
@@ -193,4 +193,4 @@ MAIN: BEGIN
 
 		OPEN CURSOR_TEMP;--
    END P2;--
-END MAIN 
+END MAIN

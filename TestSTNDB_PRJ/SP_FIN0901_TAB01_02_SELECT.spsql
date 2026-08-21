@@ -14,17 +14,17 @@ MAIN: BEGIN
 
     P1: BEGIN
 		DECLARE CURSOR_FIN CURSOR WITH RETURN FOR
-        SELECT A.MANAGE_ITEM_1, A.MANAGE_CD_1, A.MANAGE_ITEM_2, A.MANAGE_CD_2, JUN_AMT, DR_AMT, CR_AMT, CASE B.DRCR_GB WHEN 'Â÷º¯' THEN JUN_AMT + DR_AMT - CR_AMT ELSE JUN_AMT + CR_AMT - DR_AMT END AS JAN_AMT
+        SELECT A.MANAGE_ITEM_1, A.MANAGE_CD_1, A.MANAGE_ITEM_2, A.MANAGE_CD_2, JUN_AMT, DR_AMT, CR_AMT, CASE B.DRCR_GB WHEN 'ì°¨ë³€' THEN JUN_AMT + DR_AMT - CR_AMT ELSE JUN_AMT + CR_AMT - DR_AMT END AS JAN_AMT
           FROM (
                     SELECT ACC_CD, MANAGE_ITEM_1, MANAGE_CD_1, MANAGE_ITEM_2, MANAGE_CD_2, SUM(JUN_AMT) AS JUN_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
                       FROM (
-                                SELECT ACC_CD, ITEM_1 AS MANAGE_CD_1, MANAGE_1 AS MANAGE_ITEM_1, ITEM_2 AS MANAGE_CD_2, MANAGE_2 AS MANAGE_ITEM_2, SUM(CASE DRCR_GB WHEN 'Â÷º¯' THEN ( DR_00 - CR_00 )  ELSE ( CR_00 - DR_00 ) END) AS JUN_AMT, 0 AS DR_AMT, 0 AS CR_AMT
+                                SELECT ACC_CD, ITEM_1 AS MANAGE_CD_1, MANAGE_1 AS MANAGE_ITEM_1, ITEM_2 AS MANAGE_CD_2, MANAGE_2 AS MANAGE_ITEM_2, SUM(CASE DRCR_GB WHEN 'ì°¨ë³€' THEN ( DR_00 - CR_00 )  ELSE ( CR_00 - DR_00 ) END) AS JUN_AMT, 0 AS DR_AMT, 0 AS CR_AMT
                                   FROM GADMIN.TRADEKYE A
                                  WHERE 1 = 1
                                    AND ACC_CD = IN_ACC_CD
                                    AND ITEM_1 LIKE IN_MANAGE_CD_1
                                    AND YEAR = IN_YEAR
-                                   AND CASE DRCR_GB WHEN 'Â÷º¯' THEN ( DR_00 - CR_00 )  ELSE ( CR_00 - DR_00 ) END <> 0
+                                   AND CASE DRCR_GB WHEN 'ì°¨ë³€' THEN ( DR_00 - CR_00 )  ELSE ( CR_00 - DR_00 ) END <> 0
                                 GROUP BY ACC_CD, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2
                                 UNION ALL
                                 SELECT ACC_CD, MANAGE_ITEM_1, MANAGE_CD_1, MANAGE_ITEM_2, MANAGE_CD_2, 0 AS JUN_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
@@ -44,4 +44,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_FIN;--
     END P1;--
 
-END MAIN 
+END MAIN

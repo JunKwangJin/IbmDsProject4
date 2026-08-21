@@ -44,7 +44,7 @@ MAIN: BEGIN
   WITH REPLACE
   NOT LOGGED;--
 
---°³¼ö Ã£±â
+--ê°œìˆ˜ ì°¾ê¸°
 SELECT GISU INTO V_GISU
   FROM GADMIN.BSACC9
  WHERE START <= IN_FROMDATE
@@ -56,10 +56,10 @@ P1: BEGIN
 
     INSERT INTO SESSION.TEMP
     SELECT DATE, ACC_CD, ACC_NM, ACC_NO, ACC_CONT, MANAGE_ITEM_1, DR_AMT, CR_AMT,
-           SUM(CASE WHEN DRCR_GB = 'Â÷º¯' OR DRCR_GB = 'Ãâ±Ý' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  OVER(PARTITION BY ACC_CD ORDER BY ACC_CD, DATE, ACC_NO, ROWNUMBER()OVER()) JAN_AMT
+           SUM(CASE WHEN DRCR_GB = 'ì°¨ë³€' OR DRCR_GB = 'ì¶œê¸ˆ' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  OVER(PARTITION BY ACC_CD ORDER BY ACC_CD, DATE, ACC_NO, ROWNUMBER()OVER()) JAN_AMT
       FROM (
 		    SELECT A.DRCR_GB, C.ACC_CD, C.ACC_NM, C.DATE, C.ACC_NO, C.ACC_CONT, MANAGE_ITEM_1, COALESCE(C.DR_AMT,0) AS DR_AMT, COALESCE(C.CR_AMT,0) AS CR_AMT,
-		    	CASE WHEN A.DRCR_GB = 'Â÷º¯' OR A.DRCR_GB = 'Ãâ±Ý'  THEN COALESCE(C.JAN_AMT,0) + COALESCE(C.DR_AMT,0) - COALESCE(C.CR_AMT,0)
+		    	CASE WHEN A.DRCR_GB = 'ì°¨ë³€' OR A.DRCR_GB = 'ì¶œê¸ˆ'  THEN COALESCE(C.JAN_AMT,0) + COALESCE(C.DR_AMT,0) - COALESCE(C.CR_AMT,0)
 		    			ELSE COALESCE(C.JAN_AMT,0) + COALESCE(C.CR_AMT,0) - COALESCE(C.DR_AMT,0) END AS JAN_AMT
 		      FROM
 		            (
@@ -71,8 +71,8 @@ P1: BEGIN
 		               ORDER BY LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM
 		            ) A
              		 LEFT OUTER JOIN (
-                                SELECT Y.ACC_CD, Y.ACC_NM, SUBSTRING(IN_FROMDATE,1,7)||'-00' AS DATE, '000' AS ACC_NO, 'Àü±âÀÌ¿ù' AS ACC_CONT, '' AS MANAGE_ITEM_1, Y.DR_AMT, Y.CR_AMT,
-                                    CASE WHEN Y.DRCR_GB = 'Â÷º¯' OR Y.DRCR_GB = 'Ãâ±Ý' THEN Y.DR_AMT - Y.CR_AMT ELSE Y.CR_AMT - Y.DR_AMT END AS JAN_AMT
+                                SELECT Y.ACC_CD, Y.ACC_NM, SUBSTRING(IN_FROMDATE,1,7)||'-00' AS DATE, '000' AS ACC_NO, 'ì „ê¸°ì´ì›”' AS ACC_CONT, '' AS MANAGE_ITEM_1, Y.DR_AMT, Y.CR_AMT,
+                                    CASE WHEN Y.DRCR_GB = 'ì°¨ë³€' OR Y.DRCR_GB = 'ì¶œê¸ˆ' THEN Y.DR_AMT - Y.CR_AMT ELSE Y.CR_AMT - Y.DR_AMT END AS JAN_AMT
                                   FROM (
                                         SELECT A.ACC_CD, A.ACC_NM, A.DRCR_GB,
                                                   CASE WHEN V_MONTH = '01' THEN DR_00
@@ -106,16 +106,16 @@ P1: BEGIN
                                                 ( SELECT *
                                                     FROM GADMIN.BSACC2
                                                    WHERE 1 = 1
-                                                     AND ACC_GB IN ('ÀÚ»ê','ºÎÃ¤','ÀÚº»')
+                                                     AND ACC_GB IN ('ìžì‚°','ë¶€ì±„','ìžë³¸')
                                                 ) B ON ( A.ACC_CD = B.ACC_CD )
                                          WHERE YEAR = V_GISU
                                            AND A.ACC_CD >= IN_FROMACCCD
                                            AND A.ACC_CD <= IN_TOACCCD
-                                           AND A.ACC_CD != '1110101'   --Çö±Ý Á¦¿Ü
+                                           AND A.ACC_CD != '1110101'   --í˜„ê¸ˆ ì œì™¸
                             ) Y
       				  UNION ALL
                       SELECT A.ACC_CD, A.ACC_NM, VARCHAR_FORMAT(A.DATE, 'YYYY-MM-DD') AS DATE, A.ACC_NO, A.ACC_CONT, A.MANAGE_ITEM_1,  A.DR_AMT, A.CR_AMT,
-                      		CASE WHEN B.DRCR_GB = 'Â÷º¯' OR B.DRCR_GB = 'Ãâ±Ý' THEN A.DR_AMT - A.CR_AMT ELSE A.CR_AMT - A.DR_AMT END AS JAN_AMT
+                      		CASE WHEN B.DRCR_GB = 'ì°¨ë³€' OR B.DRCR_GB = 'ì¶œê¸ˆ' THEN A.DR_AMT - A.CR_AMT ELSE A.CR_AMT - A.DR_AMT END AS JAN_AMT
                         FROM GADMIN.ACCOU1 A LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
                        WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                          AND A.ACC_CD >= IN_FROMACCCD
@@ -123,10 +123,10 @@ P1: BEGIN
                          AND A.ACC_CD IS NOT NULL
                          /*
                       UNION ALL
-                      SELECT '1110101' AS ACC_CD, 'Çö          ±Ý' AS ACC_NM, VARCHAR_FORMAT(B.DATE, 'YYYY-MM-DD') AS DATE, B.ACC_NO, B.ACC_CONT,  B.MANAGE_ITEM_1, B.CR_AMT AS DR_AMT, B.DR_AMT AS CR_AMT, B.CR_AMT - B.DR_AMT AS JAN_AMT
+                      SELECT '1110101' AS ACC_CD, 'í˜„          ê¸ˆ' AS ACC_NM, VARCHAR_FORMAT(B.DATE, 'YYYY-MM-DD') AS DATE, B.ACC_NO, B.ACC_CONT,  B.MANAGE_ITEM_1, B.CR_AMT AS DR_AMT, B.DR_AMT AS CR_AMT, B.CR_AMT - B.DR_AMT AS JAN_AMT
                         FROM GADMIN.ACCOU1 B
                         WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                          AND DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                          AND DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                           AND ACC_CD IS NOT NULL
                         */
             ) C ON ( A.ACC_CD = C.ACC_CD )
@@ -139,20 +139,20 @@ P1: BEGIN
       AND A.ACC_CD <= IN_TOACCCD
       AND A.ACC_CD IS NOT NULL;--
 
-     --¿ù°è
+     --ì›”ê³„
     INSERT INTO SESSION.TEMP
-    SELECT SUBSTRING(DATE,1,7)||'-88' AS DATE,  ACC_CD, ACC_NM, '' AS ACC_NO, '           ¿ù°è' AS ACC_CONT, '' AS MANAGE_ITEM_1, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
+    SELECT SUBSTRING(DATE,1,7)||'-88' AS DATE,  ACC_CD, ACC_NM, '' AS ACC_NO, '           ì›”ê³„' AS ACC_CONT, '' AS MANAGE_ITEM_1, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
       FROM SESSION.TEMP
-     WHERE ACC_CONT != 'Àü±âÀÌ¿ù'
+     WHERE ACC_CONT != 'ì „ê¸°ì´ì›”'
     GROUP BY SUBSTRING(DATE,1,7),SUBSTRING(DATE,6,2),  ACC_CD, ACC_NM;--
 
 
-    -- ´©°è
+    -- ëˆ„ê³„
     INSERT INTO SESSION.TEMP
-    SELECT SUBSTRING(DATE,1,7)||'-99' AS DATE,  A.ACC_CD, A.ACC_NM, '' AS ACC_NO, '           ´©°è'  AS ACC_CONT, '' AS MANAGE_ITEM_1,
+    SELECT SUBSTRING(DATE,1,7)||'-99' AS DATE,  A.ACC_CD, A.ACC_NM, '' AS ACC_NO, '           ëˆ„ê³„'  AS ACC_CONT, '' AS MANAGE_ITEM_1,
                                                                                                            SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE) AS DR_AMT,
                                                                                                            SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE) AS CR_AMT,
-           CASE WHEN B.DRCR_GB = 'Â÷º¯' OR B.DRCR_GB = 'Ãâ±Ý'
+           CASE WHEN B.DRCR_GB = 'ì°¨ë³€' OR B.DRCR_GB = 'ì¶œê¸ˆ'
                  THEN  (SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) - (SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE))
                  ELSE  (SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) - (SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) END  AS JAN_AMT
        FROM  (
@@ -160,23 +160,23 @@ P1: BEGIN
                   FROM (
                             SELECT SUBSTRING(DATE,1,7) AS DATE,  ACC_CD, ACC_NM, '' AS ACC_NO, '' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
                               FROM SESSION.TEMP
-                             WHERE TRIM(ACC_CONT) != '¿ù°è'
+                             WHERE TRIM(ACC_CONT) != 'ì›”ê³„'
                             GROUP BY SUBSTRING(DATE,1,7),  ACC_CD, ACC_NM
                          )
                 GROUP BY DATE, ACC_CD, ACC_NM
               )   A  LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
       WHERE 1 = 1
-        --AND SUBSTRING(ACC_CONT,4,4) = '¿ù°è'
+        --AND SUBSTRING(ACC_CONT,4,4) = 'ì›”ê³„'
       ;--
 
 
 
     /*
     INSERT INTO SESSION.TEMP
-    SELECT SUBSTRING(DATE,1,7)||'-99' AS DATE,  A.ACC_CD, A.ACC_NM, '' AS ACC_NO, '´©°è'  AS ACC_CONT,'' AS MANAGE_ITEM_1,
+    SELECT SUBSTRING(DATE,1,7)||'-99' AS DATE,  A.ACC_CD, A.ACC_NM, '' AS ACC_NO, 'ëˆ„ê³„'  AS ACC_CONT,'' AS MANAGE_ITEM_1,
                                                                                                            SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE) AS DR_AMT,
                                                                                                            SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE) AS CR_AMT,
-           CASE WHEN B.DRCR_GB = 'Â÷º¯' OR B.DRCR_GB = 'Ãâ±Ý'
+           CASE WHEN B.DRCR_GB = 'ì°¨ë³€' OR B.DRCR_GB = 'ì¶œê¸ˆ'
                  THEN  (SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) - (SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE))
                  ELSE  (SUM(CR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) - (SUM(DR_AMT) OVER(PARTITION BY A.ACC_CD, A.ACC_NM ORDER BY DATE)) END  AS JAN_AMT
        FROM  (
@@ -184,18 +184,18 @@ P1: BEGIN
                   FROM (
                             SELECT SUBSTRING(DATE,1,7) AS DATE, ACC_CD, ACC_NM, '' AS ACC_NO, '' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
                               FROM SESSION.TEMP
-                             WHERE ACC_CONT = 'Àü±âÀÌ¿ù'
+                             WHERE ACC_CONT = 'ì „ê¸°ì´ì›”'
                             GROUP BY SUBSTRING(DATE,1,7),SUBSTRING(DATE,6,2),  ACC_CD, ACC_NM
                             UNION ALL
                             SELECT SUBSTRING(DATE,1,7) AS DATE,  ACC_CD, ACC_NM, '' AS ACC_NO, '' AS ACC_CONT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, 0 AS JAN_AMT
                               FROM SESSION.TEMP
-                             WHERE SUBSTRING(ACC_CONT,4,4) = '¿ù°è'
+                             WHERE SUBSTRING(ACC_CONT,4,4) = 'ì›”ê³„'
                             GROUP BY SUBSTRING(DATE,1,7),SUBSTRING(DATE,6,2),  ACC_CD, ACC_NM
                          )
                 GROUP BY DATE, ACC_CD, ACC_NM
               )   A  LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
       WHERE 1 = 1
-        --AND SUBSTRING(ACC_CONT,4,4) = '¿ù°è'
+        --AND SUBSTRING(ACC_CONT,4,4) = 'ì›”ê³„'
       ;--
 */
 
@@ -231,4 +231,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

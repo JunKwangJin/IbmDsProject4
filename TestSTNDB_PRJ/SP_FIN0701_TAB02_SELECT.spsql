@@ -34,11 +34,11 @@ MAIN: BEGIN
                          --WHERE A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                          WHERE A.DATE = IN_DATE
                         UNION ALL
-                        SELECT '1110101' AS ACC_CD, 'Çö          ±Ý' AS ACC_NM, VARCHAR_FORMAT(B.DATE, 'YYYY-MM-DD') AS DATE, B.ACC_NO, B.DRCR_GB, B.ACC_CONT, B.CR_AMT AS DR_AMT, B.DR_AMT AS CR_AMT, B.MANAGE_CD_1, B.MANAGE_ITEM_1, B.MANAGE_CD_1, B.MANAGE_ITEM_2
+                        SELECT '1110101' AS ACC_CD, 'í˜„          ê¸ˆ' AS ACC_NM, VARCHAR_FORMAT(B.DATE, 'YYYY-MM-DD') AS DATE, B.ACC_NO, B.DRCR_GB, B.ACC_CONT, B.CR_AMT AS DR_AMT, B.DR_AMT AS CR_AMT, B.MANAGE_CD_1, B.MANAGE_ITEM_1, B.MANAGE_CD_1, B.MANAGE_ITEM_2
                           FROM GADMIN.ACCOU1 B
                          --WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                          WHERE DATE = IN_DATE
-                           AND DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+                           AND DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
                            AND ACC_CD IS NOT NULL
                        )
         WHERE ACC_CD = IN_ACC_CD
@@ -48,4 +48,4 @@ MAIN: BEGIN
 
     END P1;--
 
-END MAIN 
+END MAIN

@@ -13,13 +13,13 @@ MAIN: BEGIN
         SELECT *
           FROM (
                     SELECT A.CLASS
-                          , COALESCE(SUM(B.AMT),0)  AS B_AMT   -- ø£¡¯
-                          , COALESCE(SUM(C.AMT),0)  AS C_AMT   -- ª˛Ω√
-                          , COALESCE(SUM(D.AMT),0)  AS D_AMT   -- ¿¸¿Â
-                          , COALESCE(SUM(E.AMT),0)  AS E_AMT   -- ¬˜√º
-                          , COALESCE(SUM(F.AMT),0)  AS F_AMT   -- ≈∏¿ÃæÓ
-                          , COALESCE(SUM(G.AMT),0)  AS G_AMT   -- ªÁ∞Ì
-                          , COALESCE(SUM(H.AMT),0)  AS H_AMT   -- ±‚≈∏
+                          , COALESCE(SUM(B.AMT),0)  AS B_AMT   -- ÏóîÏßÑ
+                          , COALESCE(SUM(C.AMT),0)  AS C_AMT   -- ÏÉ§Ïãú
+                          , COALESCE(SUM(D.AMT),0)  AS D_AMT   -- Ï†ÑÏû•
+                          , COALESCE(SUM(E.AMT),0)  AS E_AMT   -- Ï∞®Ï≤¥
+                          , COALESCE(SUM(F.AMT),0)  AS F_AMT   -- ÌÉÄÏù¥Ïñ¥
+                          , COALESCE(SUM(G.AMT),0)  AS G_AMT   -- ÏÇ¨Í≥†
+                          , COALESCE(SUM(H.AMT),0)  AS H_AMT   -- Í∏∞ÌÉÄ
                           , COALESCE(SUM(B.AMT),0) + COALESCE(SUM(C.AMT),0) + COALESCE(SUM(D.AMT),0) +
                             COALESCE(SUM(E.AMT),0) + COALESCE(SUM(F.AMT),0) + COALESCE(SUM(G.AMT),0) +
                             COALESCE(SUM(H.AMT),0) AS TOT_AMT
@@ -32,7 +32,7 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.JAJAE_GB = 'ø£¡¯'
+                                                   AND B.JAJAE_GB = 'ÏóîÏßÑ'
                                                 GROUP BY B.CLASS
                                                ) B ON (A.CLASS = B.CLASS)
                             LEFT OUTER JOIN (
@@ -42,7 +42,7 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.JAJAE_GB = 'ª˛Ω√'
+                                                   AND B.JAJAE_GB = 'ÏÉ§Ïãú'
                                                 GROUP BY B.CLASS
                                                ) C ON (A.CLASS = C.CLASS)
                             LEFT OUTER JOIN (
@@ -52,7 +52,7 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.JAJAE_GB = '¿¸¿Â'
+                                                   AND B.JAJAE_GB = 'Ï†ÑÏû•'
                                                 GROUP BY B.CLASS
                                                ) D ON (A.CLASS = D.CLASS)
                             LEFT OUTER JOIN (
@@ -62,7 +62,7 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.JAJAE_GB = '¬˜√º'
+                                                   AND B.JAJAE_GB = 'Ï∞®Ï≤¥'
                                                 GROUP BY B.CLASS
                                               ) E ON (A.CLASS = E.CLASS)
                             LEFT OUTER JOIN (
@@ -72,7 +72,7 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.CLASS = '≈∏¿ÃæÓ'
+                                                   AND B.CLASS = 'ÌÉÄÏù¥Ïñ¥'
                                                 GROUP BY B.CLASS
                                                ) F ON (A.CLASS = F.CLASS)
                             LEFT OUTER JOIN (
@@ -82,7 +82,7 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.JAJAE_GB = 'ªÁ∞Ì'
+                                                   AND B.JAJAE_GB = 'ÏÇ¨Í≥†'
                                                 GROUP BY B.CLASS
                                                ) G ON (A.CLASS = G.CLASS)
                             LEFT OUTER JOIN (
@@ -92,8 +92,8 @@ MAIN: BEGIN
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  WHERE 1 = 1
                                                    AND A.DATE = IN_DATE
-                                                   AND B.JAJAE_GB NOT IN ('ø£¡¯','ª˛Ω√','¿¸¿Â','¬˜√º','≈∏¿ÃæÓ','ªÁ∞Ì')
-                                                   AND B.CLASS != '≈∏¿ÃæÓ'
+                                                   AND B.JAJAE_GB NOT IN ('ÏóîÏßÑ','ÏÉ§Ïãú','Ï†ÑÏû•','Ï∞®Ï≤¥','ÌÉÄÏù¥Ïñ¥','ÏÇ¨Í≥†')
+                                                   AND B.CLASS != 'ÌÉÄÏù¥Ïñ¥'
                                                 GROUP BY B.CLASS
                                               ) H ON (A.CLASS = H.CLASS)
                             LEFT OUTER JOIN (
@@ -113,4 +113,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

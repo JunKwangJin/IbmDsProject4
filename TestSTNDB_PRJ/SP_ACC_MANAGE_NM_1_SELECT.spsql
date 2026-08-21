@@ -16,8 +16,8 @@ MAIN: BEGIN
           WHERE 1 = 1
             AND ( MANAGE_CD LIKE '%'||IN_NM||'%'
              OR MANAGE_ITEM LIKE '%'||IN_NM||'%' )
-            AND MANAGE_ITEM != '¿∫«‡'
+            AND MANAGE_ITEM != 'ÏùÄÌñâ'
          ORDER BY MANAGE_ITEM;--
 	    OPEN CURSOR_MNG;--
     END P1;--
-END MAIN 
+END MAIN

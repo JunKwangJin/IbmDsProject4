@@ -24,12 +24,12 @@ P1: BEGIN
     INSERT INTO SESSION.TEMP
     SELECT A.ACC_CD, '      '||A.ACC_NM AS ACC_NM, COALESCE(SUM(CU_AMT),0) AS CU_AMT, COALESCE(SUM(CU_TOT),0) AS CU_TOT, COALESCE(SUM(BE_AMT),0) AS BE_AMT, COALESCE(SUM(BE_TOT),0) AS BE_TOT
       FROM (
-            --¥Á±‚
+            --ÎãπÍ∏∞
             SELECT A.ACC_CD, A.ACC_NM, COALESCE(SUM(A.DR_AMT - A.CR_AMT),0) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = 'ø¯∞°'
+               AND B.ACC_GB = 'ÏõêÍ∞Ä'
                AND A.ACC_CD LIKE '6%'
                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
              GROUP BY A.ACC_CD, A.ACC_NM
@@ -38,16 +38,16 @@ P1: BEGIN
               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = 'ø¯∞°'
+               AND B.ACC_GB = 'ÏõêÍ∞Ä'
                AND A.ACC_CD LIKE '6%'
              GROUP BY A.ACC_CD, A.ACC_NM
              UNION ALL
-             --¿¸±‚
+             --Ï†ÑÍ∏∞
             SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, COALESCE(SUM(A.DR_AMT - A.CR_AMT),0) AS BE_AMT, 0 AS BE_TOT
               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = 'ø¯∞°'
+               AND B.ACC_GB = 'ÏõêÍ∞Ä'
                AND A.ACC_CD LIKE '6%'
                AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
              GROUP BY A.ACC_CD, A.ACC_NM
@@ -56,7 +56,7 @@ P1: BEGIN
               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = 'ø¯∞°'
+               AND B.ACC_GB = 'ÏõêÍ∞Ä'
                AND A.ACC_CD LIKE '6%'
              GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
@@ -64,54 +64,54 @@ P1: BEGIN
           AND NOT (CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)
     GROUP BY A.ACC_CD, A.ACC_NM;         --
 
-    --  (øÓº€ø¯∞°π◊¡÷≈√∫–æÁø¯∞°)
+    --  (Ïö¥ÏÜ°ÏõêÍ∞ÄÎ∞èÏ£ºÌÉùÎ∂ÑÏñëÏõêÍ∞Ä)
     INSERT INTO SESSION.TEMP
-    SELECT '6200000' AS ACC_CD, '(øÓº€ø¯∞°π◊¡÷≈√∫–æÁø¯∞°)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6200000' AS ACC_CD, '(Ïö¥ÏÜ°ÏõêÍ∞ÄÎ∞èÏ£ºÌÉùÎ∂ÑÏñëÏõêÍ∞Ä)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP;--
 
-    --    (øÓ   º€   ∫Ò)
+    --    (Ïö¥   ÏÜ°   ÎπÑ)
     INSERT INTO SESSION.TEMP
-    SELECT '6220000' AS ACC_CD, '  (øÓ   º€   ∫Ò)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6220000' AS ACC_CD, '  (Ïö¥   ÏÜ°   ÎπÑ)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP
      WHERE 1 = 1
        AND ACC_CD LIKE '622%';--
 
-    --        ±ﬁ    ø©(øÓ¿¸)
+    --        Í∏â    Ïó¨(Ïö¥Ï†Ñ)
     INSERT INTO SESSION.TEMP
-    SELECT '6220100' AS ACC_CD, '    ±ﬁ    ø©(øÓ¿¸)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6220100' AS ACC_CD, '    Í∏â    Ïó¨(Ïö¥Ï†Ñ)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP
      WHERE 1 = 1
        AND ACC_CD LIKE '62201%';       --
 
-    --    ∫π∏Æ»ƒª˝∫Ò(ø¯)
+    --    Î≥µÎ¶¨ÌõÑÏÉùÎπÑ(Ïõê)
     INSERT INTO SESSION.TEMP
-    SELECT '6220600' AS ACC_CD, '    ∫π∏Æ»ƒª˝∫Ò(ø¯)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6220600' AS ACC_CD, '    Î≥µÎ¶¨ÌõÑÏÉùÎπÑ(Ïõê)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP
      WHERE 1 = 1
        AND ACC_CD LIKE '62206%';       --
 
-    --  (¿Ø   ¡ˆ   ∫Ò)
+    --  (Ïú†   ÏßÄ   ÎπÑ)
     INSERT INTO SESSION.TEMP
-    SELECT '6230000' AS ACC_CD, '  (¿Ø   ¡ˆ   ∫Ò)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6230000' AS ACC_CD, '  (Ïú†   ÏßÄ   ÎπÑ)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP
      WHERE 1 = 1
        AND ACC_CD LIKE '623%';   --
 
-    --    ±ﬁ    ø©(¿Ø¡ˆ)
+    --    Í∏â    Ïó¨(Ïú†ÏßÄ)
     INSERT INTO SESSION.TEMP
-    SELECT '6230100' AS ACC_CD, '    ±ﬁ    ø©(¿Ø¡ˆ)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6230100' AS ACC_CD, '    Í∏â    Ïó¨(Ïú†ÏßÄ)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP
      WHERE 1 = 1
        AND ACC_CD LIKE '62301%';         --
 
-    --    ∫π∏Æ»ƒª˝∫Ò(¿Ø)
+    --    Î≥µÎ¶¨ÌõÑÏÉùÎπÑ(Ïú†)
     INSERT INTO SESSION.TEMP
-    SELECT '6230400' AS ACC_CD, '    ∫π∏Æ»ƒª˝∫Ò(¿Ø)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
+    SELECT '6230400' AS ACC_CD, '    Î≥µÎ¶¨ÌõÑÏÉùÎπÑ(Ïú†)' AS ACC_NM, 0 AS CU_AMT, COALESCE(SUM(CU_AMT),0) AS CU_TOT, 0 AS BE_AMT, COALESCE(SUM(BE_AMT),0) AS BE_TOT
       FROM SESSION.TEMP
      WHERE 1 = 1
        AND ACC_CD LIKE '62304%';        --
 
-    --(∏≈√‚  √—¿Ã¿Õ)
+    --(Îß§Ï∂ú  Ï¥ùÏù¥Ïùµ)
     INSERT INTO SESSION.TEMP
     SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT
       FROM GADMIN.EBUS_FIN_INCOME
@@ -136,9 +136,9 @@ P2: BEGIN
                           AND B.DRIVE_WONGA != 'N'
                      )
      WHERE 1 = 1
-       AND NOT(CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)  -- ∞·∞˙∞° ¥Ÿ "0"¿Œ∞Õ ¡¶ø‹ Ω√≈¥
+       AND NOT(CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)  -- Í≤∞Í≥ºÍ∞Ä Îã§ "0"Ïù∏Í≤É Ï†úÏô∏ ÏãúÌÇ¥
     ORDER BY CHULRYEOK_CD
     ;    --
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

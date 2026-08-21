@@ -12,13 +12,13 @@ MAIN: BEGIN
     P1: BEGIN
 		DECLARE CURSOR_TRV CURSOR WITH RETURN FOR
 
-        SELECT CASE WEEK WHEN '1' THEN 'ø˘'
-                                 WHEN '2' THEN '»≠'
-                                 WHEN '3' THEN 'ºˆ'
-                                 WHEN '4' THEN '∏Ò'
-                                 WHEN '5' THEN '±›'
-                                 WHEN '6' THEN '≈‰'
-                                 WHEN '7' THEN '¿œ' END AS WEEK
+        SELECT CASE WEEK WHEN '1' THEN 'Ïõî'
+                                 WHEN '2' THEN 'Ìôî'
+                                 WHEN '3' THEN 'Ïàò'
+                                 WHEN '4' THEN 'Î™©'
+                                 WHEN '5' THEN 'Í∏à'
+                                 WHEN '6' THEN 'ÌÜ†'
+                                 WHEN '7' THEN 'Ïùº' END AS WEEK
               , SUM(CNT) AS CNT
               , SUM(T0002) AS T0002
               , SUM(T0204) AS T0204
@@ -33,13 +33,13 @@ MAIN: BEGIN
               , SUM(T2022) AS T2022
               , SUM(T2224) AS T2224
            FROM (
-                    SELECT CASE EVENT_WEEK WHEN 'ø˘' THEN '1'
-                                             WHEN '»≠' THEN '2'
-                                             WHEN 'ºˆ' THEN '3'
-                                             WHEN '∏Ò' THEN '4'
-                                             WHEN '±›' THEN '5'
-                                             WHEN '≈‰' THEN '6'
-                                             WHEN '¿œ' THEN '7' END AS WEEK
+                    SELECT CASE EVENT_WEEK WHEN 'Ïõî' THEN '1'
+                                             WHEN 'Ìôî' THEN '2'
+                                             WHEN 'Ïàò' THEN '3'
+                                             WHEN 'Î™©' THEN '4'
+                                             WHEN 'Í∏à' THEN '5'
+                                             WHEN 'ÌÜ†' THEN '6'
+                                             WHEN 'Ïùº' THEN '7' END AS WEEK
                           --, EVENT_WEEK
                           , (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) AS CNT
                           , COALESCE(CASE  WHEN EVENT_TIME < '0201' THEN (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) END,0) AS T0002
@@ -64,4 +64,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_TRV;--
     END P1;--
 
-END MAIN 
+END MAIN

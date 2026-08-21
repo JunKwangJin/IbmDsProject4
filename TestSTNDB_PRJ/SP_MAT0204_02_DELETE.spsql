@@ -2,7 +2,7 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT0204_02_DELETE"
 (IN IN_CHANGGO_CD VARCHAR(10),
  IN IN_DATE VARCHAR(10),
  IN IN_SEQ VARCHAR(4) )
--- °øµ¿Ãâ°íÀÇ »èÁ¦¿¡ ´ëÇÑ ³»¿ª »èÁ¦ ±â´ÉÀ¸·Î ³ë¼±, Â÷·®¹øÈ£´Â ÇÊ¿ä¾øÀ½
+-- ê³µë™ì¶œê³ ì˜ ì‚­ì œì— ëŒ€í•œ ë‚´ì—­ ì‚­ì œ ê¸°ëŠ¥ìœ¼ë¡œ ë…¸ì„ , ì°¨ëŸ‰ë²ˆí˜¸ëŠ” í•„ìš”ì—†ìŒ
 
   DYNAMIC RESULT SETS 1
   LANGUAGE SQL
@@ -20,4 +20,4 @@ MAIN: BEGIN
            --AND SEQ = IN_SEQ
            ;--
     END P1;--
-END MAIN 
+END MAIN

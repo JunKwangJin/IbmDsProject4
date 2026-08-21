@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_USERMENU01"
 (
-    IN IN_USER_ID   VARCHAR(12)  --ªÁøÎ¿⁄ ID
+    IN IN_USER_ID   VARCHAR(12)  --ÏÇ¨Ïö©Ïûê ID
 )
 
 
@@ -81,7 +81,7 @@ BEGIN ATOMIC
                                 )                                         C
                                 ON   B.AUTHGROUP_ID = C.AUTHGROUP_ID
                     INNER JOIN  (
-                                -- 1302016	±Ëºˆ¡¯	1	01	9999
+                                -- 1302016	ÍπÄÏàòÏßÑ	1	01	9999
                                 SELECT    USER_ID
                                         , USER_NM
                                         , NVL(USER_GUBUN,'9999')             AS USER_GUBUN

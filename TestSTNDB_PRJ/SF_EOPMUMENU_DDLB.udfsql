@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_EOPMUMENU_DDLB"
 (
-    IN IN_MENU_LVL   DECIMAL(5,0)  --¸Þ´ºID
+    IN IN_MENU_LVL   DECIMAL(5,0)  --ë©”ë‰´ID
 )
 
 
@@ -23,7 +23,7 @@ BEGIN ATOMIC
 
    RETURN
 
-	SELECT -- ¾ö¹«¸Þ´º
+	SELECT -- ì—„ë¬´ë©”ë‰´
 			   NVL(M.UP_MENU_ID, '0') AS UP_MENU_ID,
 			   M.MENU_ID AS DATA,
 			   M.MENU_NM AS LABEL,

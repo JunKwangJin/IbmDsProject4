@@ -14,132 +14,132 @@ P1: BEGIN
     INSERT INTO GADMIN.EBUS_FIN_INCOME
     SELECT A.ACC_CD, A.ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                --¥Á±‚ º’¿Õ∞ËªÍº≠
+                --ÎãπÍ∏∞ ÏÜêÏùµÍ≥ÑÏÇ∞ÏÑú
                 SELECT A.ACC_CD, A.ACC_NM, CU_AMT, CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM (
-                          --¿œπ›∞Ë¡§
-                          --øÓºˆºˆ¿‘
+                          --ÏùºÎ∞òÍ≥ÑÏ†ï
+                          --Ïö¥ÏàòÏàòÏûÖ
                           SELECT A.ACC_CD, A.ACC_NM, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                             AND B.ACC_GB = 'ºˆ¿Õ'
+                             AND B.ACC_GB = 'ÏàòÏùµ'
                              AND SUBSTRING(A.ACC_CD,1,2) = '61'
                             GROUP BY A.ACC_CD, A.ACC_NM
                           UNION ALL
-                          --¿œπ›∞¸∏Æ∫Ò
+                          --ÏùºÎ∞òÍ¥ÄÎ¶¨ÎπÑ
                           SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                             AND B.ACC_GB = '∫ÒøÎ'
+                             AND B.ACC_GB = 'ÎπÑÏö©'
                              AND SUBSTRING(A.ACC_CD,1,2) = '64'
                            GROUP BY A.ACC_CD, A.ACC_NM
                            UNION ALL
-                          --øµæ˜ø‹ ºˆ¿Õ
+                          --ÏòÅÏóÖÏô∏ ÏàòÏùµ
                           SELECT A.ACC_CD, A.ACC_NM, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                             AND B.ACC_GB = 'ºˆ¿Õ'
+                             AND B.ACC_GB = 'ÏàòÏùµ'
                              AND SUBSTRING(A.ACC_CD,1,2) = '66'
                           GROUP BY A.ACC_CD, A.ACC_NM
                           UNION ALL
-                          --øµæ˜ø‹ ∫ÒøÎ
+                          --ÏòÅÏóÖÏô∏ ÎπÑÏö©
                           SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                             AND B.ACC_GB = '∫ÒøÎ'
+                             AND B.ACC_GB = 'ÎπÑÏö©'
                              AND SUBSTRING(A.ACC_CD,1,2) = '67'
                            GROUP BY A.ACC_CD, A.ACC_NM
                            UNION ALL
-                          --∆Ø∫∞¿Ã¿Õ
+                          --ÌäπÎ≥ÑÏù¥Ïùµ
                           SELECT A.ACC_CD, A.ACC_NM, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                             AND B.ACC_GB = 'ºˆ¿Õ'
+                             AND B.ACC_GB = 'ÏàòÏùµ'
                              AND SUBSTRING(A.ACC_CD,1,2) = '69'
                           GROUP BY A.ACC_CD, A.ACC_NM
                           UNION ALL
-                          --π˝¿Œºº
+                          --Î≤ïÏù∏ÏÑ∏
                           SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                             AND B.ACC_GB = '∫ÒøÎ'
+                             AND B.ACC_GB = 'ÎπÑÏö©'
                              AND A.ACC_CD = '7200100'
                           GROUP BY A.ACC_CD, A.ACC_NM
                         ) A
                         UNION ALL
-                --¿¸±‚ º’¿Õ∞ËªÍº≠
+                --Ï†ÑÍ∏∞ ÏÜêÏùµÍ≥ÑÏÇ∞ÏÑú
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, BE_AMT, BE_TOT
                   FROM (
-                          --¿œπ›∞Ë¡§
-                          --øÓºˆºˆ¿‘
+                          --ÏùºÎ∞òÍ≥ÑÏ†ï
+                          --Ïö¥ÏàòÏàòÏûÖ
                           SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(CR_AMT) - SUM(DR_AMT) AS BE_AMT, 0 AS BE_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                             AND B.ACC_GB = 'ºˆ¿Õ'
+                             AND B.ACC_GB = 'ÏàòÏùµ'
                              AND SUBSTRING(A.ACC_CD,1,2) = '61'
                             GROUP BY A.ACC_CD, A.ACC_NM
                           UNION ALL
-                          --¿œπ›∞¸∏Æ∫Ò
+                          --ÏùºÎ∞òÍ¥ÄÎ¶¨ÎπÑ
                           SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                             AND B.ACC_GB = '∫ÒøÎ'
+                             AND B.ACC_GB = 'ÎπÑÏö©'
                              AND SUBSTRING(A.ACC_CD,1,2) = '64'
                            GROUP BY A.ACC_CD, A.ACC_NM
                            UNION ALL
-                          --øµæ˜ø‹ ºˆ¿Õ
+                          --ÏòÅÏóÖÏô∏ ÏàòÏùµ
                           SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                             AND B.ACC_GB = 'ºˆ¿Õ'
+                             AND B.ACC_GB = 'ÏàòÏùµ'
                              AND SUBSTRING(A.ACC_CD,1,2) = '66'
                           GROUP BY A.ACC_CD, A.ACC_NM
                           UNION ALL
-                          --øµæ˜ø‹ ∫ÒøÎ
+                          --ÏòÅÏóÖÏô∏ ÎπÑÏö©
                           SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                             AND B.ACC_GB = '∫ÒøÎ'
+                             AND B.ACC_GB = 'ÎπÑÏö©'
                              AND SUBSTRING(A.ACC_CD,1,2) = '67'
                            GROUP BY A.ACC_CD, A.ACC_NM
                            UNION ALL
-                          --∆Ø∫∞¿Ã¿Õ
+                          --ÌäπÎ≥ÑÏù¥Ïùµ
                           SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(CR_AMT) - SUM(DR_AMT) AS CU_AMT, 0 AS CU_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                             AND B.ACC_GB = 'ºˆ¿Õ'
+                             AND B.ACC_GB = 'ÏàòÏùµ'
                              AND SUBSTRING(A.ACC_CD,1,2) = '69'
                           GROUP BY A.ACC_CD, A.ACC_NM
                           UNION ALL
-                          --π˝¿Œºº
+                          --Î≤ïÏù∏ÏÑ∏
                           SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_AMT, 0 AS CU_TOT
                             FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                            WHERE 1 = 1
                              AND A.ACC_CD = B.ACC_CD
                              AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                             AND B.ACC_GB = '∫ÒøÎ'
+                             AND B.ACC_GB = 'ÎπÑÏö©'
                              AND A.ACC_CD = '7200100'
                           GROUP BY A.ACC_CD, A.ACC_NM
                         ) A
@@ -149,152 +149,152 @@ P1: BEGIN
        --AND NOT EXISTS (SELECT *   FROM GADMIN.BSACC2 C WHERE B.ACC_CD = C.ACC_CD AND C.HAPJAN_DISP = 'N')
        --AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
     GROUP BY A.ACC_CD, A.ACC_NM
-    --ORDER BY B.CHULRYEOK_CD    -- √‚∑¬º¯º≠
+    --ORDER BY B.CHULRYEOK_CD    -- Ï∂úÎ†•ÏàúÏÑú
     ;--
 
-    --∏≈√‚æ◊
-    --øÓºˆºˆ¿‘
+    --Îß§Ï∂úÏï°
+    --Ïö¥ÏàòÏàòÏûÖ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
     SELECT ACC_CD, ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT '6100000' AS ACC_CD, '(∏≈   √‚   æ◊)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '6100000' AS ACC_CD, '(Îß§   Ï∂ú   Ïï°)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '61%'
                 UNION ALL
-                SELECT '6100100' AS ACC_CD, 'øÓ  ºˆ  ºˆ  ¿‘' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '6100100' AS ACC_CD, 'Ïö¥  Ïàò  Ïàò  ÏûÖ' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '61%'
              )
     GROUP BY ACC_CD, ACC_NM
        ;--
 
-    --(øÓº€ø¯∞°π◊¡÷≈√∫–æÁø¯∞°)
+    --(Ïö¥ÏÜ°ÏõêÍ∞ÄÎ∞èÏ£ºÌÉùÎ∂ÑÏñëÏõêÍ∞Ä)
     INSERT INTO GADMIN.EBUS_FIN_INCOME
     SELECT ACC_CD, ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                --¥Á±‚
-                SELECT '6200000' AS ACC_CD, '(øÓº€ø¯∞°π◊¡÷≈√∫–æÁø¯∞°)' AS ACC_NM, 0 AS CU_AMT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                --ÎãπÍ∏∞
+                SELECT '6200000' AS ACC_CD, '(Ïö¥ÏÜ°ÏõêÍ∞ÄÎ∞èÏ£ºÌÉùÎ∂ÑÏñëÏõêÍ∞Ä)' AS ACC_NM, 0 AS CU_AMT, SUM(DR_AMT) - SUM(CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
                    AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                   AND B.ACC_GB = 'ø¯∞°'
+                   AND B.ACC_GB = 'ÏõêÍ∞Ä'
                    AND SUBSTRING(A.ACC_CD,1,2) = '62'
                 UNION ALL
-                --¿¸±‚
-                SELECT '6200000' AS ACC_CD, '(øÓº€ø¯∞°π◊¡÷≈√∫–æÁø¯∞°)' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(DR_AMT) - SUM(CR_AMT) AS BE_TOT
+                --Ï†ÑÍ∏∞
+                SELECT '6200000' AS ACC_CD, '(Ïö¥ÏÜ°ÏõêÍ∞ÄÎ∞èÏ£ºÌÉùÎ∂ÑÏñëÏõêÍ∞Ä)' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(DR_AMT) - SUM(CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
                    AND A.DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
-                   AND B.ACC_GB = 'ø¯∞°'
+                   AND B.ACC_GB = 'ÏõêÍ∞Ä'
                    AND SUBSTRING(A.ACC_CD,1,2) = '62'
              )
     GROUP BY ACC_CD, ACC_NM
        ;                  --
 
-    --∏≈√‚  √—¿Ã¿Õ
+    --Îß§Ï∂ú  Ï¥ùÏù¥Ïùµ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '6300000' AS ACC_CD, '(∏≈√‚  √—¿Ã¿Õ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT - B.CU_TOT, 0 AS BE_AMT, A.BE_TOT - B.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '6300000' AS ACC_CD, '(Îß§Ï∂ú  Ï¥ùÏù¥Ïùµ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT - B.CU_TOT, 0 AS BE_AMT, A.BE_TOT - B.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT *    --∏≈√‚æ◊
+                SELECT *    --Îß§Ï∂úÏï°
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6100000' ) A,
-             (  SELECT *    --øÓºˆø¯∞°
+             (  SELECT *    --Ïö¥ÏàòÏõêÍ∞Ä
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6200000'  ) B
        ;--
 
-    --¿œπ›∞¸∏Æ∫Ò
+    --ÏùºÎ∞òÍ¥ÄÎ¶¨ÎπÑ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
     SELECT  ACC_CD, ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT '6400000' AS ACC_CD, '(¿œπ›  ∞¸∏Æ∫Ò)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '6400000' AS ACC_CD, '(ÏùºÎ∞ò  Í¥ÄÎ¶¨ÎπÑ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '64%'
              )
     GROUP BY ACC_CD, ACC_NM
     ;--
 
-    --øµæ˜¿Ã¿Õ
+    --ÏòÅÏóÖÏù¥Ïùµ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '6500000' AS ACC_CD, '(øµ æ˜  ¿Ã ¿Õ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT - B.CU_TOT, 0 AS BE_AMT, A.BE_TOT - B.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '6500000' AS ACC_CD, '(ÏòÅ ÏóÖ  Ïù¥ Ïùµ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT - B.CU_TOT, 0 AS BE_AMT, A.BE_TOT - B.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT *    --∏≈√‚√—¿Ã¿Õ
+                SELECT *    --Îß§Ï∂úÏ¥ùÏù¥Ïùµ
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6300000' ) A,
-             (  SELECT *    --¿œπ›∞¸∏Æ∫Ò
+             (  SELECT *    --ÏùºÎ∞òÍ¥ÄÎ¶¨ÎπÑ
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6400000'  ) B
        ;--
 
-    --øµæ˜ø‹ ºˆ¿Õ
+    --ÏòÅÏóÖÏô∏ ÏàòÏùµ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '6600000' AS ACC_CD, '(øµæ˜ ø‹ ºˆ¿Õ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '6600000' AS ACC_CD, '(ÏòÅÏóÖ Ïô∏ ÏàòÏùµ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT '6600000' AS ACC_CD, '(øµæ˜ ø‹ ºˆ¿Õ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '6600000' AS ACC_CD, '(ÏòÅÏóÖ Ïô∏ ÏàòÏùµ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '66%'
              )
        ;--
 
-    --øµæ˜ø‹ ∫ÒøÎ
+    --ÏòÅÏóÖÏô∏ ÎπÑÏö©
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '6700000' AS ACC_CD, '(øµæ˜ ø‹ ∫ÒøÎ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '6700000' AS ACC_CD, '(ÏòÅÏóÖ Ïô∏ ÎπÑÏö©)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT '6700000' AS ACC_CD, '(øµæ˜ ø‹ ∫ÒøÎ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '6700000' AS ACC_CD, '(ÏòÅÏóÖ Ïô∏ ÎπÑÏö©)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '67%'
              )
        ;--
 
-    --∞ÊªÛ¿Ã¿Õ
+    --Í≤ΩÏÉÅÏù¥Ïùµ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '6800000' AS ACC_CD, '(∞Ê ªÛ  ¿Ã ¿Õ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT + B.CU_TOT - C.CU_TOT, 0 AS BE_AMT, A.BE_TOT + B.BE_TOT - C.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '6800000' AS ACC_CD, '(Í≤Ω ÏÉÅ  Ïù¥ Ïùµ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT + B.CU_TOT - C.CU_TOT, 0 AS BE_AMT, A.BE_TOT + B.BE_TOT - C.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT *    --øµæ˜¿Ã¿Õ
+                SELECT *    --ÏòÅÏóÖÏù¥Ïùµ
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6500000' ) A,
-             (  SELECT *    --øµæ˜ø‹ºˆ¿Õ
+             (  SELECT *    --ÏòÅÏóÖÏô∏ÏàòÏùµ
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6600000'  ) B,
-             (  SELECT *    --øµæ˜ø‹∫ÒøÎ
+             (  SELECT *    --ÏòÅÏóÖÏô∏ÎπÑÏö©
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6700000'  ) C
 
        ;--
 
-    --∆Ø∫∞¿Ã¿Õ
+    --ÌäπÎ≥ÑÏù¥Ïùµ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '6900000' AS ACC_CD, '(∆Ø ∫∞  ¿Ã ¿Õ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '6900000' AS ACC_CD, '(Ìäπ Î≥Ñ  Ïù¥ Ïùµ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT '6900000' AS ACC_CD, '(∆Ø ∫∞  ¿Ã ¿Õ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '6900000' AS ACC_CD, '(Ìäπ Î≥Ñ  Ïù¥ Ïùµ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '69%'
              )
     ;--
 
-    --π˝¿Œºº
+    --Î≤ïÏù∏ÏÑ∏
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '7200000' AS ACC_CD, '(π˝ ¿Œ ºº  µÓ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '7200000' AS ACC_CD, '(Î≤ï Ïù∏ ÏÑ∏  Îì±)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT '7200000' AS ACC_CD, '(π˝ ¿Œ ºº  µÓ)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+                SELECT '7200000' AS ACC_CD, '(Î≤ï Ïù∏ ÏÑ∏  Îì±)' AS ACC_NM, 0 AS CU_AMT, SUM(CU_AMT) AS CU_TOT, 0 AS BE_AMT, SUM(BE_AMT) AS BE_TOT
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD LIKE '72%'
              )
     ;--
 
-    --¥Á±‚º¯¿Ã¿Õ
+    --ÎãπÍ∏∞ÏàúÏù¥Ïùµ
     INSERT INTO GADMIN.EBUS_FIN_INCOME
-    SELECT '7300909' AS ACC_CD, '(¥Á±‚ º¯ ¿Ã¿Õ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT + B.CU_TOT - C.CU_TOT, 0 AS BE_AMT, A.BE_TOT + B.BE_TOT - C.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
+    SELECT '7300909' AS ACC_CD, '(ÎãπÍ∏∞ Ïàú Ïù¥Ïùµ)' AS ACC_NM, 0 AS CU_AMT, A.CU_TOT + B.CU_TOT - C.CU_TOT, 0 AS BE_AMT, A.BE_TOT + B.BE_TOT - C.BE_TOT AS BE_TOT, NOW, IN_USER_ID, NULL, NULL
        FROM (
-                SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL  --∞ÊªÛ¿Ã¿Õ
+                SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL  --Í≤ΩÏÉÅÏù¥Ïùµ
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6800000' ) A,
-             (  SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL  --∆Ø∫∞¿Ã¿Õ
+             (  SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL  --ÌäπÎ≥ÑÏù¥Ïùµ
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '6900000'  ) B,
-             (  SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL    --π˝¿Œºº
+             (  SELECT ACC_CD, ACC_NM, COALESCE(CU_AMT,0) AS CU_AMT, COALESCE(CU_TOT,0) AS CU_TOT, COALESCE(BE_AMT,0) AS BE_AMT, COALESCE(BE_TOT,0) AS BE_TOT, NULL, NULL, NULL, NULL    --Î≤ïÏù∏ÏÑ∏
                   FROM GADMIN.EBUS_FIN_INCOME
                  WHERE ACC_CD = '7200000'  ) C
        ;    --
@@ -324,4 +324,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

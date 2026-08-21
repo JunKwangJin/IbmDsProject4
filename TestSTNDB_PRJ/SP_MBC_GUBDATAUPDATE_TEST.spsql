@@ -10,10 +10,10 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_GUBDATAUPDATE_TEST"
 
 MAIN: BEGIN ATOMIC
 
---  TEMP TABLE º¯¼ö
+--  TEMP TABLE ë³€ìˆ˜
     DECLARE V_TEMP_DAT  	VARCHAR(5000)  DEFAULT '';--
 
--- DB DATAº¯¼ö
+-- DB DATAë³€ìˆ˜
 	DECLARE V_CELLPHONE		VARCHAR(11);--
 	DECLARE V_JIKJONG		VARCHAR(25);--
 	DECLARE V_GUB_YYMM		VARCHAR(6);--
@@ -26,14 +26,14 @@ MAIN: BEGIN ATOMIC
 	DECLARE V_INSA_CNT      INT;--
 	DECLARE V_JIGEUP_DT     VARCHAR(8);--
 
---V1º¯¼ö
+--V1ë³€ìˆ˜
 	DECLARE V1_CELLPHONE	VARCHAR(11);--
 	DECLARE V1_INSA_NO		VARCHAR(10);--
 	DECLARE V1_JIKJONG		VARCHAR(25);--
 	DECLARE V1_INSA_NM  	VARCHAR(20);--
 	DECLARE V1_USER_CHK     INT;--
 
---CLIENTÁ¤º¸ º¯¼ö
+--CLIENTì •ë³´ ë³€ìˆ˜
 	DECLARE V_APPLICATION_ID
 	                      VARCHAR(50);--
 	DECLARE V_APPLICATION_NAME
@@ -42,7 +42,7 @@ MAIN: BEGIN ATOMIC
 	                      VARCHAR(250);--
 
 
--- ÀÏ¹Ýº¯¼ö
+-- ì¼ë°˜ë³€ìˆ˜
 --	DECLARE I           INTEGER;--
 
 
@@ -56,11 +56,11 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE  CHAR(5)       DEFAULT '00000';--
 
-    DECLARE LEN_UNDER   CONDITION FOR SQLSTATE '01004';-- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER    CONDITION FOR SQLSTATE '22001';-- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL    CONDITION FOR SQLSTATE '23502';-- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO     CONDITION FOR SQLSTATE '23505';-- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE    CONDITION FOR SQLSTATE '42704';-- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER   CONDITION FOR SQLSTATE '01004';-- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER    CONDITION FOR SQLSTATE '22001';-- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL    CONDITION FOR SQLSTATE '23502';-- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO     CONDITION FOR SQLSTATE '23505';-- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE    CONDITION FOR SQLSTATE '42704';-- TABLEì´ ì—†ì„ë–„
 	DECLARE C_GUBTEMP   CURSOR FOR
 	 WITH V_TEMP AS
 	    ( SELECT REPLACE(TEMP_DAT||'\','~r',CHR(13)||CHR(10)) AS DAT
@@ -71,14 +71,14 @@ MAIN: BEGIN ATOMIC
      FROM V_TEMP;--
 
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'                   ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'           ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.'           ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'        ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'                   ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'           ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.'           ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'        ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
 
     DECLARE GLOBAL TEMPORARY TABLE SESSION.TEMPINSA
     (
@@ -89,38 +89,38 @@ MAIN: BEGIN ATOMIC
     NOT LOGGED;--
 
 
---  º¯¼ö Å¬¸®¾î
+--  ë³€ìˆ˜ í´ë¦¬ì–´
     SET (OUT_CNT, OUT_MSG) =('0','');--
 --    SET V_SAVE = 0;--
 --    P1: BEGIN
     SET (OUT_CNT, OUT_MSG) =('0','');--
 
---  ÀúÀåÇÒ µ¥ÀÌÅÍ¿Í°°Àº ³ë¼± µ¥ÀÌÅÍ¸¦ ÀúÀåÇÏ±âÀü·¹ »èÁ¦ÇÑ´Ù.
+--  ì €ìž¥í•  ë°ì´í„°ì™€ê°™ì€ ë…¸ì„  ë°ì´í„°ë¥¼ ì €ìž¥í•˜ê¸°ì „ë ˆ ì‚­ì œí•œë‹¤.
 
     DELETE GADMIN.MBC_GUBDATA
      WHERE (GUB_YYMM, JIKJONG, GUB_GB)
         IN (
            SELECT DISTINCT
-                  SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 2)+1, INSTR(TEMP_DAT, '\', 1, 3) - INSTR(TEMP_DAT, '\', 1, 2)-1)   -- ±Ý¿©³â¿ø
-                , SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 1)+1, INSTR(TEMP_DAT, '\', 1, 2) - INSTR(TEMP_DAT, '\', 1, 1)-1)   -- Á÷Á¾
-                , SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 3)+1, INSTR(TEMP_DAT, '\', 1, 4) - INSTR(TEMP_DAT, '\', 1, 3)-1)   -- ±Þ¿©±¸ºÐ
+                  SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 2)+1, INSTR(TEMP_DAT, '\', 1, 3) - INSTR(TEMP_DAT, '\', 1, 2)-1)   -- ê¸ˆì—¬ë…„ì›
+                , SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 1)+1, INSTR(TEMP_DAT, '\', 1, 2) - INSTR(TEMP_DAT, '\', 1, 1)-1)   -- ì§ì¢…
+                , SUBSTR(TEMP_DAT, INSTR(TEMP_DAT, '\', 1, 3)+1, INSTR(TEMP_DAT, '\', 1, 4) - INSTR(TEMP_DAT, '\', 1, 3)-1)   -- ê¸‰ì—¬êµ¬ë¶„
 
              FROM GADMIN.MBC_GUBTEMP
             WHERE TIMEID = IN_TIMEID
            )
     ;--
 
--- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAMEÀ» °¡Á®¿Â´Ù
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAMEì„ ê°€ì ¸ì˜¨ë‹¤
     SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
     SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
             = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
                  FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2))
                 WHERE APPLICATION_ID = V_APPLICATION_ID);--
 
-    DELETE SESSION.TEMPINSA;-- ÀÎ»ç TEMP TABLE »èÁ¦
+    DELETE SESSION.TEMPINSA;-- ì¸ì‚¬ TEMP TABLE ì‚­ì œ
 
 
---  µ¥ÀÌÅÍ¸¦ ÀúÀåÇÑ´Ù.
+--  ë°ì´í„°ë¥¼ ì €ìž¥í•œë‹¤.
 
     SET V_SQLSTATE = '00000';--
 
@@ -131,30 +131,30 @@ MAIN: BEGIN ATOMIC
           INTO
                V_TEMP_DAT
              ;--
-          SET V_JIGEUP_DT = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 4)+1, INSTR(V_TEMP_DAT, '\', 1, 5) - INSTR(V_TEMP_DAT, '\', 1, 4)-1),'');-- ±Þ¿©Áö±ÞÀÏ
+          SET V_JIGEUP_DT = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 4)+1, INSTR(V_TEMP_DAT, '\', 1, 5) - INSTR(V_TEMP_DAT, '\', 1, 4)-1),'');-- ê¸‰ì—¬ì§€ê¸‰ì¼
 
-           SET V_KEY_MSG = '[ÀüÈ­¹øÈ£]:'||V_CELLPHONE||'[±Þ¿©³â¿ù]:'||V_GUB_YYMM||'[¼º¸í]:'||V_INSA_NM;--
+           SET V_KEY_MSG = '[ì „í™”ë²ˆí˜¸]:'||V_CELLPHONE||'[ê¸‰ì—¬ë…„ì›”]:'||V_GUB_YYMM||'[ì„±ëª…]:'||V_INSA_NM;--
     SET V_CNT = 0;--
 	WHILE (V_SQLSTATE = '00000' ) DO
           SET V_CNT = V_CNT + 1;--
 
-          SET V_CELLPHONE  = COALESCE(SUBSTR(V_TEMP_DAT, 1, INSTR(V_TEMP_DAT, '\', 1, 1) -1),'');--                                       -- ÈÞ´ëÆù¹øÈ£
-          SET V_JIKJONG    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1),'');-- Á÷Á¾(°ü¸®Á÷, Á¤ºñÁ÷, ¿îÀü±â»ç)
-          SET V_GUB_YYMM   = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1),'');-- ±Þ¿©³â¿ù
-          SET V_GUB_GB     = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1),'');-- ±Þ¿©±¸ºÐ
--- Áö±ÞÀÏÀÚ
-          SET V_INSA_NO    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 5)+1, INSTR(V_TEMP_DAT, '\', 1, 6) - INSTR(V_TEMP_DAT, '\', 1, 5)-1),'');-- »ç¹ø
-          SET V_INSA_NM    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 6)+1, INSTR(V_TEMP_DAT, '\', 1, 7) - INSTR(V_TEMP_DAT, '\', 1, 6)-1),'');-- ¼º¸í
-	      SET V_KEY_MSG = '[ÀüÈ­¹øÈ£]:'||V_CELLPHONE||'[±Þ¿©³â¿ù]:'||V_GUB_YYMM||'[¼º¸í]:'||V_INSA_NM;--
+          SET V_CELLPHONE  = COALESCE(SUBSTR(V_TEMP_DAT, 1, INSTR(V_TEMP_DAT, '\', 1, 1) -1),'');--                                       -- íœ´ëŒ€í°ë²ˆí˜¸
+          SET V_JIKJONG    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1),'');-- ì§ì¢…(ê´€ë¦¬ì§, ì •ë¹„ì§, ìš´ì „ê¸°ì‚¬)
+          SET V_GUB_YYMM   = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1),'');-- ê¸‰ì—¬ë…„ì›”
+          SET V_GUB_GB     = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1),'');-- ê¸‰ì—¬êµ¬ë¶„
+-- ì§€ê¸‰ì¼ìž
+          SET V_INSA_NO    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 5)+1, INSTR(V_TEMP_DAT, '\', 1, 6) - INSTR(V_TEMP_DAT, '\', 1, 5)-1),'');-- ì‚¬ë²ˆ
+          SET V_INSA_NM    = COALESCE(SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 6)+1, INSTR(V_TEMP_DAT, '\', 1, 7) - INSTR(V_TEMP_DAT, '\', 1, 6)-1),'');-- ì„±ëª…
+	      SET V_KEY_MSG = '[ì „í™”ë²ˆí˜¸]:'||V_CELLPHONE||'[ê¸‰ì—¬ë…„ì›”]:'||V_GUB_YYMM||'[ì„±ëª…]:'||V_INSA_NM;--
 
--- ÀÎ»çÇ×¸ñ ÀúÀå ±Þ¿©Ç×¸ñÀÇ ±Ý¾×ÀÌ ¿­ÀÇ ¹æÇâÀ¸·Î 5¿­ ºÎÅÍ 5¹ø¿­ºÎÅÍ 5°³ µé¾î¿Å
+-- ì¸ì‚¬í•­ëª© ì €ìž¥ ê¸‰ì—¬í•­ëª©ì˜ ê¸ˆì•¡ì´ ì—´ì˜ ë°©í–¥ìœ¼ë¡œ 5ì—´ ë¶€í„° 5ë²ˆì—´ë¶€í„° 5ê°œ ë“¤ì–´ì˜®
 /************************************************************************************
           SET I = 0;--
           WHILE (I < 5) DO
                 SET I = I + 1;--
                 SET V_HANGMOK_CD = 'A'||TRIM(VARCHAR_FORMAT(I,'00'));--
                 SET V_PAY = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, I + 3) + 1, (INSTR(V_TEMP_DAT, '\', 1, I + 4) - INSTR(V_TEMP_DAT, '\', 1, I + 3)) - 1);--
-        -- µ¥ÀÌÅÍ UPDATE
+        -- ë°ì´í„° UPDATE
                 SET V_KEY_MSG = V_KEY_MSG||VARCHAR_FORMAT(I,'000');--
                 INSERT INTO GADMIN.MBC_GUBDATA(
                        GUB_YYMM
@@ -183,7 +183,7 @@ MAIN: BEGIN ATOMIC
                       ;--
           END WHILE;--
 ***********************************************************************************/
--- ±Þ¿©ÇÔ¿Á ÀúÀå ±Þ¿©Ç×¸ñÀÇ ±Ý¾×ÀÌ ¿­ÀÇ ¹æÇâÀ¸·Î 11¿­ºÎÅÍ 150°³ µé¾î¿Å
+-- ê¸‰ì—¬í•¨ì˜¥ ì €ìž¥ ê¸‰ì—¬í•­ëª©ì˜ ê¸ˆì•¡ì´ ì—´ì˜ ë°©í–¥ìœ¼ë¡œ 11ì—´ë¶€í„° 150ê°œ ë“¤ì–´ì˜®
 /***********************************************************************************
 
           SET I = 0;--
@@ -193,7 +193,7 @@ MAIN: BEGIN ATOMIC
                 SET V_HANGMOK_CD = TRIM(VARCHAR_FORMAT(I,'000'));--
                 SET V_PAY = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, I + 9) + 1, (INSTR(V_TEMP_DAT, '\', 1, I + 10) - INSTR(V_TEMP_DAT, '\', 1, I + 9)) - 1);--
                 SET V_PAY = CASE WHEN V_HANGMOK_CD BETWEEN '031' AND '090' THEN TRIM(VARCHAR_FORMAT(CAST((CASE WHEN COALESCE(V_PAY,'') ='' THEN '0' ELSE '' END)||COALESCE(V_PAY,'') AS INT),'9999999999')) ELSE V_PAY END;--
-        -- µ¥ÀÌÅÍ UPDATE
+        -- ë°ì´í„° UPDATE
                 SET V_KEY_MSG = V_KEY_MSG||VARCHAR_FORMAT(I,'000');--
                 INSERT INTO GADMIN.MBC_GUBDATA(
                        GUB_YYMM
@@ -300,7 +300,7 @@ MAIN: BEGIN ATOMIC
                                          , V_INSA_NO
                                          , V_INSA_NM
                                          , V_JIKJONG
-                                         , '1' -- ÀçÁ÷»óÅÂ
+                                         , '1' -- ìž¬ì§ìƒíƒœ
                                          , V_APPLICATION_ID
                                          , V_APPLICATION_NAME
                                          , V_CLIENT_HOSTNAME
@@ -309,16 +309,16 @@ MAIN: BEGIN ATOMIC
                  ;--
           END IF;--
 
-          -- TEMP TABLE¿¡ ÀÎ»ç¹øÈ£¸¦ ÀúÀåÇÑ´Ù.
+          -- TEMP TABLEì— ì¸ì‚¬ë²ˆí˜¸ë¥¼ ì €ìž¥í•œë‹¤.
           INSERT INTO SESSION.TEMPINSA(INSA_NO, JIKJONG) VALUES (V_INSA_NO, V_JIKJONG);--
 
           SET V_SQLSTATE = '00000';--
           FETCH FROM C_GUBTEMP
                 INTO V_TEMP_DAT
                     ;--
-           SET V_KEY_MSG = '[ÀüÈ­¹øÈ£]:'||V_CELLPHONE||'[±Þ¿©³â¿ù]:'||V_GUB_YYMM||'[¼º¸í]:'||V_INSA_NM;--
+           SET V_KEY_MSG = '[ì „í™”ë²ˆí˜¸]:'||V_CELLPHONE||'[ê¸‰ì—¬ë…„ì›”]:'||V_GUB_YYMM||'[ì„±ëª…]:'||V_INSA_NM;--
 	END WHILE;--
-       IF V_GUB_GB = '±Þ¿©' THEN
+       IF V_GUB_GB = 'ê¸‰ì—¬' THEN
          UPDATE GADMIN.MBC_USERS SET JAEJIK_YN = '0'
                                    , APPLICATION_ID = V_APPLICATION_ID
                                    , APPLICATION_NAME = V_APPLICATION_NAME
@@ -331,6 +331,6 @@ MAIN: BEGIN ATOMIC
        END IF;--
     CLOSE C_GUBTEMP;--
 
-    SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'ÀúÀåµÇ¾ú½À´Ï´Ù.');--
+    SET (OUT_CNT, OUT_MSG) = (V_CNT, OUT_MSG||CHR(13)||'ì €ìž¥ë˜ì—ˆìŠµë‹ˆë‹¤.');--
 
-END MAIN 
+END MAIN

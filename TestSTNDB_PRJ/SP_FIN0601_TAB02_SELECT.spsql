@@ -34,7 +34,7 @@ MAIN: BEGIN
           FROM GADMIN.ACCOU1 A
          WHERE A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
            AND A.ACC_CD LIKE IN_ACC_CD||'%'
-           AND DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+           AND DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
          ORDER BY 1,2)
 
          ;--
@@ -42,4 +42,4 @@ MAIN: BEGIN
 
     END P1;--
 
-END MAIN 
+END MAIN

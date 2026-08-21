@@ -1,21 +1,21 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_BBSUSERS_LST"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_BBSUSERS_LST
-»ý¼ºÀÏÀÚ	: 2022.6.13
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : °Ô½ÃÆÇ ¼ö½ÅÀÚ ¸®½ºÆ®
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
+íŒŒì¼ëª…	: GADMIN.SF_MBC_BBSUSERS_LST
+ìƒì„±ì¼ìž	: 2022.6.13
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ê²Œì‹œíŒ ìˆ˜ì‹ ìž ë¦¬ìŠ¤íŠ¸
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
 
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MBC_BBSUSERS_LST(°Ô½ÃÆÇID)
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MBC_BBSUSERS_LST(ê²Œì‹œíŒID)
 *******************************************************************************/
 (
-    IN IN_BBSID      VARCHAR(14)  -- °Ô½ÃÆÇID
+    IN IN_BBSID      VARCHAR(14)  -- ê²Œì‹œíŒID
 )
 
 
@@ -30,9 +30,9 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_BBSID      VARCHAR(14);-- °Ô½ÃÆÇID
+   DECLARE V_BBSID      VARCHAR(14);-- ê²Œì‹œíŒID
    DECLARE V_BBS_GROUP_GB
-                        VARCHAR(1);-- °øÁö´ë»ó±¸ºÐ
+                        VARCHAR(1);-- ê³µì§€ëŒ€ìƒêµ¬ë¶„
 
    SET V_BBSID          = COALESCE(IN_BBSID,'');--
 

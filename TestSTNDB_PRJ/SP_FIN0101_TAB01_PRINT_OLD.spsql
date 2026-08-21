@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_TAB01_PRINT_OLD"
 (
-    IN IN_DATE VARCHAR(10) -- yyyymmdd Çü½Ä
-       , IN_USER_ID VARCHAR(25)  -- yyyymmdd Çü½Ä
+    IN IN_DATE VARCHAR(10) -- yyyymmdd í˜•ì‹
+       , IN_USER_ID VARCHAR(25)  -- yyyymmdd í˜•ì‹
 )
   DYNAMIC RESULT SETS 1
   LANGUAGE SQL
@@ -14,7 +14,7 @@ MAIN: BEGIN
 		DECLARE CURSOR_ACC CURSOR WITH RETURN FOR
         SELECT ROWNUMBER() OVER() AS ROWNUM, * FROM GADMIN.ACCOU1
         WHERE DATE = IN_DATE
-          AND DRCR_GB IN ('Â÷º¯','´ëº¯');--
+          AND DRCR_GB IN ('ì°¨ë³€','ëŒ€ë³€');--
 	OPEN CURSOR_ACC;--
    END P1;--
-END MAIN 
+END MAIN

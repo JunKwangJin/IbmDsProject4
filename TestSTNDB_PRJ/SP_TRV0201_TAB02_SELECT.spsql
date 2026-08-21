@@ -31,8 +31,8 @@ MAIN: BEGIN
           FROM (
                 SELECT ROUTE
                       , EVENTGUGAN
-                      , (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) AS PCNT  --¿Œø¯ºˆ
-                      , COUNT(*) AS TCNT  --∞«ºˆ
+                      , (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) AS PCNT  --Ïù∏ÏõêÏàò
+                      , COUNT(*) AS TCNT  --Í±¥Ïàò
                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '01' THEN (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) END,0) AS MON01
                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '02' THEN (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) END,0) AS MON02
                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '03' THEN (SUM(DEAD) + SUM(HIGH_HURT) + SUM(LOW_HURT) + SUM(OTHER)) END,0) AS MON03
@@ -62,4 +62,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_TRV;--
     END P1;--
 
-END MAIN 
+END MAIN

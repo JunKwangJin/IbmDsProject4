@@ -12,7 +12,7 @@ MAIN: BEGIN
 
     P1: BEGIN
 
-        -- фЬ╫╨га╥н х╜╦Июг дц╥Ё ╪Ж ╨╦╢ы ╢У Ёж╬Н ╩Щ╪╨╫це╢
+        -- М▐╜Л┼╓М■└К║° М≥■К╘╢Л²≤ Л╩╛К÷╪ Л┬≤ КЁ╢К▀╓ К█■ К└ёЛ√╢ Л┐²Л└╠Л▀°М┌╢
 		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
         SELECT *
           FROM (
@@ -67,4 +67,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

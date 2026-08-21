@@ -1,5 +1,5 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0201_UPDATE" (
-    IN IN_DATE VARCHAR(10), -- yyyy-mm-dd «¸Ωƒ
+    IN IN_DATE VARCHAR(10), -- yyyy-mm-dd ÌòïÏãù
        IN_USER_ID  VARCHAR(25)
 )
   DYNAMIC RESULT SETS 1
@@ -30,34 +30,34 @@ MAIN: BEGIN
 
        OPEN C_EBUS_FIN0201_UPDATE;--
 
-       -- ¿¸«• π¯»£ ª˝º∫
+       -- Ï†ÑÌëú Î≤àÌò∏ ÏÉùÏÑ±
        SELECT LPAD(TO_CHAR(TO_NUMBER(COALESCE(MAX(ACC_NO),'0')) + 1),3,'0') INTO V_ACC_NUM
          FROM GADMIN.ACCOU1
         WHERE DATE = IN_DATE;--
 
-       -- ROW_ID µÓ∑œ
+       -- ROW_ID Îì±Î°ù
        SELECT MAX(ROW_ID) + 1 INTO V_ROW_ID
          FROM GADMIN.ACCOU1;--
 
         FETCH FROM C_EBUS_FIN0201_UPDATE INTO V_DATE, V_ACC_NO, V_ACC_NM, V_DRCR_GB, V_ACC_CONT, V_DR_AMT, V_CR_AMT, V_MANAGE_CD_1, V_MANAGE_ITEM_1, V_USER_ID;--
 	    WHILE (SQLSTATE = '00000' )
 	    DO
-	        IF V_DRCR_GB = '¬˜∫Ø' THEN
-                --¬˜∫Ø µÓ∑œ
+	        IF V_DRCR_GB = 'Ï∞®Î≥Ä' THEN
+                --Ï∞®Î≥Ä Îì±Î°ù
                 INSERT INTO GADMIN.ACCOU1(DATE, ACC_NO, DRCR_GB, ACC_CD, ACC_NM, ACC_CONT, PRICE, MANAGE, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, PURCH, JEUNGBING_DOC, ROW_ID, DR_AMT, CR_AMT, C_USER, C_DATE, M_USER, M_DATE)
                 VALUES( VARCHAR_FORMAT(V_DATE,'YYYY-MM-DD HH24:MI:SS'), V_ACC_NUM, V_DRCR_GB, V_ACC_NO, V_ACC_NM, V_ACC_CONT, V_DR_AMT, '', V_MANAGE_CD_1, V_MANAGE_ITEM_1, '', '', '', '', V_ROW_ID, V_DR_AMT, V_CR_AMT, CURRENT TIMESTAMP, V_USER_ID, null, '');--
             ELSE
-                --¥Î∫Ø µÓ∑œ
+                --ÎåÄÎ≥Ä Îì±Î°ù
                 INSERT INTO GADMIN.ACCOU1(DATE, ACC_NO, DRCR_GB, ACC_CD, ACC_NM, ACC_CONT, PRICE, MANAGE, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, PURCH, JEUNGBING_DOC, ROW_ID, DR_AMT, CR_AMT, C_USER, C_DATE, M_USER, M_DATE)
                 VALUES(VARCHAR_FORMAT(V_DATE,'YYYY-MM-DD HH24:MI:SS'), V_ACC_NUM, V_DRCR_GB, V_ACC_NO, V_ACC_NM, V_ACC_CONT, V_CR_AMT, '', V_MANAGE_CD_1, V_MANAGE_ITEM_1, '', '', '', '', V_ROW_ID, V_DR_AMT, V_CR_AMT, CURRENT TIMESTAMP, V_USER_ID, null, '');--
 
-               -- ¿¸«• π¯»£ ª˝º∫
+               -- Ï†ÑÌëú Î≤àÌò∏ ÏÉùÏÑ±
                SELECT LPAD(TO_CHAR(TO_NUMBER(COALESCE(MAX(ACC_NO),'0')) + 1),3,'0') INTO V_ACC_NUM
                  FROM GADMIN.ACCOU1
                 WHERE DATE = V_DATE;--
 
             END IF;--
-            -- ROW_ID µÓ∑œ
+            -- ROW_ID Îì±Î°ù
             SELECT MAX(ROW_ID) + 1 INTO V_ROW_ID
              FROM GADMIN.ACCOU1;--
 
@@ -69,4 +69,4 @@ MAIN: BEGIN
 
     END P1;--
 
-END MAIN 
+END MAIN

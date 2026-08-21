@@ -11,24 +11,24 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0101_S02"
     , OUT OUT_MSG			VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SP_DRV0101_S01
-»ý¼ºÀÏÀÚ	: 2020.07.03
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : °íÁ¤½¬ÇÁÆ® ÀÔ·Â¿ë Á¶È¸ ÀÔ´Ï´Ù.
-USAGE   : GADMIN.SP_DRV0101_S01(USER ID, ¿µ¾÷¼ÒÄÚµå, ³ë¼±ÄÚµå, ±â»ç»ç¹ø, Â÷·®¹øÈ£ÄÚµå)
-¼öÁ¤ÀÏÀÚ	: 2021.04.21
-¼öÁ¤ÀÚ	: Àü±¤Áø
-¼öÁ¤³»¿ë	: µ¥ÀÌÅÍ ¿À·ù ¸Þ¼¼Áö Ãß°¡(¹èÂ÷ Áßº¹, °°Àº ½Ã°£´ë ±â»ç Áßº¹)
-INPUT	: IN_USER_ID        1. »ç¿ëÀÚ ID
+íŒŒì¼ëª…	: GADMIN.SP_DRV0101_S01
+ìƒì„±ì¼ìž	: 2020.07.03
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ê³ ì •ì‰¬í”„íŠ¸ ìž…ë ¥ìš© ì¡°íšŒ ìž…ë‹ˆë‹¤.
+USAGE   : GADMIN.SP_DRV0101_S01(USER ID, ì˜ì—…ì†Œì½”ë“œ, ë…¸ì„ ì½”ë“œ, ê¸°ì‚¬ì‚¬ë²ˆ, ì°¨ëŸ‰ë²ˆí˜¸ì½”ë“œ)
+ìˆ˜ì •ì¼ìž	: 2021.04.21
+ìˆ˜ì •ìž	: ì „ê´‘ì§„
+ìˆ˜ì •ë‚´ìš©	: ë°ì´í„° ì˜¤ë¥˜ ë©”ì„¸ì§€ ì¶”ê°€(ë°°ì°¨ ì¤‘ë³µ, ê°™ì€ ì‹œê°„ëŒ€ ê¸°ì‚¬ ì¤‘ë³µ)
+INPUT	: IN_USER_ID        1. ì‚¬ìš©ìž ID
         : IN_MENU_ID        2. MENU ID
-        : IN_SSID           3. SSID (VMFHRMFOA dbÁ¢¼Ó SESSION°ª : USERID/MENUID/³â¿ùÀÏ½ÃºÐÃÊMS)
-        : IN_CHURI_YYYY     4. µî·Ï³âµµ
-        : IN_CHURI_MM       5. µî·Ï ¿ù
-	    : IN_OFFICE_CD      6. ¿µ¾÷¼ÒÄÚµå
-        : IN_ROUTE_CD       7. ³ë¼±ÄÚµå
+        : IN_SSID           3. SSID (VMFHRMFOA dbì ‘ì† SESSIONê°’ : USERID/MENUID/ë…„ì›”ì¼ì‹œë¶„ì´ˆMS)
+        : IN_CHURI_YYYY     4. ë“±ë¡ë…„ë„
+        : IN_CHURI_MM       5. ë“±ë¡ ì›”
+	    : IN_OFFICE_CD      6. ì˜ì—…ì†Œì½”ë“œ
+        : IN_ROUTE_CD       7. ë…¸ì„ ì½”ë“œ
 
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 
   DYNAMIC RESULT SETS 1
@@ -42,25 +42,25 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE 			CHAR(5) 	DEFAULT '00000';--
 
-    DECLARE LEN_UNDER 	CONDITION FOR SQLSTATE '01004';  -- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER 	CONDITION FOR SQLSTATE '22001';  -- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL 	CONDITION FOR SQLSTATE '23502';  -- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO 	CONDITION FOR SQLSTATE '23505';  -- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE 	CONDITION FOR SQLSTATE '42704';  -- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER 	CONDITION FOR SQLSTATE '01004';  -- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER 	CONDITION FOR SQLSTATE '22001';  -- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL 	CONDITION FOR SQLSTATE '23502';  -- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO 	CONDITION FOR SQLSTATE '23505';  -- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE 	CONDITION FOR SQLSTATE '42704';  -- TABLEì´ ì—†ì„ë–„
 
 
     DECLARE UNDO HANDLER FOR NOT FOUND
-          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..' ;--
+          SET OUT_MSG = SQLSTATE || CHR(13) || 'WRR01: ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..' ;--
     DECLARE UNDO HANDLER FOR SQLWARNING
-          SET OUT_MSG = CASE SQLSTATE WHEN   '01004' THEN SQLSTATE || CHR(13) || 'WRR01: º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'
-                                        ELSE              SQLSTATE || CHR(13) || 'WRR99: ½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' END; --
+          SET OUT_MSG = CASE SQLSTATE WHEN   '01004' THEN SQLSTATE || CHR(13) || 'WRR01: ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'
+                                        ELSE              SQLSTATE || CHR(13) || 'WRR99: ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' END; --
     DECLARE UNDO HANDLER FOR SQLEXCEPTION
-          SET OUT_MSG = CASE SQLSTATE WHEN   '42704' THEN SQLSTATE || CHR(13) || 'ERR01: Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'
-                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'
-                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'
-                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'
-                                        ELSE              SQLSTATE || CHR(13) || 'ERR99: ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.' END;--
-    -- º¯¼ö Å¬¸®¾î
+          SET OUT_MSG = CASE SQLSTATE WHEN   '42704' THEN SQLSTATE || CHR(13) || 'ERR01: ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'
+                                        WHEN '23502' THEN SQLSTATE || CHR(13) || 'ERR02: NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'
+                                        WHEN '23505' THEN SQLSTATE || CHR(13) || 'ERR03: ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'
+                                        WHEN '22001' THEN SQLSTATE || CHR(13) || 'ERR04: ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'
+                                        ELSE              SQLSTATE || CHR(13) || 'ERR99: ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.' END;--
+    -- ë³€ìˆ˜ í´ë¦¬ì–´
     SET (OUT_CNT, OUT_MSG) =('0','');--
     SET V_CHURI_YYMM = COALESCE(IN_CHURI_YYYY,'')||COALESCE(IN_CHURI_MM,'');--
 
@@ -184,7 +184,7 @@ MAIN: BEGIN ATOMIC
              HAVING COUNT(SABUN) > 1
          DO
 
-            -- Â÷·®Á¤º¸
+            -- ì°¨ëŸ‰ì •ë³´
             SELECT CAR_CD
               INTO V_CAR_CD
               FROM GADMIN.BSUNHA11_M
@@ -197,12 +197,12 @@ MAIN: BEGIN ATOMIC
               SET OUT_CNT = '{ERR}'; --
               SET OUT_MSG = OUT_MSG
                 || CHR(13)
-                || GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'') --³ë¼±
-                ||'³ë¼±, '
-                ||GADMIN.SF_EBUS_COMMON_CD('DRV15',V_CAR_CD,'')     -- Â÷·®¹øÈ£
+                || GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'') --ë…¸ì„ 
+                ||'ë…¸ì„ , '
+                ||GADMIN.SF_EBUS_COMMON_CD('DRV15',V_CAR_CD,'')     -- ì°¨ëŸ‰ë²ˆí˜¸
                 ||', '
-                || GADMIN.SF_INS_GETINSA_NM(BUD.SABUN)              -- ±â»ç¸í
-                ||'  µ¥ÀÌÅÍ Áßº¹ÀÔ´Ï´Ù.'
+                || GADMIN.SF_INS_GETINSA_NM(BUD.SABUN)              -- ê¸°ì‚¬ëª…
+                ||'  ë°ì´í„° ì¤‘ë³µìž…ë‹ˆë‹¤.'
               ;--
            END IF; --
 
@@ -216,7 +216,7 @@ MAIN: BEGIN ATOMIC
                       ON U.SABUN = D.SABUN
               WHERE ENTER_DATE > CURRENT DATE OR RETIRE_DATE < CURRENT DATE
           DO
-            -- Â÷·®Á¤º¸
+            -- ì°¨ëŸ‰ì •ë³´
 
             SELECT CAR_CD
               INTO V_CAR_CD
@@ -228,12 +228,12 @@ MAIN: BEGIN ATOMIC
               SET OUT_CNT = '{ERR}'; --
               SET OUT_MSG = OUT_MSG
                 || CHR(13)
-                || GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'') --³ë¼±
-                ||'³ë¼±, '
-                ||GADMIN.SF_EBUS_COMMON_CD('DRV15',V_CAR_CD,'')     -- Â÷·®¹øÈ£
+                || GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'') --ë…¸ì„ 
+                ||'ë…¸ì„ , '
+                ||GADMIN.SF_EBUS_COMMON_CD('DRV15',V_CAR_CD,'')     -- ì°¨ëŸ‰ë²ˆí˜¸
                 || ', '
-                || GADMIN.SF_INS_GETINSA_NM(DRV.SABUN)              -- ±â»ç¸í
-                ||'  ÀÔ»çÀÏ OR Åð»çÀÏÀ» È®ÀÎ ÇÏ¼¼¿ä.'
+                || GADMIN.SF_INS_GETINSA_NM(DRV.SABUN)              -- ê¸°ì‚¬ëª…
+                ||'  ìž…ì‚¬ì¼ OR í‡´ì‚¬ì¼ì„ í™•ì¸ í•˜ì„¸ìš”.'
               ;--
            END IF; --
 
@@ -241,4 +241,4 @@ MAIN: BEGIN ATOMIC
 
 
    END P2;--
-END MAIN 
+END MAIN

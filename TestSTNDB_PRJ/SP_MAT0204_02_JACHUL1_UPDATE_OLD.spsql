@@ -52,7 +52,7 @@ MAIN: BEGIN
                    AND PRODUC_NO = IN_PRODUC_NO
                    AND CHANGGO_CD = IN_CHANGGO
                    AND ACC_NO = IN_ACC_NO
-                  ;-- ±âÅ¸Ãâ°í ÀüÇ¥ º¯°æ : ADD => ACC_NO
+                  ;-- ê¸°íƒ€ì¶œê³  ì „í‘œ ë³€ê²½ : ADD => ACC_NO
 
                 INSERT INTO GADMIN.JACHUL1 (DATE, ACC_NO, GUBUN_CD, CHANGGO_CD, DAESANG_CAR, PRODUC_NO, PRODUC_NM, SPEC, UNIT, UNIT_PRICE, QTY, PRICE, MANAGER, ROW_ID, C_DATE, C_USER, M_DATE, M_USER, SEQ)
                 SELECT DATE
@@ -78,7 +78,7 @@ MAIN: BEGIN
                  WHERE DATE = IN_DATE
                    AND PRODUC_NO = IN_PRODUC_NO
                    AND CHANGGO_CD = IN_CHANGGO
-                   --AND ACC_NO = V_ACC_NO  -- ½Å±ÔÃß°¡½Ã ÃÊ±â ¼³Á¤ÀÓ
+                   --AND ACC_NO = V_ACC_NO  -- ì‹ ê·œì¶”ê°€ì‹œ ì´ˆê¸° ì„¤ì •ìž„
              ;--
 
                UPDATE GADMIN.JACHUL6
@@ -86,7 +86,7 @@ MAIN: BEGIN
                 WHERE DATE = IN_DATE
                   AND PRODUC_NO = IN_PRODUC_NO
                   AND CHANGGO_CD = IN_CHANGGO
-                  AND ACC_NO = IN_ACC_NO  -- ½Å±ÔÃß°¡½Ã ÃÊ±â ¼³Á¤ÀÓ
+                  AND ACC_NO = IN_ACC_NO  -- ì‹ ê·œì¶”ê°€ì‹œ ì´ˆê¸° ì„¤ì •ìž„
              ;--
          ELSE
 
@@ -112,4 +112,4 @@ MAIN: BEGIN
          END IF;--
 
     END P1;    --
-END MAIN 
+END MAIN

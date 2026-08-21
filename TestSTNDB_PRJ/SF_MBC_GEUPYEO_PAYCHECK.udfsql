@@ -1,20 +1,20 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_GEUPYEO_PAYCHECK"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_GEUPYEO_PAYCHECK
-»ý¼ºÀÏÀÚ	: 2021.12.16
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : Á÷¿ø±Þ¿©
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MBC_GEUPYEO_PAYCHAEK(±Þ¿©³â¿ù, ÀüÈ­¹øÈ£, ±Þ¿©±¸ºÐ)
+íŒŒì¼ëª…	: GADMIN.SF_MBC_GEUPYEO_PAYCHECK
+ìƒì„±ì¼ìž	: 2021.12.16
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ì§ì›ê¸‰ì—¬
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MBC_GEUPYEO_PAYCHAEK(ê¸‰ì—¬ë…„ì›”, ì „í™”ë²ˆí˜¸, ê¸‰ì—¬êµ¬ë¶„)
 *******************************************************************************/
 (
-    IN IN_GUB_YYMM   VARCHAR(6)   -- ±Þ¿©³â¿ù
-  , IN IN_CELLPHONE  VARCHAR(11)  -- ±â»çÀüÈ­¹øÈ£
-  , IN IN_GUB_GB     VARCHAR(25)  -- ±Þ¿©±¸ºÐ(Á¤±â±Þ¿©/»ó¿©/¼Ò±ÞºÐ)
-  , IN IN_INSA_NO    VARCHAR(10)  -- »ç¹ø
+    IN IN_GUB_YYMM   VARCHAR(6)   -- ê¸‰ì—¬ë…„ì›”
+  , IN IN_CELLPHONE  VARCHAR(11)  -- ê¸°ì‚¬ì „í™”ë²ˆí˜¸
+  , IN IN_GUB_GB     VARCHAR(25)  -- ê¸‰ì—¬êµ¬ë¶„(ì •ê¸°ê¸‰ì—¬/ìƒì—¬/ì†Œê¸‰ë¶„)
+  , IN IN_INSA_NO    VARCHAR(10)  -- ì‚¬ë²ˆ
 )
 
 
@@ -34,10 +34,10 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_GUB_YYMM   VARCHAR(6);-- ±Þ¿©³â¿ù
-   DECLARE V_CELLPHONE  VARCHAR(11);-- ÀüÈ­¹øÈ£
-   DECLARE V_GUB_GB     VARCHAR(25);-- ±Þ¿©±¸ºÐ
-   DECLARE V_INSA_NO    VARCHAR(10);-- »ç¹ø
+   DECLARE V_GUB_YYMM   VARCHAR(6);-- ê¸‰ì—¬ë…„ì›”
+   DECLARE V_CELLPHONE  VARCHAR(11);-- ì „í™”ë²ˆí˜¸
+   DECLARE V_GUB_GB     VARCHAR(25);-- ê¸‰ì—¬êµ¬ë¶„
+   DECLARE V_INSA_NO    VARCHAR(10);-- ì‚¬ë²ˆ
 
    SET V_GUB_YYMM  = COALESCE(IN_GUB_YYMM,'');--
    SET V_CELLPHONE = COALESCE(IN_CELLPHONE,'');--
@@ -54,7 +54,7 @@ BEGIN ATOMIC
         , H.HANGMOK_NM
         , H.HANGMOK_LR
         , CASE WHEN H.HANGMOK_CD BETWEEN '031' AND '090' THEN TRIM(VARCHAR_FORMAT(CAST(COALESCE(G.PAY,'0')||'0' AS DECIMAL(11,0))/10,'9,999,999,999')) ELSE COALESCE(G.PAY,'') END
-        -- PAY °ªÀÌ ºó(ºí·©Å©) °ªÀÌ¸é "0"À» ³Ö¾îÁÖ±â À§ÇØ µÚÀÚ¸®¿¡ "0" Ãß°¡ÇÏ°í 10À¸·Î ³ª´©¾îÁØ´Ù.
+        -- PAY ê°’ì´ ë¹ˆ(ë¸”ëž­í¬) ê°’ì´ë©´ "0"ì„ ë„£ì–´ì£¼ê¸° ìœ„í•´ ë’¤ìžë¦¬ì— "0" ì¶”ê°€í•˜ê³  10ìœ¼ë¡œ ë‚˜ëˆ„ì–´ì¤€ë‹¤.
      FROM GADMIN.MBC_GUBDATA AS G
           INNER JOIN GADMIN.MBC_USERS AS U
           ON G.INSA_NO = U.INSA_NO

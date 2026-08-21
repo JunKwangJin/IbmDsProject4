@@ -28,16 +28,16 @@ MAIN: BEGIN
                           , SUM(SOMO) AS SOMO
                           , SUM(TIRE) AS TIRE
                           , SUM(JABYU) AS JABYU
-                          , 0 AS ETC  --ETC¥¬ æÓ∂≤∞Õ¿œ±Ó?
+                          , 0 AS ETC  --ETCÎäî Ïñ¥Îñ§Í≤ÉÏùºÍπå?
                       FROM (
                                 SELECT A.ROUTE
                                       , A.CAR_NO
                                       , COALESCE(CASE A.EVENT_GB WHEN 'Y' THEN SUM(A.PRICE) END,0)  AS SAGO
-                                      , COALESCE(CASE B.CLASS WHEN '∫Œº”«∞' THEN SUM(A.PRICE) END,0)  AS BUSOK
-                                      , COALESCE(CASE B.CLASS WHEN 'ºˆ∏Æ«∞' THEN SUM(A.PRICE) END,0)  AS SURI
-                                      , COALESCE(CASE B.CLASS WHEN 'º“∏«∞' THEN SUM(A.PRICE) END,0)  AS SOMO
-                                      , COALESCE(CASE B.CLASS WHEN '≈∏¿ÃæÓ' THEN SUM(A.PRICE) END,0)  AS TIRE
-                                      , COALESCE(CASE B.CLASS WHEN '¿‚  ¿Ø' THEN SUM(A.PRICE) END,0)  AS JABYU
+                                      , COALESCE(CASE B.CLASS WHEN 'Î∂ÄÏÜçÌíà' THEN SUM(A.PRICE) END,0)  AS BUSOK
+                                      , COALESCE(CASE B.CLASS WHEN 'ÏàòÎ¶¨Ìíà' THEN SUM(A.PRICE) END,0)  AS SURI
+                                      , COALESCE(CASE B.CLASS WHEN 'ÏÜåÎ™®Ìíà' THEN SUM(A.PRICE) END,0)  AS SOMO
+                                      , COALESCE(CASE B.CLASS WHEN 'ÌÉÄÏù¥Ïñ¥' THEN SUM(A.PRICE) END,0)  AS TIRE
+                                      , COALESCE(CASE B.CLASS WHEN 'Ïû°  Ïú†' THEN SUM(A.PRICE) END,0)  AS JABYU
                                    FROM GADMIN.JACHUL1 A
                                          LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                                   WHERE 1 = 1
@@ -60,4 +60,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

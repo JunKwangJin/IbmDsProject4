@@ -1,18 +1,18 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MAT_JACHULOFFERX"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MAT_JACHULOFFERX
-»ý¼ºÀÏÀÚ	: 2022.4.8
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : °øµ¿Ãâ°í, ±âÅ¸Ãâ°í(Jachul4, jachul6)ÀÇ Çö ÇÄ¸ñÀÇ Àç°í ÇâÀ» º¸¿©ÁÖ´Â ÇÔ¼ö
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë      :
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MAT_JACHULOFFER1(Application ID, Ãâ°íÀÏÀÚ, ±¸ºÐÄÚµå('30'¶Ç´Â'40'), ¿µ¾÷¼ÒÄÚµå, jachul1ÀÇ ÀÔ·Â¼ø¼­, Ç°¸ñÄÚµå, ¼ö·®,Çà¼ö)
+íŒŒì¼ëª…	: GADMIN.SF_MAT_JACHULOFFERX
+ìƒì„±ì¼ìž	: 2022.4.8
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ê³µë™ì¶œê³ , ê¸°íƒ€ì¶œê³ (Jachul4, jachul6)ì˜ í˜„ í””ëª©ì˜ ìž¬ê³  í–¥ì„ ë³´ì—¬ì£¼ëŠ” í•¨ìˆ˜
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©      :
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MAT_JACHULOFFER1(Application ID, ì¶œê³ ì¼ìž, êµ¬ë¶„ì½”ë“œ('30'ë˜ëŠ”'40'), ì˜ì—…ì†Œì½”ë“œ, jachul1ì˜ ìž…ë ¥ìˆœì„œ, í’ˆëª©ì½”ë“œ, ìˆ˜ëŸ‰,í–‰ìˆ˜)
 *******************************************************************************/
                          ( IN_IPADDR VARCHAR(50)
                          , IN_CHULGO_DT DATE
-                         , IN_GUBUN_CD VARCHAR(2) -- 10: Ãâ°í , 20: ÀÌµ¿Ãâ°í, 30: °øµ¿Ãâ°í, 40: ±âÅ¸Ãâ°í
+                         , IN_GUBUN_CD VARCHAR(2) -- 10: ì¶œê³  , 20: ì´ë™ì¶œê³ , 30: ê³µë™ì¶œê³ , 40: ê¸°íƒ€ì¶œê³ 
                          , IN_CHANGGO_CD VARCHAR(6)
                          , IN_SEQ VARCHAR(3)
                          , IN_PRODUC_NO VARCHAR(13)
@@ -57,18 +57,18 @@ BEGIN
 --  DECLARE V_ENDDANGA      DEC(12,2);--
   DECLARE EOF               INT DEFAULT 0;--
   DECLARE V_EWOL_GB         VARCHAR(1);--
-  DECLARE V_EWOL_QTY        DEC(12,2); -- ÀÌ¿ù¼öÇü
-  DECLARE V_EWOL_AMT        DEC(12,2); -- ÀÌ¿ù±Ý¾×
-  DECLARE V_QTY             DEC(12,2); -- ¼ö·®
-  DECLARE V_UNIT_PRICE      DEC(12,2); -- ´Ü°¡
-  DECLARE V_AMT             DEC(12,2); -- ±Ý¾×
-  DECLARE V_BE_MAX          DEC(12,2); -- ÀÌ¼ÀüÀÔ¼öÈ¸¼ö
-  DECLARE V_CHULGO_QTY      DEC(12,2); -- Ãâ°í¼ö·®
-  DECLARE V_CHULGO_AMT      DEC(12,2); -- Ãâ°í±Ý¾×
-  DECLARE V_CHULGO_TEMP_QTY DEC(12,2); -- Ãâ°íTEMP¼ö·®
-  DECLARE V_CHULGO_TEMP_AMT DEC(12,2); -- Ãâ°íTEMP±Ý¾×
-  DECLARE V_JAGO_QTY        DEC(12,2); -- Àç°í¼ö·®
-  DECLARE V_GUMA_QTY        DEC(12,2); -- ±¸¸Å¼ö·®
+  DECLARE V_EWOL_QTY        DEC(12,2); -- ì´ì›”ìˆ˜í˜•
+  DECLARE V_EWOL_AMT        DEC(12,2); -- ì´ì›”ê¸ˆì•¡
+  DECLARE V_QTY             DEC(12,2); -- ìˆ˜ëŸ‰
+  DECLARE V_UNIT_PRICE      DEC(12,2); -- ë‹¨ê°€
+  DECLARE V_AMT             DEC(12,2); -- ê¸ˆì•¡
+  DECLARE V_BE_MAX          DEC(12,2); -- ì´ë¤Œì „ìž…ìˆ˜íšŒìˆ˜
+  DECLARE V_CHULGO_QTY      DEC(12,2); -- ì¶œê³ ìˆ˜ëŸ‰
+  DECLARE V_CHULGO_AMT      DEC(12,2); -- ì¶œê³ ê¸ˆì•¡
+  DECLARE V_CHULGO_TEMP_QTY DEC(12,2); -- ì¶œê³ TEMPìˆ˜ëŸ‰
+  DECLARE V_CHULGO_TEMP_AMT DEC(12,2); -- ì¶œê³ TEMPê¸ˆì•¡
+  DECLARE V_JAGO_QTY        DEC(12,2); -- ìž¬ê³ ìˆ˜ëŸ‰
+  DECLARE V_GUMA_QTY        DEC(12,2); -- êµ¬ë§¤ìˆ˜ëŸ‰
   DECLARE SQLSTATE CHAR(5)  DEFAULT '00000';--
   DECLARE SQLCODE  INTEGER  DEFAULT 0;--
 
@@ -124,7 +124,7 @@ BEGIN
                   , CHANGGO_CD
                   , PRODUC_NO
                   , PRODUC_NM
-                  , (CASE WHEN NUJUK > (SELECT QTY FROM VT_EWOL) THEN QTY - (NUJUK - (SELECT QTY FROM VT_EWOL)) ELSE QTY END) AS QTY   -- 2021.11.15 ´©Àû°ªÀÌ QTY¼ö·®º¸´Ù ÀûÀ»¶§(¸¹Àº°ÍÀÌ ¾øÀ»¶§) ÀÌ¿ù¼ö·®º¸´Ù ÀûÀ»‹š ¹®Á¦ ¹ß»ý
+                  , (CASE WHEN NUJUK > (SELECT QTY FROM VT_EWOL) THEN QTY - (NUJUK - (SELECT QTY FROM VT_EWOL)) ELSE QTY END) AS QTY   -- 2021.11.15 ëˆ„ì ê°’ì´ QTYìˆ˜ëŸ‰ë³´ë‹¤ ì ì„ë•Œ(ë§Žì€ê²ƒì´ ì—†ì„ë•Œ) ì´ì›”ìˆ˜ëŸ‰ë³´ë‹¤ ì ì„ë–„ ë¬¸ì œ ë°œìƒ
                   , NUJUK
                   , UNIT_PRICE
                   , (CASE WHEN NUJUK > (SELECT QTY FROM VT_EWOL) THEN SUPPLY_PRICE - ((NUJUK - (SELECT QTY FROM VT_EWOL)) * UNIT_PRICE) ELSE QTY END) AS SUPPLY_PRICE
@@ -148,27 +148,27 @@ BEGIN
     ORDER BY DATE, ROW_NUMBER()OVER();--
 
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET EOF = 1;--
---  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN ('DB¿À·ù°¡ ¹ß»ýÇß½À´Ï´Ù. SQLCODE= '||VARCHAR_FORMAT(SQLCODE,'9999999')||', SQLSTATE= '||SQLSTATE); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
+--  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN ('DBì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. SQLCODE= '||VARCHAR_FORMAT(SQLCODE,'9999999')||', SQLSTATE= '||SQLSTATE); --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
 --  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION RETURN SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
 
 
 
 
-  -- V_EWOL_GB 1 : Àü³âµµ, 2 : ÀÌ¿ù½ÃÁ¡, 3 : ´çÇØ³âµµ
+  -- V_EWOL_GB 1 : ì „ë…„ë„, 2 : ì´ì›”ì‹œì , 3 : ë‹¹í•´ë…„ë„
   IF JAGUMA.CF_GB = 1 THEN
      SET V_EWOL_GB = 1;--
   ELSE
      SET V_EWOL_GB = 3;--
   END IF;--
 
--- ÀÌ¿ù Àü µ¥ÀÌÅÍÀÇ °¹¼ö COUNT
+-- ì´ì›” ì „ ë°ì´í„°ì˜ ê°¯ìˆ˜ COUNT
   SELECT COUNT(*) INTO V_BE_MAX
     FROM GADMIN.JAGUMA1
    WHERE PRODUC_NO  = IN_PRODUC_NO
      AND CHANGGO_CD = IN_CHANGGO_CD
      AND DATE < TRUNC(IN_CHULGO_DT, 'YYYY' );--
 
--- ÀÌ¿ù µ¥ÀÌÅÍ
+-- ì´ì›” ë°ì´í„°
   SELECT EWOL_01, UNIT_PRICE_01
     INTO V_EWOL_QTY, V_EWOL_AMT
     FROM GADMIN.JAGUJAGO
@@ -177,7 +177,7 @@ BEGIN
      AND PRODUC_NO  =  IN_PRODUC_NO;--
 
 
--- Ãâ°íÀÏ ÇöÀç±îÁö ´çÇØ¿¡ Ãâ°íµÈ ¼ö·® ÇÕ°è¸¦ ±¸ÇÔ
+-- ì¶œê³ ì¼ í˜„ìž¬ê¹Œì§€ ë‹¹í•´ì— ì¶œê³ ëœ ìˆ˜ëŸ‰ í•©ê³„ë¥¼ êµ¬í•¨
   SELECT SUM(QTY)
        , SUM(PRICE)
     INTO V_CHULGO_QTY
@@ -188,7 +188,7 @@ BEGIN
      AND CHANGGO_CD = IN_CHANGGO_CD
      AND PRODUC_NO = IN_PRODUC_NO;--
 
--- TEMPÃâ°í
+-- TEMPì¶œê³ 
   SELECT SUM(QTY)
        , SUM(PRICE)
     INTO V_CHULGO_TEMP_QTY, V_CHULGO_TEMP_AMT
@@ -201,7 +201,7 @@ BEGIN
      AND LINEROW    < IN_LINEROW;--
 
 
--- ±¸¸Å ¼ö·® ÆÄ¾Ç
+-- êµ¬ë§¤ ìˆ˜ëŸ‰ íŒŒì•…
   SELECT SUM(QTY)
     INTO V_GUMA_QTY
     FROM GADMIN.JAGUMA1
@@ -221,7 +221,7 @@ BEGIN
   SET V_JAGO_QTY = V_EWOL_QTY + V_GUMA_QTY - V_CHULGO_QTY - V_CHULGO_TEMP_QTY
   ;--
 
--- ÇöÀç Ãâ°íÀÏ±îÁö ¼ö·®À» ±¸¸Å¿¡¼­ ÀÏÀÚ¼øÀ¸·Î µ¥ÀÌÅÍ¸¦ ÀÏ¾îµéÀÎ´Ù.
+-- í˜„ìž¬ ì¶œê³ ì¼ê¹Œì§€ ìˆ˜ëŸ‰ì„ êµ¬ë§¤ì—ì„œ ì¼ìžìˆœìœ¼ë¡œ ë°ì´í„°ë¥¼ ì¼ì–´ë“¤ì¸ë‹¤.
   OPEN  JAGUMA_CURSOR;--
   SET   EOF = 0;--
   SET   V_QTY = 0;--
@@ -232,7 +232,7 @@ BEGIN
         SET V_QTY = V_QTY + JAGUMA.QTY;--
 
         IF  V_QTY >= V_CHULGO_QTY THEN
-         -- Ãâ°í¼ö·®À» ÀÏÀÚº° ±¸¸Å¼ö·®¿¡¼­ ¼øÂ÷·Î Â÷°¨ÇÏ¿© Â÷°¨¼ö·®ÀÌ Ãâ°í¼ö·®º¸´Ù  ¸¹°Å³ª °°À»¶§
+         -- ì¶œê³ ìˆ˜ëŸ‰ì„ ì¼ìžë³„ êµ¬ë§¤ìˆ˜ëŸ‰ì—ì„œ ìˆœì°¨ë¡œ ì°¨ê°í•˜ì—¬ ì°¨ê°ìˆ˜ëŸ‰ì´ ì¶œê³ ìˆ˜ëŸ‰ë³´ë‹¤  ë§Žê±°ë‚˜ ê°™ì„ë•Œ
             SET JAGUMA.QTY = V_QTY - V_CHULGO_QTY;--
             SET JAGUMA.AMT = V_AMT - V_CHULGO_AMT;--
         ELSE
@@ -241,7 +241,7 @@ BEGIN
 
   END   WHILE;--
   IF  EOF = 1 THEN
-      PIPE('E', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,'Àç°í°¡ ¾ø½À´Ï´Ù.',IN_LINEROW/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
+      PIPE('E', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,'ìž¬ê³ ê°€ ì—†ìŠµë‹ˆë‹¤.',IN_LINEROW/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
       GOTO P1; --
   END IF;--
 
@@ -297,7 +297,7 @@ P0:
   END WHILE;--
 P1:
        IF V_QTY < IN_QTY THEN
-          PIPE('E', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,'Àç°í°¡ '||VARCHAR_FORMAT(V_QTY,'9999999.99')||' ÀÖ½À´Ï´Ù. '||'Ãâ°í¼ö·®¿¡¼­ '||VARCHAR_FORMAT(IN_QTY - V_QTY,'9999999.99')||' ºÎÁ·ÇÕ´Ï´Ù.',IN_LINEROW/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
+          PIPE('E', IN_IPADDR, IN_CHULGO_DT, IN_CHANGGO_CD, IN_SEQ, IN_PRODUC_NO, V_JAGO_QTY, V_QTY, V_UNIT_PRICE, V_AMT,'ìž¬ê³ ê°€ '||VARCHAR_FORMAT(V_QTY,'9999999.99')||' ìžˆìŠµë‹ˆë‹¤. '||'ì¶œê³ ìˆ˜ëŸ‰ì—ì„œ '||VARCHAR_FORMAT(IN_QTY - V_QTY,'9999999.99')||' ë¶€ì¡±í•©ë‹ˆë‹¤.',IN_LINEROW/*, V_EWOL_QTY, V_GUMA_QTY, V_CHULGO_QTY, V_CHULGO_TEMP_QTY*/);--
        END IF;--
   CLOSE JAGUMA_CURSOR;--
   RETURN;--

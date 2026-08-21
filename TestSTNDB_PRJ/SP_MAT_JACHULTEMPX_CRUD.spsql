@@ -15,21 +15,21 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MAT_JACHULTEMPX_CRUD"
      , OUT OUT_MSG             VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SP_MAT_JACHULTEMPX_CRUD
-»ý¼ºÀÏÀÚ	: 2022.4.13
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ÀÚÀçÃâ°í(°øµ¿Ãâ°í, ±âÅ¸Ãâ°í)¿¡¼­ ÀÓ½ÃÅ×ÀÌºí Ãß°¡, ¼öÁ¤, »èÁ¦ Ã³¸® ÀÔ´Ï´Ù.
-USAGE   : GADMIN.GADMIN.SP_MAT_JACHULTEMPX_CRUD(CRUD, IPADDRESS, Ãâ°íÀÏÀÚ, Ãâ°í±¸ºÐ, Ã¢°íÄÚµå, SEQ, Ãâ°í¼ö·®, Ç°¸ñÄÚµå, ´Ü°¡, ±Ý¾×, Çà¼ö, OUTCNT, OUT_MSG)
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-INPUT	: IN_CRUD             »ðÀÔ(C), ¼öÁ¤(U), »èÁ¦(D) ±¸ºÐ
-        : IN_IPADDR           IPÁÖ¼Ò ¶Ç´Â ¸Æ¾îµå·¹½º
-        : IN_CHULGO_DT        Ãâ°íÀÏÀÚ
-        : IN_GUBUN_CD         Ãâ°í±¸ºÐ
+íŒŒì¼ëª…	: GADMIN.SP_MAT_JACHULTEMPX_CRUD
+ìƒì„±ì¼ìž	: 2022.4.13
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ìžìž¬ì¶œê³ (ê³µë™ì¶œê³ , ê¸°íƒ€ì¶œê³ )ì—ì„œ ìž„ì‹œí…Œì´ë¸” ì¶”ê°€, ìˆ˜ì •, ì‚­ì œ ì²˜ë¦¬ ìž…ë‹ˆë‹¤.
+USAGE   : GADMIN.GADMIN.SP_MAT_JACHULTEMPX_CRUD(CRUD, IPADDRESS, ì¶œê³ ì¼ìž, ì¶œê³ êµ¬ë¶„, ì°½ê³ ì½”ë“œ, SEQ, ì¶œê³ ìˆ˜ëŸ‰, í’ˆëª©ì½”ë“œ, ë‹¨ê°€, ê¸ˆì•¡, í–‰ìˆ˜, OUTCNT, OUT_MSG)
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+INPUT	: IN_CRUD             ì‚½ìž…(C), ìˆ˜ì •(U), ì‚­ì œ(D) êµ¬ë¶„
+        : IN_IPADDR           IPì£¼ì†Œ ë˜ëŠ” ë§¥ì–´ë“œë ˆìŠ¤
+        : IN_CHULGO_DT        ì¶œê³ ì¼ìž
+        : IN_GUBUN_CD         ì¶œê³ êµ¬ë¶„
         : IN_CHANGGO_CD       VARCHAR(6)
         : IN_SEQ              VARCHAR(3)
         : IN_QTY              DECIMAL(12,2)
@@ -38,8 +38,8 @@ INPUT	: IN_CRUD             »ðÀÔ(C), ¼öÁ¤(U), »èÁ¦(D) ±¸ºÐ
         : IN_LINEROW          SMALLINT
         : IN_AMT              DECIMAL(12,2)
 
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 MAIN: BEGIN ATOMIC
 
@@ -52,30 +52,30 @@ MAIN: BEGIN ATOMIC
     DECLARE SQLSTATE CHAR(5)   DEFAULT '00000'; --
 
 
-    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER  CONDITION FOR SQLSTATE '22001';  -- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL  CONDITION FOR SQLSTATE '23502';  -- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO   CONDITION FOR SQLSTATE '23505';  -- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE  CONDITION FOR SQLSTATE '42704';  -- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER  CONDITION FOR SQLSTATE '22001';  -- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL  CONDITION FOR SQLSTATE '23502';  -- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO   CONDITION FOR SQLSTATE '23505';  -- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE  CONDITION FOR SQLSTATE '42704';  -- TABLEì´ ì—†ì„ë–„
 
     DECLARE UNDO HANDLER FOR NOT FOUND
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'WRR01: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡¼­ µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..' ;--
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'WRR01: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì—ì„œ ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..' ;--
     DECLARE UNDO HANDLER FOR LEN_UNDER
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'WRR02: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡¼­ º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..' ;--
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'WRR02: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì—ì„œ ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..' ;--
     DECLARE UNDO HANDLER FOR SQLWARNING
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'WRR99: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡¼­ ½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' ; --
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'WRR99: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì—ì„œ ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' ; --
     DECLARE UNDO HANDLER FOR NO_TABLE
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºíÀÌ Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...' ;--
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì´ ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...' ;--
     DECLARE UNDO HANDLER FOR NOT_NULL
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡ NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'; --
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì— NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'; --
     DECLARE UNDO HANDLER FOR ROW_DUO
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR03: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡ ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'; --
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR03: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì— ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'; --
     DECLARE UNDO HANDLER FOR LEN_OVER
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡ ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..';--
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì— ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..';--
     DECLARE UNDO HANDLER FOR SQLEXCEPTION
-            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: '||V_KEY_MSG||'ÀÓ½ÃÅ×ÀÌºí¿¡¼­ ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'; --
+            SET  OUT_MSG =   V_OUT_MSG || OUT_MSG || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: '||V_KEY_MSG||'ìž„ì‹œí…Œì´ë¸”ì—ì„œ ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'; --
 
-    -- º¯¼ö Å¬¸®¾î
+    -- ë³€ìˆ˜ í´ë¦¬ì–´
     SET (OUT_CNT, OUT_MSG) =('0','');--
 --    SET V_SAVE = 0; --
 --    P1: BEGIN
@@ -194,10 +194,10 @@ ELSEIF (IN_CRUD = 'D') THEN
           AND LINEROW    = IN_LINEROW ;--
        END;--
 ELSE
-       SET OUT_MSG = 'CRUD°ªÀÌ À¯È¿ÇÏÁö¾Ê½À´Ï´Ù.';--
+       SET OUT_MSG = 'CRUDê°’ì´ ìœ íš¨í•˜ì§€ì•ŠìŠµë‹ˆë‹¤.';--
 
 
 END IF;--
 
   RETURN;--
-END 
+END

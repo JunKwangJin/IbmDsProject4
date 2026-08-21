@@ -29,15 +29,15 @@ P1: BEGIN
 
     INSERT INTO SESSION.TEMP
     SELECT A.LEVELUP_CD, A.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT,
-            CASE B.DRCR_GB WHEN '¬˜∫Ø' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
-                            WHEN '¿‘±›' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
-                            WHEN '√‚±›' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
-                            WHEN '¥Î∫Ø' THEN SUM(YI_AMT + CR_AMT - DR_AMT)
+            CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN 'ÏûÖÍ∏à' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN 'Ï∂úÍ∏à' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN 'ÎåÄÎ≥Ä' THEN SUM(YI_AMT + CR_AMT - DR_AMT)
                             END AS JAN_AMT
       FROM (
-                SELECT '1110100' AS LEVELUP_CD, '«ˆ±›π◊«ˆ±›µÓ∞°π∞' AS LEVELUP_ACC, '1110101' AS ACC_CD, '«ˆ±›' AS ACC_NM, 0 AS YI_AMT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT
+                SELECT '1110100' AS LEVELUP_CD, 'ÌòÑÍ∏àÎ∞èÌòÑÍ∏àÎì±Í∞ÄÎ¨º' AS LEVELUP_ACC, '1110101' AS ACC_CD, 'ÌòÑÍ∏à' AS ACC_NM, 0 AS YI_AMT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT
                   FROM GADMIN.ACCOU1
-                 WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                 WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                 UNION ALL
                 SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, REPLACE(A.ACC_NM,' ','') AS ACC_NM, 0 AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
@@ -46,7 +46,7 @@ P1: BEGIN
                      AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                   GROUP BY B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM
                 UNION ALL
-                SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, REPLACE(A.ACC_NM,' ','') AS ACC_NM, CASE B.DRCR_GB  WHEN '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, REPLACE(A.ACC_NM,' ','') AS ACC_NM, CASE B.DRCR_GB  WHEN 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE A.ACC_CD = B.ACC_CD
                    AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
@@ -58,18 +58,18 @@ P1: BEGIN
     ORDER BY 3,4
     ;--
 /*
-     --º“∞Ë
+     --ÏÜåÍ≥Ñ
     INSERT INTO SESSION.TEMP
-    SELECT LEVELUP_CD, LEVELUP_ACC, '' AS ACC_CD, 'º“∞Ë' AS ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+    SELECT LEVELUP_CD, LEVELUP_ACC, '' AS ACC_CD, 'ÏÜåÍ≥Ñ' AS ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
        FROM SESSION.TEMP
       GROUP BY LEVELUP_CD, LEVELUP_ACC
       ;--
 
-    -- «’∞Ë
+    -- Ìï©Í≥Ñ
     INSERT INTO SESSION.TEMP
-    SELECT '9999999'  AS LEVELUP_CD, '' AS LEVELUP_ACC, '' AS ACC_CD, '«’∞Ë' AS ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
+    SELECT '9999999'  AS LEVELUP_CD, '' AS LEVELUP_ACC, '' AS ACC_CD, 'Ìï©Í≥Ñ' AS ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT, SUM(JAN_AMT) AS JAN_AMT
       FROM SESSION.TEMP
-      WHERE ACC_NM = 'º“∞Ë';--
+      WHERE ACC_NM = 'ÏÜåÍ≥Ñ';--
 */
 
 END P1;--
@@ -91,4 +91,4 @@ P2: BEGIN
   */
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

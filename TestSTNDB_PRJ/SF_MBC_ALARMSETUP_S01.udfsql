@@ -1,17 +1,17 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_ALARMSETUP_S01"
 /*******************************************************************************
-ÆÄÀÏ¸í	: "GADMIN"."SF_MBC_ALARMSETUP_S01"
-»ý¼ºÀÏÀÚ	: 2022.4.12
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ALARM ¿©ºÎ ¿Í ¾Ë¶÷ Áøµ¿ ¸ðµå Á¤º¸Á¶È¸.
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
-SELECT * FROM "GADMIN"."SF_MBC_ALARMSETUP_S01"(»ç¿ëÀÚ ID)
+íŒŒì¼ëª…	: "GADMIN"."SF_MBC_ALARMSETUP_S01"
+ìƒì„±ì¼ìž	: 2022.4.12
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ALARM ì—¬ë¶€ ì™€ ì•ŒëžŒ ì§„ë™ ëª¨ë“œ ì •ë³´ì¡°íšŒ.
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
+SELECT * FROM "GADMIN"."SF_MBC_ALARMSETUP_S01"(ì‚¬ìš©ìž ID)
 *******************************************************************************/
 (
-    IN IN_USERID  VARCHAR(15)   -- »ç¿ëÀÚ ID
+    IN IN_USERID  VARCHAR(15)   -- ì‚¬ìš©ìž ID
 )
 RETURNS
     TABLE
@@ -23,7 +23,7 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_USERID          VARCHAR(15);-- »ç¿ëÀÚ ID
+   DECLARE V_USERID          VARCHAR(15);-- ì‚¬ìš©ìž ID
 
    SET V_USERID       = COALESCE(IN_USERID,'');--
 

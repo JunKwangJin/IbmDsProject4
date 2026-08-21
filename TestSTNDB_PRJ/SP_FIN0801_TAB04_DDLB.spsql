@@ -30,7 +30,7 @@ MAIN: BEGIN
   WITH REPLACE
   NOT LOGGED;--
 
---°³¼ö Ã£±â
+--ê°œìˆ˜ ì°¾ê¸°
 SELECT GISU INTO V_GISU
   FROM GADMIN.BSACC9
  WHERE START <= IN_FROMDATE
@@ -46,7 +46,7 @@ P1: BEGIN
             SELECT '' AS MANAGE_CD_2, '' AS MANAGE_ITEM_2 FROM SYSIBM.SYSDUMMY1
             UNION ALL
             SELECT MANAGE_2 AS MANAGE_CD_2, ITEM_2 AS MANAGE_ITEM_2
-              FROM GADMIN.TRADEKYE A, GADMIN.BSACC2 B   -- °ü¸®Ç×¸ñ2ÀÇ ¸íÄªÀÌ ´Ù¸¥°ÍÀÌ ÀÖ¾î BSACC8¸¦ ÀÌ¿ëÇÔ
+              FROM GADMIN.TRADEKYE A, GADMIN.BSACC2 B   -- ê´€ë¦¬í•­ëª©2ì˜ ëª…ì¹­ì´ ë‹¤ë¥¸ê²ƒì´ ìžˆì–´ BSACC8ë¥¼ ì´ìš©í•¨
             WHERE 1 = 1
               AND A.ACC_CD = B.ACC_CD
               AND YEAR = V_GISU
@@ -67,11 +67,11 @@ P1: BEGIN
                 SELECT *
                   FROM MAN_DDLB
                 WHERE 1 = 1
-                ORDER BY regexp_replace(MANAGE_ITEM_2,'\(.\)|\(..\)|[[:punct:]]|[0-9]|¥°|¥±|¥²|¥³|¥´|¥µ|¥¶|¥·|¥¸|¥¹| ')
-                        , MANAGE_CD_2 -- (ÁÖ)¿Í °°Àº ¸Ó¸®¸» •û°í ¸íÄªÀ¸·Î¸¸ Á¤·Ä(21.9.2/Àü±¤Áø)
+                ORDER BY regexp_replace(MANAGE_ITEM_2,'\(.\)|\(..\)|[[:punct:]]|[0-9]|â… |â…¡|â…¢|â…£|â…¤|â…¥|â…¦|â…§|â…¨|â…©| ')
+                        , MANAGE_CD_2 -- (ì£¼)ì™€ ê°™ì€ ë¨¸ë¦¬ë§ ëº´ê³  ëª…ì¹­ìœ¼ë¡œë§Œ ì •ë ¬(21.9.2/ì „ê´‘ì§„)
            )
     ;--
 
     OPEN CURSOR_MAN2;--
 END P1;--
-END MAIN 
+END MAIN

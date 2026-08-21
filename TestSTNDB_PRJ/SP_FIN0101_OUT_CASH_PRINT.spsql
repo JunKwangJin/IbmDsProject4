@@ -1,9 +1,9 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_OUT_CASH_PRINT"
 (
-    IN IN_FROMDATE VARCHAR(10) -- yyyymmdd «¸Ωƒ
-  , IN IN_TODATE VARCHAR(10) -- yyyymmdd «¸Ωƒ
+    IN IN_FROMDATE VARCHAR(10) -- yyyymmdd ÌòïÏãù
+  , IN IN_TODATE VARCHAR(10) -- yyyymmdd ÌòïÏãù
   , IN IN_ACCNO VARCHAR(3)
-  , IN IN_USER_ID VARCHAR(25)  -- yyyymmdd «¸Ωƒ
+  , IN IN_USER_ID VARCHAR(25)  -- yyyymmdd ÌòïÏãù
 )
   DYNAMIC RESULT SETS 1
   LANGUAGE SQL
@@ -63,22 +63,22 @@ MAIN: BEGIN
                                      FROM GADMIN.ACCOU1
                                     WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                       AND ACC_NO LIKE IN_ACCNO||'%'
-                                      AND DRCR_GB IN ('√‚±›'));--
+                                      AND DRCR_GB IN ('Ï∂úÍ∏à'));--
 
    END P1;--
 
     P2: BEGIN
 /*        DECLARE V_HDPAGE_ROW INTEGER DEFAULT 21;--
         DECLARE V_SEPAGE_ROW INTEGER DEFAULT 23;--
-         FOR ACCOU_BLK AS SELECT DATE, MAX(ACC_NO) AS ACC_NO, COUNT(*) + ROUND((COUNT(DISTINCT DATE||ACC_NO)+2.0)/2.0) + CEILING(REAL(REAL(COUNT(*) - V_HDPAGE_ROW) / REAL(V_SEPAGE_ROW) )) AS CNT FROM SESSION.TEMP WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE AND DRCR_GB IN ('√‚±›') GROUP BY DATE
+         FOR ACCOU_BLK AS SELECT DATE, MAX(ACC_NO) AS ACC_NO, COUNT(*) + ROUND((COUNT(DISTINCT DATE||ACC_NO)+2.0)/2.0) + CEILING(REAL(REAL(COUNT(*) - V_HDPAGE_ROW) / REAL(V_SEPAGE_ROW) )) AS CNT FROM SESSION.TEMP WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE AND DRCR_GB IN ('Ï∂úÍ∏à') GROUP BY DATE
         DO
         SET V_CNT = ACCOU_BLK.CNT;--
         SET V_DATE = ACCOU_BLK.DATE;--
         SET V_ACC_NO = ACCOU_BLK.ACC_NO;--
 
-        IF  V_CNT <= V_HDPAGE_ROW THEN SET V_CNT_MAX = V_HDPAGE_ROW ; -- √ππ¯¬∞ ∆‰¿Ã¡ˆ∞°  Full ¿€∞≈≥™ ∞∞¿∏∏È
-        ELSEIF (V_CNT > V_HDPAGE_ROW AND MOD((V_CNT - V_HDPAGE_ROW), V_SEPAGE_ROW) = 0 ) THEN  SET V_CNT_MAX = V_CNT ; -- µŒπ¯§ä ∆‰¿Ã¡ˆ ∫Œ≈Õ Full∆‰¿Ã¡ˆ ¿Ã∏È
-        ELSEIF (V_CNT > V_HDPAGE_ROW) THEN SET V_CNT_MAX = (CEILING(REAL(REAL(V_CNT - V_HDPAGE_ROW) / REAL(V_SEPAGE_ROW) )) * V_SEPAGE_ROW + V_HDPAGE_ROW);-- µŒπ¯§ä ∆‰¿Ã¡ˆ ∫Œ≈Õ Full∆‰¿Ã¡ˆ∞° æ∆¥œ∏È
+        IF  V_CNT <= V_HDPAGE_ROW THEN SET V_CNT_MAX = V_HDPAGE_ROW ; -- Ï≤´Î≤àÏß∏ ÌéòÏù¥ÏßÄÍ∞Ä  Full ÏûëÍ±∞ÎÇò Í∞ôÏúºÎ©¥
+        ELSEIF (V_CNT > V_HDPAGE_ROW AND MOD((V_CNT - V_HDPAGE_ROW), V_SEPAGE_ROW) = 0 ) THEN  SET V_CNT_MAX = V_CNT ; -- ÎëêÎ≤àÏ®∞ ÌéòÏù¥ÏßÄ Î∂ÄÌÑ∞ FullÌéòÏù¥ÏßÄ Ïù¥Î©¥
+        ELSEIF (V_CNT > V_HDPAGE_ROW) THEN SET V_CNT_MAX = (CEILING(REAL(REAL(V_CNT - V_HDPAGE_ROW) / REAL(V_SEPAGE_ROW) )) * V_SEPAGE_ROW + V_HDPAGE_ROW);-- ÎëêÎ≤àÏ®∞ ÌéòÏù¥ÏßÄ Î∂ÄÌÑ∞ FullÌéòÏù¥ÏßÄÍ∞Ä ÏïÑÎãàÎ©¥
         END IF;--
 
         SET V_ROW = V_CNT + 1;--
@@ -117,4 +117,4 @@ MAIN: BEGIN
    END P3;--
 
 
-END MAIN 
+END MAIN

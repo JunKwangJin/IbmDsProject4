@@ -12,7 +12,7 @@ MAIN: BEGIN
 
     P1: BEGIN
 
-        -- фЬ╫╨га╥н х╜╦Июг дц╥Ё ╪Ж ╨╦╢ы ╢У Ёж╬Н ╩Щ╪╨╫це╢
+        -- М▐╜Л┼╓М■└К║° М≥■К╘╢Л²≤ Л╩╛К÷╪ Л┬≤ КЁ╢К▀╓ К█■ К└ёЛ√╢ Л┐²Л└╠Л▀°М┌╢
 		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
         SELECT B.DATE, B.ROUTE, A.CAR_TYPE, B.CAR_NO, TO_CHAR(A.REG_DATE,'YYYYMMDD') AS REG_DATE, B.DRIVE_DISTANCE*SUM(B.HOISU) AS JUHANG, B.DRIVE_DISTANCE, SUM(B.HOISU) AS HOISU, SUM(C.CHARGE) AS CHARGE, SUM(C.PRICE) AS PRICE, D.DRIVER_A, D.DRIVER_B
           FROM GADMIN.BSCAR A
@@ -30,4 +30,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

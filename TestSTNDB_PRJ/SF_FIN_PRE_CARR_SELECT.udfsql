@@ -42,7 +42,7 @@ F1: BEGIN ATOMIC
           FROM GADMIN.HAPJAN A
                 LEFT OUTER JOIN GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
          WHERE 1 = 1
-           AND YEAR = ( SELECT GISU FROM GADMIN.BSACC9 WHERE START <= IN_FROMDATE AND TERMINATION >= IN_FROMDATE )  -- Àü±â±âÁØ ½ÃÀÛÀÏÀ» ±âÁØ
-           AND B.ACC_GB IN ('ÀÚ»ê','ºÎÃ¤','ÀÚº»')  -- Àü±âÀÌ¿ùÀº ÀÚ»ê ºÎÃ¤ ÀÚº»¸¸ °¡Á®¿Â´Ù
+           AND YEAR = ( SELECT GISU FROM GADMIN.BSACC9 WHERE START <= IN_FROMDATE AND TERMINATION >= IN_FROMDATE )  -- ì „ê¸°ê¸°ì¤€ ì‹œìž‘ì¼ì„ ê¸°ì¤€
+           AND B.ACC_GB IN ('ìžì‚°','ë¶€ì±„','ìžë³¸')  -- ì „ê¸°ì´ì›”ì€ ìžì‚° ë¶€ì±„ ìžë³¸ë§Œ ê°€ì ¸ì˜¨ë‹¤
         ORDER BY ACC_CD, ACC_NM ;--
 END

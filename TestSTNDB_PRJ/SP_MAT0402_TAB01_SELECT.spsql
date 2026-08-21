@@ -23,16 +23,16 @@ MAIN: BEGIN
                                AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                             GROUP BY ROUTE, CAR_NO
                         ) A
-                        LEFT OUTER JOIN GADMIN.BSCAR B ON (A.CAR_NO = B.CAR_NO) -- ¬˜∑Æ±‚∫ª¡§∫∏
-                        LEFT OUTER JOIN GADMIN.BSUNHA3 C ON (A.ROUTE = C.ROUTE) -- ¡÷«‡∞≈∏Æ
+                        LEFT OUTER JOIN GADMIN.BSCAR B ON (A.CAR_NO = B.CAR_NO) -- Ï∞®ÎüâÍ∏∞Î≥∏Ï†ïÎ≥¥
+                        LEFT OUTER JOIN GADMIN.BSUNHA3 C ON (A.ROUTE = C.ROUTE) -- Ï£ºÌñâÍ±∞Î¶¨
                         LEFT OUTER JOIN (
                                             SELECT ROUTE, CAR_NO, SUM(CHARGE) AS CHARGE,  SUM(PRICE) AS PRICE
                                               FROM GADMIN.UNHANG07
                                              WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                             GROUP BY ROUTE, CAR_NO
-                                           ) D ON (A.ROUTE = D.ROUTE AND A.CAR_NO = D.CAR_NO)   -- √Ê¿¸∑Æ, √Ê¿¸±›æ◊
+                                           ) D ON (A.ROUTE = D.ROUTE AND A.CAR_NO = D.CAR_NO)   -- Ï∂©Ï†ÑÎüâ, Ï∂©Ï†ÑÍ∏àÏï°
                  WHERE 1 = 1
-                   AND C.GUBUN = '∆ÚΩ√'  --≥™¡ﬂø° √≥∏Æ
+                   AND C.GUBUN = 'ÌèâÏãú'  --ÎÇòÏ§ëÏóê Ï≤òÎ¶¨
 
              )
         ORDER BY 1
@@ -41,4 +41,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

@@ -1,20 +1,20 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_ROUTETIME"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_ROUTETIME
-»ý¼ºÀÏÀÚ	: 2021.12.12
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ³ë¼±, ±â»çÀÇ ¿îÇà½Ã°£Ç¥
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MBC_ROUTETIME(ÀÏÀÚ, ³ë¼±, ±â»çÀüÈ­¹øÈ£, ±â»ç³ë¼±ÀüÃ¼¹Â¹«(1: ÀüÃ¼, 0: ±â»ç¸¸))
+íŒŒì¼ëª…	: GADMIN.SF_MBC_ROUTETIME
+ìƒì„±ì¼ìž	: 2021.12.12
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ë…¸ì„ , ê¸°ì‚¬ì˜ ìš´í–‰ì‹œê°„í‘œ
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MBC_ROUTETIME(ì¼ìž, ë…¸ì„ , ê¸°ì‚¬ì „í™”ë²ˆí˜¸, ê¸°ì‚¬ë…¸ì„ ì „ì²´ë®¤ë¬´(1: ì „ì²´, 0: ê¸°ì‚¬ë§Œ))
 *******************************************************************************/
 (
-    IN IN_BACHA_DT   VARCHAR(8)   -- ¹èÂ÷½Ã°£
-  , IN IN_ROUTE      VARCHAR(10)  -- ³ë¼±¸í
-  , IN IN_CELLPHONE  VARCHAR(11)  -- ±â»çÀüÈ­¹øÈ£
-  , IN IN_ROUTE_YN   VARCHAR(1)   -- ³ë¼±±¸ºÐ(±â»ç ³ë¼± ÀüÃ¼ À¯¹«)
+    IN IN_BACHA_DT   VARCHAR(8)   -- ë°°ì°¨ì‹œê°„
+  , IN IN_ROUTE      VARCHAR(10)  -- ë…¸ì„ ëª…
+  , IN IN_CELLPHONE  VARCHAR(11)  -- ê¸°ì‚¬ì „í™”ë²ˆí˜¸
+  , IN IN_ROUTE_YN   VARCHAR(1)   -- ë…¸ì„ êµ¬ë¶„(ê¸°ì‚¬ ë…¸ì„  ì „ì²´ ìœ ë¬´)
 )
 
 
@@ -31,10 +31,10 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_BACHA_DT   VARCHAR(8);-- ¹èÂ÷½Ã°£
-   DECLARE V_ROUTE      VARCHAR(10);-- ³ë¼±¸í
-   DECLARE V_CELLPHONE  VARCHAR(11);-- ±â»çÀüÈ­¹øÈ£
-   DECLARE V_ROUTE_YN   VARCHAR(1);-- ³ë¼±±¸ºÐ(±â»ç ³ë¼± ÀüÃ¼ À¯¹«)
+   DECLARE V_BACHA_DT   VARCHAR(8);-- ë°°ì°¨ì‹œê°„
+   DECLARE V_ROUTE      VARCHAR(10);-- ë…¸ì„ ëª…
+   DECLARE V_CELLPHONE  VARCHAR(11);-- ê¸°ì‚¬ì „í™”ë²ˆí˜¸
+   DECLARE V_ROUTE_YN   VARCHAR(1);-- ë…¸ì„ êµ¬ë¶„(ê¸°ì‚¬ ë…¸ì„  ì „ì²´ ìœ ë¬´)
 
    SET V_BACHA_DT  = COALESCE(IN_BACHA_DT,'');--
    SET V_ROUTE     = COALESCE(IN_ROUTE,'');--
@@ -65,10 +65,10 @@ BEGIN ATOMIC
 --                        AND V_ROUTE_YN = '1'
 --                    )
 --          )
---    ORDER BY (CASE WHEN V_CELLPHONE = CELLPHONE THEN '1'||INSA_NM ELSE INSA_NM END)  -- Á¶È¸ÇÏ´Â ÀüÈ­¹øÈ£ÀÇ ±â»ç¸éÀ» Á¦ÀÏ ÀÙÀ¸·Î ³ªÅ¸³½´Ù.
+--    ORDER BY (CASE WHEN V_CELLPHONE = CELLPHONE THEN '1'||INSA_NM ELSE INSA_NM END)  -- ì¡°íšŒí•˜ëŠ” ì „í™”ë²ˆí˜¸ì˜ ê¸°ì‚¬ë©´ì„ ì œì¼ ìžŽìœ¼ë¡œ ë‚˜íƒ€ë‚¸ë‹¤.
     ORDER BY ROUTE
-           , (CASE AMPM WHEN '¿ÀÀü' THEN '1' WHEN '¿ÀÈÄ' THEN '2' ELSE '3' END)
-           , (CASE WHEN TRIM(BACHA_TM) IN ( ':','') THEN '99:99' ELSE BACHA_TM END)   -- ½Ã°£¼øÀ¸·Î Á¶È¸. ½Ã°£ÀÌ ¾øÀ¸¸é ÈÄÇà.
+           , (CASE AMPM WHEN 'ì˜¤ì „' THEN '1' WHEN 'ì˜¤í›„' THEN '2' ELSE '3' END)
+           , (CASE WHEN TRIM(BACHA_TM) IN ( ':','') THEN '99:99' ELSE BACHA_TM END)   -- ì‹œê°„ìˆœìœ¼ë¡œ ì¡°íšŒ. ì‹œê°„ì´ ì—†ìœ¼ë©´ í›„í–‰.
            , INSA_NM
     ;--
 END

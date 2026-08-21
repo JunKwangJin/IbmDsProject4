@@ -19,7 +19,7 @@ BEGIN ATOMIC
 
   RETURN
   WITH VT_EWOL AS
-                -- ÀÌ¿ù µ¥ÀÌÅÍ
+                -- ì´ì›” ë°ì´í„°
                (
                  SELECT PRODUC_NO
                       , COALESCE(EWOL_01,0) AS QTY
@@ -28,18 +28,18 @@ BEGIN ATOMIC
                     AND CHANGGO_CD =  IN_CHANGGO_CD
                 )
      , VT_JACHUL AS
-                 -- Ãâ°íÀÏ ÇöÀç±îÁö ´çÇØ¿¡ Ãâ°íµÈ ¼ö·® ÇÕ°è¸¦ ±¸ÇÔ
+                 -- ì¶œê³ ì¼ í˜„ìž¬ê¹Œì§€ ë‹¹í•´ì— ì¶œê³ ëœ ìˆ˜ëŸ‰ í•©ê³„ë¥¼ êµ¬í•¨
                (
                  SELECT PRODUC_NO
                       , COALESCE(SUM(COALESCE(QTY,0)),0) AS QTY
                    FROM GADMIN.JACHUL1
                   WHERE DATE BETWEEN TRUNC(IN_CHULGO_DT,'YYYY') AND IN_CHULGO_DT
-                    AND (DATE = IN_CHULGO_DT AND GUBUN_CD <> IN_GUBUN_CD) -- Ãâ°íÀÏ°ú °°À¸¸é¼­ Ãâ°í±¸ºÐÀÌ °°À¸¸é Ãâ°í¼ö·®¿¡¼­ Á¦¿Ü
+                    AND (DATE = IN_CHULGO_DT AND GUBUN_CD <> IN_GUBUN_CD) -- ì¶œê³ ì¼ê³¼ ê°™ìœ¼ë©´ì„œ ì¶œê³ êµ¬ë¶„ì´ ê°™ìœ¼ë©´ ì¶œê³ ìˆ˜ëŸ‰ì—ì„œ ì œì™¸
                     AND CHANGGO_CD = IN_CHANGGO_CD
                   GROUP BY PRODUC_NO
                )
      , VT_JAGUMA AS
-                 -- ±¸¸Å ¼ö·® ÆÄ¾Ç
+                 -- êµ¬ë§¤ ìˆ˜ëŸ‰ íŒŒì•…
                (
                  SELECT PRODUC_NO
                       , COALESCE(SUM(COALESCE(QTY,0)),0) AS QTY
@@ -49,7 +49,7 @@ BEGIN ATOMIC
                   GROUP BY PRODUC_NO
                )
      , VT_TEMP AS
-                 -- ±¸¸Å ¼ö·® ÆÄ¾Ç
+                 -- êµ¬ë§¤ ìˆ˜ëŸ‰ íŒŒì•…
                (
                  SELECT LEFT(LISTAGG(SEQ, ', ') WITHIN GROUP (ORDER BY SEQ), 2000) AS SEQ
                       , PRODUC_NO
@@ -61,7 +61,7 @@ BEGIN ATOMIC
                     AND GUBUN_CD      = IN_GUBUN_CD
                   GROUP BY PRODUC_NO
                )
--- ÀÓ½ÃÅ×ÀÌºí ÀÇ Àç°íÆÄ¾Ç
+-- ìž„ì‹œí…Œì´ë¸” ì˜ ìž¬ê³ íŒŒì•…
   SELECT  SEQ
        ,  VT_TEMP.PRODUC_NO
        ,  BSJAJA.PRODUC_NM

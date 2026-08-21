@@ -27,26 +27,26 @@ P1: BEGIN
     SET IN_FROMMONTH = SUBSTRING(IN_FROMMONTH,1,7);--
     SET IN_TOMONTH = SUBSTRING(IN_TOMONTH,1,7);--
 
-    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_FROMMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_FROMDATE FROM SYSIBM.SYSDUMMY1;  --¿¸±‚≥Ø¬• ∞ËªÍ (1≥‚ ¿Ã¿¸ : ¿¸±‚)
-    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_TOMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_TODATE FROM SYSIBM.SYSDUMMY1;  --¿¸±‚≥Ø¬• ∞ËªÍ (1≥‚ ¿Ã¿¸ : ¿¸±‚)
+    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_FROMMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_FROMDATE FROM SYSIBM.SYSDUMMY1;  --Ï†ÑÍ∏∞ÎÇ†Ïßú Í≥ÑÏÇ∞ (1ÎÖÑ Ïù¥Ï†Ñ : Ï†ÑÍ∏∞)
+    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_TOMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_TODATE FROM SYSIBM.SYSDUMMY1;  --Ï†ÑÍ∏∞ÎÇ†Ïßú Í≥ÑÏÇ∞ (1ÎÖÑ Ïù¥Ï†Ñ : Ï†ÑÍ∏∞)
 
     INSERT INTO SESSION.TEMP
-        WITH SON_ACC AS (  --¥Á±‚
-            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '¬˜∫Ø'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '¥Î∫Ø'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '¬˜∞®' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+        WITH SON_ACC AS (  --ÎãπÍ∏∞
+            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN 'ÎåÄÎ≥Ä'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = 'Ï∞®Í∞ê' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
                FROM (
-                                SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                   FROM (
                                              SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
                                                FROM GADMIN.ACCOU1
                                               WHERE SUBSTRING(DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                                              UNION ALL
-                                             SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                             SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                FROM GADMIN.ACCOU1
-                                              WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                              WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                 AND SUBSTRING(DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                                                 /*
                                              UNION ALL
-                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --¿¸±‚¿Ãø˘ ∆˜«‘
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --Ï†ÑÍ∏∞Ïù¥Ïõî Ìè¨Ìï®
                                                FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMMONTH||'-01'))
                                                 */
                                         ) A, GADMIN.BSACC2 B
@@ -56,22 +56,22 @@ P1: BEGIN
                     ) A RIGHT OUTER JOIN GADMIN.BSACC2 B ON A.ACC_CD = B.ACC_CD
 
         ),
-        SON_ACC2 AS (  --¿¸±‚
-            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '¬˜∫Ø'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '¥Î∫Ø'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '¬˜∞®' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+        SON_ACC2 AS (  --Ï†ÑÍ∏∞
+            SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN 'ÎåÄÎ≥Ä'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = 'Ï∞®Í∞ê' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
                FROM (
-                                SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                SELECT A.ACC_CD, A.ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                   FROM (
                                              SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
                                                FROM GADMIN.ACCOU1
                                               WHERE SUBSTRING(DATE,1,7) BETWEEN V_BE_FROMDATE AND V_BE_TODATE
                                              UNION ALL
-                                             SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                             SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                FROM GADMIN.ACCOU1
-                                              WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                              WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                 AND SUBSTRING(DATE,1,7) BETWEEN V_BE_FROMDATE AND V_BE_TODATE
                                                 /*
                                              UNION ALL
-                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --¿¸±‚¿Ãø˘ ∆˜«‘
+                                             SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --Ï†ÑÍ∏∞Ïù¥Ïõî Ìè¨Ìï®
                                                FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(V_BE_FROMDATE||'-01'))
                                                 */
                                         ) A, GADMIN.BSACC2 B
@@ -97,7 +97,7 @@ P1: BEGIN
                                  START WITH acc_cd = main.acc_cd
                                CONNECT BY PRIOR acc_cd = LEVELUP_CD
                                ) as CU_CR_AMT,
-                               CASE WHEN DRCR_GB IN ('¬˜∫Ø','√‚±›') THEN
+                               CASE WHEN DRCR_GB IN ('Ï∞®Î≥Ä','Ï∂úÍ∏à') THEN
                                      (SELECT coalesce(SUM(sign * DR_AMT),0)
                                           FROM SON_ACC
                                          START WITH acc_cd = main.acc_cd
@@ -135,7 +135,7 @@ P1: BEGIN
                                  START WITH acc_cd = main.acc_cd
                                CONNECT BY PRIOR acc_cd = LEVELUP_CD
                                ) as BE_CR_AMT,
-                               CASE WHEN DRCR_GB IN ('¬˜∫Ø','√‚±›') THEN
+                               CASE WHEN DRCR_GB IN ('Ï∞®Î≥Ä','Ï∂úÍ∏à') THEN
                                      (SELECT coalesce(SUM(sign * DR_AMT),0)
                                           FROM SON_ACC2
                                          START WITH acc_cd = main.acc_cd
@@ -195,4 +195,4 @@ P2: BEGIN
     ORDER BY CHULRYEOK_CD;--
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

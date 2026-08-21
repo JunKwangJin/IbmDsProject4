@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_FIN0101_TAB01_PRINT_AAA"
 (
-    IN IN_FROMDATE VARCHAR(10), -- yyyymmdd «¸Ωƒ
+    IN IN_FROMDATE VARCHAR(10), -- yyyymmdd ÌòïÏãù
     IN IN_TODATE   VARCHAR(10),
     IN IN_USER_ID VARCHAR(25)
 )
@@ -23,7 +23,7 @@ MAIN: BEGIN
         SELECT COUNT(*),MAX(DATE) INTO V_CNT, V_DATE
          FROM GADMIN.ACCOU1
         WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
-          AND DRCR_GB IN ('¬˜∫Ø','¥Î∫Ø');--
+          AND DRCR_GB IN ('Ï∞®Î≥Ä','ÎåÄÎ≥Ä');--
 
         IF (V_CNT <= 11) THEN SET V_CNT_MAX = V_CNT - 11;--
         ELSEIF (V_CNT > 11) THEN SET V_CNT_MAX = (CEILING((REAL(V_CNT) - 11) / 12 ) * 12 + 11)
@@ -49,7 +49,7 @@ MAIN: BEGIN
                 CR_AMT
          FROM GADMIN.ACCOU1
         WHERE DATE BETWEEN '''||IN_FROMDATE||''' AND '''||IN_TODATE||'''
-          AND DRCR_GB IN (''¬˜∫Ø'',''¥Î∫Ø'')';--
+          AND DRCR_GB IN (''Ï∞®Î≥Ä'',''ÎåÄÎ≥Ä'')';--
         SET V_ROW = V_CNT + 1;--
         WHILE (V_ROW <= V_CNT_MAX) DO
              SET P_QUERY_STRING = P_QUERY_STRING ||CHR(13)||'UNION ALL
@@ -63,4 +63,4 @@ MAIN: BEGIN
 	    PREPARE S1 FROM P_QUERY_STRING;	 --
     	OPEN CURSOR_ACC;--
    END P1;--
-END MAIN 
+END MAIN

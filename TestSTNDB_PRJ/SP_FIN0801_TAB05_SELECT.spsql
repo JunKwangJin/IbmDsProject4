@@ -34,7 +34,7 @@ P1: BEGIN
        FROM (
                 SELECT ACC_CD, ACC_NM, MANAGE_CD_1, MANAGE_ITEM_1, MANAGE_CD_2, MANAGE_ITEM_2, ACC_CD AS ACC_CD_T, ACC_NM AS ACC_NM_T, MANAGE_CD_1 AS MANAGE_1_T , MANAGE_ITEM_1 AS ITEM_1_T, MANAGE_CD_2 AS MANAGE_2_T, MANAGE_ITEM_2 AS ITEM_2_T, SUM(JAN_AMT) + SUM(PRE_AMT) AS JAN_AMT,  SUM(PRE_AMT) AS PRE_AMT
                   FROM (
-                            SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE WHEN A.DRCR_GB = 'Â÷º¯' OR A.DRCR_GB = 'Ãâ±Ý' THEN SUM(DR_AMT - CR_AMT)
+                            SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE WHEN A.DRCR_GB = 'ì°¨ë³€' OR A.DRCR_GB = 'ì¶œê¸ˆ' THEN SUM(DR_AMT - CR_AMT)
                                                                                                                                          ELSE SUM(CR_AMT - DR_AMT) END AS JAN_AMT, 0 AS PRE_AMT
                               FROM (
                                         SELECT A.DATE, A.ACC_CD, A.ACC_NM, B.DRCR_GB, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, DR_AMT, CR_AMT
@@ -46,7 +46,7 @@ P1: BEGIN
                                 AND LENGTH(COALESCE(A.MANAGE_CD_1,'')) > 1
                             GROUP BY A.ACC_CD, A.ACC_NM,  A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, A.DRCR_GB
                             UNION ALL
-                            SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, 0 AS JAN_AMT, CASE WHEN B.DRCR_GB = 'Â÷º¯' OR B.DRCR_GB = 'Ãâ±Ý' THEN SUM(B.DR_AMT) - SUM(B.CR_AMT)
+                            SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, 0 AS JAN_AMT, CASE WHEN B.DRCR_GB = 'ì°¨ë³€' OR B.DRCR_GB = 'ì¶œê¸ˆ' THEN SUM(B.DR_AMT) - SUM(B.CR_AMT)
                                                                                                                                    ELSE SUM(B.CR_AMT) - SUM(B.DR_AMT) END AS PRE_AMT
                               FROM (
                                         SELECT B.ACC_CD, B.ACC_NM, C.DRCR_GB, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, DR_AMT, CR_AMT
@@ -60,8 +60,8 @@ P1: BEGIN
      WHERE 1 = 1
        AND NOT (JAN_AMT = 0 AND PRE_AMT = 0)
        AND ACC_CD < '3000000'
-       AND ACC_CD >= IN_FROMACCCD  --Ãß°¡ 211022
-       AND ACC_CD <= IN_TOACCCD    --Ãß°¡ 211022
+       AND ACC_CD >= IN_FROMACCCD  --ì¶”ê°€ 211022
+       AND ACC_CD <= IN_TOACCCD    --ì¶”ê°€ 211022
     ORDER BY ACC_CD, MANAGE_CD_1
     /*
     SELECT *
@@ -70,8 +70,8 @@ P1: BEGIN
                   FROM (
                             SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT, 0 AS BE_DR_AMT, 0 AS BE_CR_AMT
                               FROM (
-                                        SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE B.DRCR_GB WHEN 'Â÷º¯' THEN A.DR_AMT ELSE A.CR_AMT END AS DR_AMT
-                                                , CASE B.DRCR_GB WHEN 'Â÷º¯' THEN A.CR_AMT ELSE A.DR_AMT END AS CR_AMT
+                                        SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE B.DRCR_GB WHEN 'ì°¨ë³€' THEN A.DR_AMT ELSE A.CR_AMT END AS DR_AMT
+                                                , CASE B.DRCR_GB WHEN 'ì°¨ë³€' THEN A.CR_AMT ELSE A.DR_AMT END AS CR_AMT
                                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                                           WHERE A.ACC_CD = B.ACC_CD
                                     ) A
@@ -82,8 +82,8 @@ P1: BEGIN
                             UNION ALL
                             SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, 0 AS DR_AMT, 0 AS CR_AMT, SUM(B.DR_AMT) AS BE_DR_AMT, SUM(B.CR_AMT) AS BE_CR_AMT
                               FROM (
-                                        SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, CASE C.DRCR_GB WHEN 'Â÷º¯' THEN B.DR_AMT ELSE B.CR_AMT END AS DR_AMT
-                                                , CASE C.DRCR_GB WHEN 'Â÷º¯' THEN B.CR_AMT ELSE B.DR_AMT END AS CR_AMT
+                                        SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, CASE C.DRCR_GB WHEN 'ì°¨ë³€' THEN B.DR_AMT ELSE B.CR_AMT END AS DR_AMT
+                                                , CASE C.DRCR_GB WHEN 'ì°¨ë³€' THEN B.CR_AMT ELSE B.DR_AMT END AS CR_AMT
                                            FROM TABLE(GADMIN.SF_FIN_PRE_MANAGE_SELECT(IN_FROMDATE)) B, GADMIN.BSACC2 C
                                           WHERE B.ACC_CD = C.ACC_CD
                                     ) B
@@ -98,7 +98,7 @@ P1: BEGIN
     ;    --
 
     INSERT INTO SESSION.TEMP
-    SELECT ACC_CD, ACC_NM, '' AS MANAGE_1, '' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, '' AS ACC_CD_T, '                    ¼Ò°è' AS ACC_NM_T, '' AS MANAGE_1_T, '' AS ITEM_1_T, '' AS MANAGE_2_T, '' AS ITEM_2_T ,SUM(JAN_AMT) AS JAN_AMT, SUM(PRE_AMT) AS PRE_AMT
+    SELECT ACC_CD, ACC_NM, '' AS MANAGE_1, '' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, '' AS ACC_CD_T, '                    ì†Œê³„' AS ACC_NM_T, '' AS MANAGE_1_T, '' AS ITEM_1_T, '' AS MANAGE_2_T, '' AS ITEM_2_T ,SUM(JAN_AMT) AS JAN_AMT, SUM(PRE_AMT) AS PRE_AMT
       FROM SESSION.TEMP
     GROUP BY ACC_CD, ACC_NM;--
 
@@ -113,4 +113,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

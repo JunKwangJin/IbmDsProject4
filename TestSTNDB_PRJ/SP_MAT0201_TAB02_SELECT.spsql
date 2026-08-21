@@ -15,7 +15,7 @@ MAIN: BEGIN
         SELECT *
           FROM (
                     SELECT  A.DATE, A.CHANGGO, A.PRODUC_NO, A.PRODUC_NM, A.JAEGO, A.QTY, A.UNIT_PRICE, A.PRICE, A.CAR_NO, A.ROUTE, A.EVENT_GB, A.MANAGER, A.CHULGO_TIME
-                      FROM GADMIN.JACHUL1 A --¿⁄¿Á√‚∞Ì
+                      FROM GADMIN.JACHUL1 A --ÏûêÏû¨Ï∂úÍ≥†
                             LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
                             LEFT OUTER JOIN GADMIN.BSCAR C ON (A.CAR_NO = C.CAR_NO)
                      WHERE 1 = 1
@@ -28,4 +28,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

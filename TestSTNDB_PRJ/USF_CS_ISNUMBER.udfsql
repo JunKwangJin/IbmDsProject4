@@ -1,53 +1,53 @@
 
 
-CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_ISNUMBER" 
+CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_ISNUMBER"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.USF_CS_ISNUMBER
-»ý¼ºÀÏÀÚ	: 2025. 8.8
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ¹®ÀÚ¿­ÀÌ ¼ýÀÚÀÎÁö ¹®ÀÚ¿­ÀÎÁö È®ÀÎÇÏ´Â ÇÔ¼ö
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
+íŒŒì¼ëª…	: GADMIN.USF_CS_ISNUMBER
+ìƒì„±ì¼ìž	: 2025. 8.8
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ë¬¸ìžì—´ì´ ìˆ«ìžì¸ì§€ ë¬¸ìžì—´ì¸ì§€ í™•ì¸í•˜ëŠ” í•¨ìˆ˜
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
 SELECT * FROM GADMIN.SF_COM_BSCAR_M('','','')
 *******************************************************************************/
 
 (
 input_string VARCHAR(100)
 )
-RETURNS INTEGER -- °á°ú: 1ÀÌ¸é ¼ýÀÚ, 0ÀÌ¸é ¼ýÀÚ ¾Æ´Ô
+RETURNS INTEGER -- ê²°ê³¼: 1ì´ë©´ ìˆ«ìž, 0ì´ë©´ ìˆ«ìž ì•„ë‹˜
 LANGUAGE SQL
 DETERMINISTIC
 CONTAINS SQL
 NO EXTERNAL ACTION
 BEGIN
-  DECLARE v_temp_num DECIMAL(31, 15); -- ½Ç¼ö¸¦ Æ÷ÇÔÇÑ Å« ¼ýÀÚµµ Ä¿¹ö °¡´É
-  DECLARE SQLSTATE CHAR(5) DEFAULT '00000'; -- ±âº» »óÅÂ´Â ¼º°ø
-    DECLARE LEN_UNDER 	CONDITION FOR SQLSTATE '01004';  -- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER 	CONDITION FOR SQLSTATE '22001';  -- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL 	CONDITION FOR SQLSTATE '23502';  -- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO 	CONDITION FOR SQLSTATE '23505';  -- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE 	CONDITION FOR SQLSTATE '42704';  -- TABLEÀÌ ¾øÀ»‹š
-    DECLARE NOT_NUMBER 	CONDITION FOR SQLSTATE '22018';  -- TABLEÀÌ ¾øÀ»‹š
+  DECLARE v_temp_num DECIMAL(31, 15); -- ì‹¤ìˆ˜ë¥¼ í¬í•¨í•œ í° ìˆ«ìžë„ ì»¤ë²„ ê°€ëŠ¥
+  DECLARE SQLSTATE CHAR(5) DEFAULT '00000'; -- ê¸°ë³¸ ìƒíƒœëŠ” ì„±ê³µ
+    DECLARE LEN_UNDER 	CONDITION FOR SQLSTATE '01004';  -- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER 	CONDITION FOR SQLSTATE '22001';  -- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL 	CONDITION FOR SQLSTATE '23502';  -- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO 	CONDITION FOR SQLSTATE '23505';  -- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE 	CONDITION FOR SQLSTATE '42704';  -- TABLEì´ ì—†ì„ë–„
+    DECLARE NOT_NUMBER 	CONDITION FOR SQLSTATE '22018';  -- TABLEì´ ì—†ì„ë–„
 
-  
-    DECLARE EXIT HANDLER FOR NOT_NUMBER RETURN 9;    
-  -- CAST ½ÇÆÐ ½Ã SQLEXCEPTION (¸ðµç SQL ¿À·ù)À» Àâ¾Æ¼­ SQLSTATE¸¦ '99999'·Î ¼³Á¤ (¿À·ù »óÅÂ)
+
+    DECLARE EXIT HANDLER FOR NOT_NUMBER RETURN 9;
+  -- CAST ì‹¤íŒ¨ ì‹œ SQLEXCEPTION (ëª¨ë“  SQL ì˜¤ë¥˜)ì„ ìž¡ì•„ì„œ SQLSTATEë¥¼ '99999'ë¡œ ì„¤ì • (ì˜¤ë¥˜ ìƒíƒœ)
   DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET SQLSTATE = '99999';
 
-  -- ÀÔ·Â ¹®ÀÚ¿­ÀÇ ¾ÕµÚ °ø¹é Á¦°Å ÈÄ CAST ½Ãµµ
+  -- ìž…ë ¥ ë¬¸ìžì—´ì˜ ì•žë’¤ ê³µë°± ì œê±° í›„ CAST ì‹œë„
   SET v_temp_num = CAST(TRIM(input_string) AS DECIMAL(31, 15));
 
-  -- CAST ½Ãµµ ÈÄ SQLSTATE °ª È®ÀÎ
+  -- CAST ì‹œë„ í›„ SQLSTATE ê°’ í™•ì¸
   IF SQLSTATE = '99999' THEN
-    RETURN 0; -- ¿¡·¯°¡ ¹ß»ýÇßÀ¸¸é ¼ýÀÚ°¡ ¾Æ´Ô
+    RETURN 0; -- ì—ëŸ¬ê°€ ë°œìƒí–ˆìœ¼ë©´ ìˆ«ìžê°€ ì•„ë‹˜
   ELSE
-    -- °ø¹é¸¸ ÀÖ´Â ¹®ÀÚ¿­Àº ¼ýÀÚ°¡ ¾Æ´Ï¶ó°í ÆÇ´ÜÇÏ°í ½ÍÀ» ¶§ Ãß°¡
+    -- ê³µë°±ë§Œ ìžˆëŠ” ë¬¸ìžì—´ì€ ìˆ«ìžê°€ ì•„ë‹ˆë¼ê³  íŒë‹¨í•˜ê³  ì‹¶ì„ ë•Œ ì¶”ê°€
     IF TRIM(input_string) = '' THEN
         RETURN 0;
     ELSE
-        RETURN 1; -- ¿¡·¯°¡ ¾ø¾úÀ¸¸é ¼ýÀÚÀÓ (°ø¹é Á¦¿Ü)
+        RETURN 1; -- ì—ëŸ¬ê°€ ì—†ì—ˆìœ¼ë©´ ìˆ«ìžìž„ (ê³µë°± ì œì™¸)
     END IF;
   END IF;
 END

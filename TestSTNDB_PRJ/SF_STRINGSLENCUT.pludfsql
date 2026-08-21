@@ -1,25 +1,25 @@
 CREATE OR REPLACE FUNCTION GADMIN.SF_STRINGSLENCUT
 /*****************************************************************************************************
-T01SF       ¸í: SF_STRINGSLENCUT
-[T02]SF     ±â´É:
-                  IN_STRING   -- Æ÷¸Ëº¯°æ ¹®ÀÚ¿­
-                  IN_LENGTH  -- °¡Á®¿Ã ÀÚ¸®¼ö
-                  IN_RETURN  ¹Þ°íÀÚÇÏ´Â °ª(STRING, ROWS)
+T01SF       ëª…: SF_STRINGSLENCUT
+[T02]SF     ê¸°ëŠ¥:
+                  IN_STRING   -- í¬ë§·ë³€ê²½ ë¬¸ìžì—´
+                  IN_LENGTH  -- ê°€ì ¸ì˜¬ ìžë¦¬ìˆ˜
+                  IN_RETURN  ë°›ê³ ìží•˜ëŠ” ê°’(STRING, ROWS)
 
-[T03]ÀÔ·Â   º¯¼ö:
-[T04]¹Ý  È¯   °ª:
-[T05]ÀÛ¼º   ÀÏÀÚ: 2021.06.24 Àü±¤Áø
-[T06]ÀÛ   ¼º  ÀÚ: Àü±¤Áø
-[T07]ÃÖÁ¾ ¼öÁ¤ÀÏ:
-[T08]ÃÖÁ¾ ¼öÁ¤ÀÚ: 1.
-[T09]¼öÁ¤   ÀÌ·Â:
-[T10]½ÇÇà   ¿¹Á¦: 1.
+[T03]ìž…ë ¥   ë³€ìˆ˜:
+[T04]ë°˜  í™˜   ê°’:
+[T05]ìž‘ì„±   ì¼ìž: 2021.06.24 ì „ê´‘ì§„
+[T06]ìž‘   ì„±  ìž: ì „ê´‘ì§„
+[T07]ìµœì¢… ìˆ˜ì •ì¼:
+[T08]ìµœì¢… ìˆ˜ì •ìž: 1.
+[T09]ìˆ˜ì •   ì´ë ¥:
+[T10]ì‹¤í–‰   ì˜ˆì œ: 1.
 
-                    SELECT  GADMIN.SF_STRINGSLENCUT('ÇöÀå½Ç½Àºñ,½Ç½À±³À°ºñ,½Ç½À±³Åëºñ,ÇöÀåÁöµµÀÚºñ,½Ç½À»ç¹°ÇÔ¼³Ä¡',20,'STRING')
+                    SELECT  GADMIN.SF_STRINGSLENCUT('í˜„ìž¥ì‹¤ìŠµë¹„,ì‹¤ìŠµêµìœ¡ë¹„,ì‹¤ìŠµêµí†µë¹„,í˜„ìž¥ì§€ë„ìžë¹„,ì‹¤ìŠµì‚¬ë¬¼í•¨ì„¤ì¹˜',20,'STRING')
                     FROM    SYSIBM.SYSDUMMY1
                     ;-- STRING, ROWS
 
-[T11]ºñ       °í:
+[T11]ë¹„       ê³ :
 *****************************************************************************************************/
 (
     IN_STRING         IN  VARCHAR    ,
@@ -28,14 +28,14 @@ T01SF       ¸í: SF_STRINGSLENCUT
 )
 RETURN VARCHAR
 IS
-    V_STRING        VARCHAR(500);-- ¹®ÀÚ¿­
-    V_LSTRING       VARCHAR(500);-- 1¶óÀÎ ¹®ÀÚ¿­
-    V_CLENGTH       INTEGER;--¹®ÀÚ¿­ ¹®ÀÚ°³¼ö
-    V_TWOBYTELENGTH INTEGER;-- ÇÑ±Û2¹ÙÀÌÆ® ±æÀÌ
-    V_RETURN        VARCHAR(500);-- STRING RETURN°ª
-    V_CNT           INTEGER;--¹®ÀÚ¿­ 1ÀÚ¾¿ COUNT
-    V_LCNT           INTEGER;--¹®ÀÚ¿­ ¶óÀÎ¼ö COUNT
-    V_CHR           VARCHAR(2);--1¹®ÀÚ °¡Á®¿À±â
+    V_STRING        VARCHAR(500);-- ë¬¸ìžì—´
+    V_LSTRING       VARCHAR(500);-- 1ë¼ì¸ ë¬¸ìžì—´
+    V_CLENGTH       INTEGER;--ë¬¸ìžì—´ ë¬¸ìžê°œìˆ˜
+    V_TWOBYTELENGTH INTEGER;-- í•œê¸€2ë°”ì´íŠ¸ ê¸¸ì´
+    V_RETURN        VARCHAR(500);-- STRING RETURNê°’
+    V_CNT           INTEGER;--ë¬¸ìžì—´ 1ìžì”© COUNT
+    V_LCNT           INTEGER;--ë¬¸ìžì—´ ë¼ì¸ìˆ˜ COUNT
+    V_CHR           VARCHAR(2);--1ë¬¸ìž ê°€ì ¸ì˜¤ê¸°
     V_RET           VARCHAR(10);--RETERN TYPE
 
 BEGIN
@@ -101,10 +101,10 @@ BEGIN
 --            V_STRING := V_STRING || V_LSTRING;  --
 --            V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING,CODEUNITS32) + (LENGTH(V_LSTRING) - CHARACTER_LENGTH(V_LSTRING,CODEUNITS32))/2;--
 --
---            IF V_TWOBYTELENGTH >= IN_LENGTH - 1 OR V_CNT = V_CLENGTH THEN  -- 2BYTE¹®ÀÚ¿­±æÀÌ°¡ ÀÚ¸£±âÇÑ ±æÀÌº¸´Ù 1ÀÛÀº°Íº¸´Ù Å©°Å³ª °°´Ù¸é 30ÀÌ¶ó¸é 29º¸´Ù Å©°Å³ª °°À»¶§ (1¹®ÀÚÀÇ ±æÀÌ°¡ 1ÀÚ ¾Æ´Ï¸é 2ÀÚÀÌ´Ï) 29¾Æ´Ï¸é 30ÀÏ °ÍÀÌ´Ù
+--            IF V_TWOBYTELENGTH >= IN_LENGTH - 1 OR V_CNT = V_CLENGTH THEN  -- 2BYTEë¬¸ìžì—´ê¸¸ì´ê°€ ìžë¥´ê¸°í•œ ê¸¸ì´ë³´ë‹¤ 1ìž‘ì€ê²ƒë³´ë‹¤ í¬ê±°ë‚˜ ê°™ë‹¤ë©´ 30ì´ë¼ë©´ 29ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ì„ë•Œ (1ë¬¸ìžì˜ ê¸¸ì´ê°€ 1ìž ì•„ë‹ˆë©´ 2ìžì´ë‹ˆ) 29ì•„ë‹ˆë©´ 30ì¼ ê²ƒì´ë‹¤
 --                V_CHR := SUBSTRING(IN_STRING,V_CNT+1,1,CODEUNITS32);--
 --                V_TWOBYTELENGTH := CHARACTER_LENGTH(V_LSTRING||V_CHR,CODEUNITS32) + (LENGTH(V_LSTRING||V_CHR) - CHARACTER_LENGTH(V_LSTRING||V_CHR,CODEUNITS32))/2;--
---                IF V_TWOBYTELENGTH < IN_LENGTH + 1 THEN -- (30ÀÚ¸® ÀÏ¶§) 29ÀÌ°Å³ª 30ÀÚ¸®ÀÎ ¹®ÀÚ¿­¿¡ 1±ÛÀÚ¸¦ ´õÇÏ¸é 30,31,32Áß ¿¡ ÇÏ³ªÀÏ°Çµ¥ 31º¸´Ù Å©°Å³ª °°À¸¸é ¿ø·¡ ½ºÆ®¸µÀ¸·Î ÇÏ°í 30º¸´Ù ÀÛ°Å³ª °°À¸¸é ÇÑÀÚ ´õÇÑ °ªÀ¸·Î ÇÑ´Ù
+--                IF V_TWOBYTELENGTH < IN_LENGTH + 1 THEN -- (30ìžë¦¬ ì¼ë•Œ) 29ì´ê±°ë‚˜ 30ìžë¦¬ì¸ ë¬¸ìžì—´ì— 1ê¸€ìžë¥¼ ë”í•˜ë©´ 30,31,32ì¤‘ ì— í•˜ë‚˜ì¼ê±´ë° 31ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ìœ¼ë©´ ì›ëž˜ ìŠ¤íŠ¸ë§ìœ¼ë¡œ í•˜ê³  30ë³´ë‹¤ ìž‘ê±°ë‚˜ ê°™ìœ¼ë©´ í•œìž ë”í•œ ê°’ìœ¼ë¡œ í•œë‹¤
 --                    V_CNT := V_CNT + 1;--
 --                    V_STRING := V_STRING || V_LSTRING || V_CHR;--
 --                ELSE

@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION "GADMIN"."SF_EBUS_USERMENUSOSOK"
 (
     IN IN_USER_ID  VARCHAR(20) --
 ,   IN IN_MENU_ID  VARCHAR(10) --
-,   IN IN_SOSOK_TYPE VARCHAR(1)  -- 1 ³»¼Ò¼Ó, 2 ÁöÁ¤¼Ò¼Ó µî
+,   IN IN_SOSOK_TYPE VARCHAR(1)  -- 1 ë‚´ì†Œì†, 2 ì§€ì •ì†Œì† ë“±
 )
 
 RETURNS

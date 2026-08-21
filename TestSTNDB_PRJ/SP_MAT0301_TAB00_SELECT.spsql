@@ -47,15 +47,15 @@ MAIN: BEGIN
                                                                , 0 AS CHUL_AMT
                                                                , 0 AS EDONG_QTY
                                                                , 0 AS EDONG_AMT
-                                                           FROM GADMIN.JAGUJAGO -- ¿Á∞Ì ¿Ãø˘
+                                                           FROM GADMIN.JAGUJAGO -- Ïû¨Í≥† Ïù¥Ïõî
                                                          WHERE YEAR = SUBSTRING(IN_DATE,1,4)
                                                          GROUP BY CHANGGO
                                                         UNION ALL
                                                         SELECT CHANGGO
                                                                 , 0 AS EWOL_QTY
                                                                 , 0 AS EWOL_PRICE
-                                                                , SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
-                                                                , SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+                                                                , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+                                                                , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
                                                                 , 0 AS CHUL_QTY
                                                                 , 0 AS CHUL_AMT
                                                                 , 0 AS EDONG_QTY
@@ -70,8 +70,8 @@ MAIN: BEGIN
                                                                 , 0 AS EWOL_PRICE
                                                                 , 0 AS GU_QTY
                                                                 , 0 AS GU_AMT
-                                                                , SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
-                                                                , SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+                                                                , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+                                                                , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
                                                                 , 0 AS EDONG_QTY
                                                                 , 0 AS EDONG_AMT
                                                           FROM GADMIN.JACHUL1
@@ -86,7 +86,7 @@ MAIN: BEGIN
                                                                 , 0 AS GU_AMT
                                                                 , 0 AS CHUL_QTY
                                                                 , 0 AS CHUL_AMT
-                                                                , 0 AS EDONG_QTY -- æ˜π´∏¶ ∏Ù∂Ûº≠ ¿œ¥‹ 0∑Œ º¬∆√
+                                                                , 0 AS EDONG_QTY -- ÏóÖÎ¨¥Î•º Î™∞ÎùºÏÑú ÏùºÎã® 0Î°ú ÏÖãÌåÖ
                                                                 , 0 AS EDONG_AMT
                                                           FROM GADMIN.JACHUL2
                                                         WHERE 1 = 1
@@ -99,8 +99,8 @@ MAIN: BEGIN
                             SELECT CHANGGO
                                     , 0 AS EWOL_QTY
                                     , 0 AS EWOL_PRICE
-                                    , SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
-                                    , SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+                                    , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+                                    , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
                                     , 0 AS CHUL_QTY
                                     , 0 AS CHUL_AMT
                                     , 0 AS EDONG_QTY
@@ -115,8 +115,8 @@ MAIN: BEGIN
                                     , 0 AS EWOL_PRICE
                                     , 0 AS GU_QTY
                                     , 0 AS GU_AMT
-                                    , SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
-                                    , SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+                                    , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+                                    , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
                                     , 0 AS EDONG_QTY
                                     , 0 AS EDONG_AMT
                               FROM GADMIN.JACHUL1
@@ -131,7 +131,7 @@ MAIN: BEGIN
                                     , 0 AS GU_AMT
                                     , 0 AS CHUL_QTY
                                     , 0 AS CHUL_AMT
-                                    , 0 AS EDONG_QTY -- æ˜π´∏¶ ∏Ù∂Ûº≠ ¿œ¥‹ 0∑Œ º¬∆√
+                                    , 0 AS EDONG_QTY -- ÏóÖÎ¨¥Î•º Î™∞ÎùºÏÑú ÏùºÎã® 0Î°ú ÏÖãÌåÖ
                                     , 0 AS EDONG_AMT
                               FROM GADMIN.JACHUL2
                             WHERE 1 = 1
@@ -140,7 +140,7 @@ MAIN: BEGIN
                         ) A
                 GROUP BY CHANGGO
 --                UNION ALL
---                SELECT '«’∞Ë' AS CHANGGO
+--                SELECT 'Ìï©Í≥Ñ' AS CHANGGO
 --                       , SUM(EWOL_QTY) AS EWOL_QTY
 --                       , SUM(EWOL_AMT) AS EWOL_AMT
 --                       , SUM(GU_QTY) AS GU_QTY
@@ -173,15 +173,15 @@ MAIN: BEGIN
 --                                                               , 0 AS CHUL_AMT
 --                                                               , 0 AS EDONG_QTY
 --                                                               , 0 AS EDONG_AMT
---                                                           FROM GADMIN.JAGUJAGO -- ¿Á∞Ì ¿Ãø˘
+--                                                           FROM GADMIN.JAGUJAGO -- Ïû¨Í≥† Ïù¥Ïõî
 --                                                         WHERE YEAR = SUBSTRING(IN_DATE,1,4)
 --                                                         GROUP BY CHANGGO
 --                                                        UNION ALL
 --                                                        SELECT CHANGGO
 --                                                                , 0 AS EWOL_QTY
 --                                                                , 0 AS EWOL_PRICE
---                                                                , SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
---                                                                , SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+--                                                                , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+--                                                                , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
 --                                                                , 0 AS CHUL_QTY
 --                                                                , 0 AS CHUL_AMT
 --                                                                , 0 AS EDONG_QTY
@@ -196,8 +196,8 @@ MAIN: BEGIN
 --                                                                , 0 AS EWOL_PRICE
 --                                                                , 0 AS GU_QTY
 --                                                                , 0 AS GU_AMT
---                                                                , SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
---                                                                , SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+--                                                                , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+--                                                                , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
 --                                                                , 0 AS EDONG_QTY
 --                                                                , 0 AS EDONG_AMT
 --                                                          FROM GADMIN.JACHUL1
@@ -212,7 +212,7 @@ MAIN: BEGIN
 --                                                                , 0 AS GU_AMT
 --                                                                , 0 AS CHUL_QTY
 --                                                                , 0 AS CHUL_AMT
---                                                                , 0 AS EDONG_QTY -- æ˜π´∏¶ ∏Ù∂Ûº≠ ¿œ¥‹ 0∑Œ º¬∆√
+--                                                                , 0 AS EDONG_QTY -- ÏóÖÎ¨¥Î•º Î™∞ÎùºÏÑú ÏùºÎã® 0Î°ú ÏÖãÌåÖ
 --                                                                , 0 AS EDONG_AMT
 --                                                          FROM GADMIN.JACHUL2
 --                                                        WHERE 1 = 1
@@ -225,8 +225,8 @@ MAIN: BEGIN
 --                            SELECT CHANGGO
 --                                    , 0 AS EWOL_QTY
 --                                    , 0 AS EWOL_PRICE
---                                    , SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
---                                    , SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
+--                                    , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS GU_QTY
+--                                    , SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS GU_AMT
 --                                    , 0 AS CHUL_QTY
 --                                    , 0 AS CHUL_AMT
 --                                    , 0 AS EDONG_QTY
@@ -241,8 +241,8 @@ MAIN: BEGIN
 --                                    , 0 AS EWOL_PRICE
 --                                    , 0 AS GU_QTY
 --                                    , 0 AS GU_AMT
---                                    , SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
---                                    , SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
+--                                    , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) AS CHUL_QTY
+--                                    , SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) AS CHUL_AMT
 --                                   , 0 AS EDONG_QTY
 --                                    , 0 AS EDONG_AMT
 --                              FROM GADMIN.JACHUL1
@@ -257,7 +257,7 @@ MAIN: BEGIN
 --                                    , 0 AS GU_AMT
 --                                    , 0 AS CHUL_QTY
 --                                    , 0 AS CHUL_AMT
---                                    , 0 AS EDONG_QTY -- æ˜π´∏¶ ∏Ù∂Ûº≠ ¿œ¥‹ 0∑Œ º¬∆√
+--                                    , 0 AS EDONG_QTY -- ÏóÖÎ¨¥Î•º Î™∞ÎùºÏÑú ÏùºÎã® 0Î°ú ÏÖãÌåÖ
 --                                    , 0 AS EDONG_AMT
 --                              FROM GADMIN.JACHUL2
 --                            WHERE 1 = 1
@@ -271,4 +271,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

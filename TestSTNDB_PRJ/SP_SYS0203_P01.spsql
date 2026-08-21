@@ -20,7 +20,7 @@ MAIN: BEGIN
 
          DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                 E1: BEGIN
-                      SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.' ; --
+                      SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
                       SET OUT_CNT = '-1'; --
                       RETURN; --
                 END E1;--
@@ -34,7 +34,7 @@ MAIN: BEGIN
 
              DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                     E2: BEGIN
-                         SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: ÀÚ·á ÀúÀå ½Ã ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' ; --
+                         SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: ìžë£Œ ì €ìž¥ ì‹œ ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' ; --
                          SET OUT_CNT = '-1'; --
                          ROLLBACK ; --
                          RETURN ;--
@@ -79,7 +79,7 @@ MAIN: BEGIN
 --        EXCEPTION
 --
 --            WHEN OTHERS    THEN
---                OUT_MSG := SQLERRM || CHR(13) || 'ERR01: ÀÚ·á ÀúÀå ½Ã ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' ; --
+--                OUT_MSG := SQLERRM || CHR(13) || 'ERR01: ìžë£Œ ì €ìž¥ ì‹œ ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' ; --
 --                OUT_CNT := '0'; --
 --                ROLLBACK ; --
 --                RETURN ; --
@@ -87,7 +87,7 @@ MAIN: BEGIN
        END P1 ;--
 
 
-        SET OUT_MSG = 'ÀúÀåµÇ¾ú½À´Ï´Ù.' ; --
+        SET OUT_MSG = 'ì €ìž¥ë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
         SET OUT_CNT = '1';--
 
 
@@ -98,7 +98,7 @@ MAIN: BEGIN
             WHERE MENU_ID = IN_MENU_ID
               AND AUTHGROUP_ID = IN_AUTHGROUP_ID;--
 
-            SET OUT_MSG = '»èÁ¦µÇ¾ú½À´Ï´Ù.' ; --
+            SET OUT_MSG = 'ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
             SET OUT_CNT = '1';--
 
     END IF;--
@@ -106,4 +106,4 @@ MAIN: BEGIN
 
 
 
-END MAIN 
+END MAIN

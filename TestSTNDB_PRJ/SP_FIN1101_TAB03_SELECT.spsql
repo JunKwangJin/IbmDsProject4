@@ -23,23 +23,23 @@ P1: BEGIN
 
     INSERT INTO SESSION.TEMP
                     WITH JAE_ACC AS (
-                        SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '¬˜∫Ø'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '¥Î∫Ø'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '¬˜∞®' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+                        SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN 'ÎåÄÎ≥Ä'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = 'Ï∞®Í∞ê' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
                            FROM (
-                                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                               FROM (
                                                          SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
                                                            FROM GADMIN.ACCOU1
                                                           WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                          UNION ALL
-                                                         SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                                         SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                            FROM GADMIN.ACCOU1
-                                                          WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                                          WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                             AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                          UNION ALL
-                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --¿¸±‚¿Ãø˘ ∆˜«‘
+                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --Ï†ÑÍ∏∞Ïù¥Ïõî Ìè¨Ìï®
                                                            FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
                                                          UNION ALL
-                                                         SELECT '3300909' AS ACC_CD, '((¥Á±‚º¯¿Ã¿Õ))' AS ACC_NM, 0 AS DR_AMT, S.CU_TOT AS CR_AMT
+                                                         SELECT '3300909' AS ACC_CD, '((ÎãπÍ∏∞ÏàúÏù¥Ïùµ))' AS ACC_NM, 0 AS DR_AMT, S.CU_TOT AS CR_AMT
                                                            FROM GADMIN.EBUS_FIN_INCOME S
                                                           WHERE S.ACC_CD = '7300909'
                                                     ) A, GADMIN.BSACC2 B
@@ -50,23 +50,23 @@ P1: BEGIN
 
                     ),
                     JAE_ACC2 AS (
-                        SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN '¬˜∫Ø'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN '¥Î∫Ø'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = '¬˜∞®' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+                        SELECT B.DRCR_GB, CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä'THEN A.DR_AMT - A.CR_AMT ELSE 0 END AS DR_JAN_AMT, A.DR_AMT, B.ACC_CD, B.ACC_NM,  A.CR_AMT, (CASE B.DRCR_GB WHEN 'ÎåÄÎ≥Ä'THEN A.CR_AMT - A.DR_AMT ELSE 0 END) AS CR_JAN_AMT, (case when CHAGAM_GB = 'Ï∞®Í∞ê' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
                            FROM (
-                                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                            SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                               FROM (
                                                          SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
                                                            FROM GADMIN.ACCOU1
                                                           WHERE DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                                                          UNION ALL
-                                                         SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                                         SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                            FROM GADMIN.ACCOU1
-                                                          WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                                          WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                             AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                                                          UNION ALL
-                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --¿¸±‚¿Ãø˘ ∆˜«‘
+                                                         SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --Ï†ÑÍ∏∞Ïù¥Ïõî Ìè¨Ìï®
                                                            FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE))
                                                          UNION ALL
-                                                         SELECT '3300909' AS ACC_CD, '((¥Á±‚º¯¿Ã¿Õ))' AS ACC_NM, 0 AS DR_AMT, S.BE_TOT AS CR_AMT
+                                                         SELECT '3300909' AS ACC_CD, '((ÎãπÍ∏∞ÏàúÏù¥Ïùµ))' AS ACC_NM, 0 AS DR_AMT, S.BE_TOT AS CR_AMT
                                                            FROM GADMIN.EBUS_FIN_INCOME S
                                                           WHERE S.ACC_CD = '7300909'
                                                     ) A, GADMIN.BSACC2 B
@@ -83,7 +83,7 @@ P1: BEGIN
                                    , coalesce(CASE WHEN DAECHA_CHECK = 'L' THEN  coalesce(SUM(A.BE_AMT),0) END, 0) AS BE_AMT, coalesce(CASE WHEN DAECHA_CHECK = 'R' THEN  coalesce(SUM(A.BE_AMT),0) END, 0) AS BE_TOT
                                FROM (
                             SELECT ACC_CD, ACC_NM,
-                                   CASE WHEN DRCR_GB IN ('¬˜∫Ø','√‚±›') THEN
+                                   CASE WHEN DRCR_GB IN ('Ï∞®Î≥Ä','Ï∂úÍ∏à') THEN
                                          (SELECT coalesce(SUM(sign * DR_AMT),0)
                                               FROM JAE_ACC
                                              START WITH acc_cd = main.acc_cd
@@ -112,7 +112,7 @@ P1: BEGIN
                             UNION ALL
                             SELECT ACC_CD, ACC_NM
                                     , 0 AS CU_AMT, 0 AS CU_TOT,
-                                   CASE WHEN DRCR_GB IN ('¬˜∫Ø','√‚±›') THEN
+                                   CASE WHEN DRCR_GB IN ('Ï∞®Î≥Ä','Ï∂úÍ∏à') THEN
                                          (SELECT coalesce(SUM(sign * DR_AMT),0)
                                               FROM JAE_ACC2
                                              START WITH acc_cd = main.acc_cd
@@ -140,7 +140,7 @@ P1: BEGIN
                             CONNECT BY PRIOR acc_cd = LEVELUP_CD
                             ) A LEFT OUTER JOIN  GADMIN.BSACC2 B ON (A.ACC_CD = B.ACC_CD)
                      WHERE 1 = 1
-                       AND B.ACC_GB IN ('¿⁄ªÍ','∫Œ√§','¿⁄∫ª')
+                       AND B.ACC_GB IN ('ÏûêÏÇ∞','Î∂ÄÏ±Ñ','ÏûêÎ≥∏')
                        AND B.DAECHA_CHECK != 'N'
                     GROUP BY A.ACC_CD, B.DRCR_GB, B.DAECHA_CHECK
                     )
@@ -152,11 +152,11 @@ END P1;--
 P2: BEGIN
 
     DECLARE CURSOR_TEMP CURSOR WITH RETURN FOR
-    SELECT ACC_CD, ACC_NM, CASE WHEN ACC_GB = '¿⁄ªÍ' THEN ( CASE WHEN DRCR_GB = '¬˜∫Ø' THEN CU_AMT ELSE CU_AMT * -1 END)
-                                ELSE (CASE WHEN ACC_GB = '∫Œ√§' OR  ACC_GB = '¿⁄∫ª' THEN ( CASE WHEN DRCR_GB = '¥Î∫Ø' THEN CU_AMT ELSE CU_AMT * -1 END) ELSE CU_AMT END)
+    SELECT ACC_CD, ACC_NM, CASE WHEN ACC_GB = 'ÏûêÏÇ∞' THEN ( CASE WHEN DRCR_GB = 'Ï∞®Î≥Ä' THEN CU_AMT ELSE CU_AMT * -1 END)
+                                ELSE (CASE WHEN ACC_GB = 'Î∂ÄÏ±Ñ' OR  ACC_GB = 'ÏûêÎ≥∏' THEN ( CASE WHEN DRCR_GB = 'ÎåÄÎ≥Ä' THEN CU_AMT ELSE CU_AMT * -1 END) ELSE CU_AMT END)
                              END AS CU_AMT, CU_TOT,
-                              CASE WHEN ACC_GB = '¿⁄ªÍ' THEN ( CASE WHEN DRCR_GB = '¬˜∫Ø' THEN BE_AMT ELSE BE_AMT * -1 END)
-                                ELSE (CASE WHEN ACC_GB = '∫Œ√§' OR  ACC_GB = '¿⁄∫ª' THEN ( CASE WHEN DRCR_GB = '¥Î∫Ø' THEN BE_AMT ELSE BE_AMT * -1 END) ELSE BE_AMT END)
+                              CASE WHEN ACC_GB = 'ÏûêÏÇ∞' THEN ( CASE WHEN DRCR_GB = 'Ï∞®Î≥Ä' THEN BE_AMT ELSE BE_AMT * -1 END)
+                                ELSE (CASE WHEN ACC_GB = 'Î∂ÄÏ±Ñ' OR  ACC_GB = 'ÏûêÎ≥∏' THEN ( CASE WHEN DRCR_GB = 'ÎåÄÎ≥Ä' THEN BE_AMT ELSE BE_AMT * -1 END) ELSE BE_AMT END)
                              END AS BE_AMT, BE_TOT,
             (CU_AMT + CU_TOT) - (BE_AMT + BE_TOT) AS UPDOWN_AMT,
             TRUNC( CASE BE_AMT + BE_TOT WHEN 0 THEN NULL
@@ -176,4 +176,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

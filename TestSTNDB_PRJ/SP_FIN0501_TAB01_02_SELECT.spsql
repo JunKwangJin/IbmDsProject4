@@ -79,23 +79,23 @@ P1: BEGIN
     INSERT INTO SESSION.TEMP
         WITH HAP_ACC AS
             (
-            SELECT CASE WHEN B.DRCR_GB  = '¬˜∫Ø' OR B.DRCR_GB = '√‚±›' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_TOT_AMT,
-                    CASE WHEN B.DRCR_GB  = '¬˜∫Ø' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_DAE_AMT,
-                    CASE WHEN B.DRCR_GB  = '√‚±›' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_OUT_AMT,
+            SELECT CASE WHEN B.DRCR_GB  = 'Ï∞®Î≥Ä' OR B.DRCR_GB = 'Ï∂úÍ∏à' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_TOT_AMT,
+                    CASE WHEN B.DRCR_GB  = 'Ï∞®Î≥Ä' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_DAE_AMT,
+                    CASE WHEN B.DRCR_GB  = 'Ï∂úÍ∏à' THEN SUM(A.DR_AMT) ELSE 0 END AS DR_OUT_AMT,
                     A.ACC_CD, B.ACC_NM,
-                    CASE WHEN B.DRCR_GB  = '¿‘±›' THEN SUM(A.CR_AMT) ELSE 0 END AS DR_IN_AMT,
-                    CASE WHEN B.DRCR_GB  = '¥Î∫Ø' THEN SUM(A.CR_AMT) ELSE 0 END AS CR_DAE_AMT,
-                    CASE WHEN B.DRCR_GB  = '¥Î∫Ø' OR B.DRCR_GB = '¿‘±›' THEN SUM(CR_AMT) ELSE 0 END AS CR_TOT_AMT
+                    CASE WHEN B.DRCR_GB  = 'ÏûÖÍ∏à' THEN SUM(A.CR_AMT) ELSE 0 END AS DR_IN_AMT,
+                    CASE WHEN B.DRCR_GB  = 'ÎåÄÎ≥Ä' THEN SUM(A.CR_AMT) ELSE 0 END AS CR_DAE_AMT,
+                    CASE WHEN B.DRCR_GB  = 'ÎåÄÎ≥Ä' OR B.DRCR_GB = 'ÏûÖÍ∏à' THEN SUM(CR_AMT) ELSE 0 END AS CR_TOT_AMT
                FROM (
-                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                SELECT A.ACC_CD, MAX(A.ACC_NM) AS ACC_NM, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                   FROM (
                                              SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT
                                                FROM GADMIN.ACCOU1
                                               WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                              UNION ALL
-                                             SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, SUM(A.CR_AMT) AS DR_AMT, SUM(A.DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                             SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, SUM(A.CR_AMT) AS DR_AMT, SUM(A.DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                FROM GADMIN.ACCOU1 A
-                                              WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                              WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                 AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                         ) A
                                 GROUP BY A.ACC_CD
@@ -111,29 +111,29 @@ P1: BEGIN
                     WITH HAP_ACC AS (
                                         SELECT SUM(DR_TOT_AMT) AS DR_TOT_AMT, SUM(DR_DAE_AMT) AS DR_DAE_AMT, SUM(DR_OUT_AMT) AS DR_OUT_AMT, ACC_CD, ACC_NM, SUM(CR_IN_AMT) AS CR_IN_AMT, SUM(CR_DAE_AMT) AS CR_DAE_AMT, SUM(CR_TOT_AMT) AS CR_TOT_AMT, sign, levelup_cd
                                          FROM (
-                                                SELECT CASE WHEN A.DRCR_GB = '¬˜∫Ø' OR A.DRCR_GB = '√‚±›' THEN (A.DR_AMT) ELSE 0 END AS DR_TOT_AMT,
-                                                        CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN (A.DR_AMT) ELSE 0 END AS DR_DAE_AMT,
-                                                        CASE WHEN A.DRCR_GB = '√‚±›' THEN (A.DR_AMT) ELSE 0 END AS DR_OUT_AMT,
+                                                SELECT CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' OR A.DRCR_GB = 'Ï∂úÍ∏à' THEN (A.DR_AMT) ELSE 0 END AS DR_TOT_AMT,
+                                                        CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN (A.DR_AMT) ELSE 0 END AS DR_DAE_AMT,
+                                                        CASE WHEN A.DRCR_GB = 'Ï∂úÍ∏à' THEN (A.DR_AMT) ELSE 0 END AS DR_OUT_AMT,
                                                         B.ACC_CD, B.ACC_NM,
-                                                        CASE WHEN A.DRCR_GB = '¿‘±›' THEN (A.CR_AMT) ELSE 0 END AS CR_IN_AMT,
-                                                        CASE WHEN A.DRCR_GB = '¥Î∫Ø' THEN (A.CR_AMT) ELSE 0 END AS CR_DAE_AMT,
-                                                        CASE WHEN A.DRCR_GB = '¥Î∫Ø' OR A.DRCR_GB = '¿‘±›' THEN (A.CR_AMT) ELSE 0 END AS CR_TOT_AMT,
-                                                        (case when CHAGAM_GB = '¬˜∞®' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
+                                                        CASE WHEN A.DRCR_GB = 'ÏûÖÍ∏à' THEN (A.CR_AMT) ELSE 0 END AS CR_IN_AMT,
+                                                        CASE WHEN A.DRCR_GB = 'ÎåÄÎ≥Ä' THEN (A.CR_AMT) ELSE 0 END AS CR_DAE_AMT,
+                                                        CASE WHEN A.DRCR_GB = 'ÎåÄÎ≥Ä' OR A.DRCR_GB = 'ÏûÖÍ∏à' THEN (A.CR_AMT) ELSE 0 END AS CR_TOT_AMT,
+                                                        (case when CHAGAM_GB = 'Ï∞®Í∞ê' then -1 else 1 end) as sign, b.levelup_cd as levelup_cd
                                                    FROM (
-                                                                    SELECT A.ACC_CD, A.DRCR_GB, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --¿œπ›∞Ë¡§ ¡˝∞Ë
+                                                                    SELECT A.ACC_CD, A.DRCR_GB, MAX(A.ACC_NM) AS ACC_NM, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT   --ÏùºÎ∞òÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                                       FROM (
                                                                                  SELECT ACC_CD, ACC_NM, DRCR_GB, DR_AMT, CR_AMT
                                                                                    FROM GADMIN.ACCOU1
                                                                                   WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                                                   /*
                                                                                  UNION ALL
-                                                                                 SELECT '1110101' AS ACC_CD, '«ˆ          ±› ' AS ACC_NM, DRCR_GB, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --«ˆ±›∞Ë¡§ ¡˝∞Ë
+                                                                                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à ' AS ACC_NM, DRCR_GB, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT   --ÌòÑÍ∏àÍ≥ÑÏ†ï ÏßëÍ≥Ñ
                                                                                    FROM GADMIN.ACCOU1
-                                                                                  WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                                                                                  WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                                                                                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
 
                                                                                  UNION ALL
-                                                                                 SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --¿¸±‚¿Ãø˘ ∆˜«‘
+                                                                                 SELECT ACC_CD, ACC_NM, DR_AMT, CR_AMT                  --Ï†ÑÍ∏∞Ïù¥Ïõî Ìè¨Ìï®
                                                                                    FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE))
                                                                                     */
                                                                             ) A, GADMIN.BSACC2 B
@@ -182,29 +182,29 @@ P1: BEGIN
         ;--
 
         -----------------------------------------------------------------------------------------
-        -- «’∞Ë,¿‹∞Ì,¥©∞Ë ±∏«œ±‚
+        -- Ìï©Í≥Ñ,ÏûîÍ≥†,ÎàÑÍ≥Ñ Íµ¨ÌïòÍ∏∞
         -----------------------------------------------------------------------------------------
         INSERT INTO SESSION.TEMP_TOT
-        SELECT SUM(DR_TOT_AMT) AS DR_TOT_AMT, SUM(DR_DAE_AMT) AS DR_DAE_AMT, SUM(DR_OUT_AMT) AS DR_OUT_AMT, '' AS ACC_CD, '«’∞Ë' AS ACC_NM, SUM(CR_IN_AMT) AS CR_IN_AMT, SUM(CR_DAE_AMT) AS CR_DAE_AMT, SUM(CR_TOT_AMT) AS CR_TOT_AMT
+        SELECT SUM(DR_TOT_AMT) AS DR_TOT_AMT, SUM(DR_DAE_AMT) AS DR_DAE_AMT, SUM(DR_OUT_AMT) AS DR_OUT_AMT, '' AS ACC_CD, 'Ìï©Í≥Ñ' AS ACC_NM, SUM(CR_IN_AMT) AS CR_IN_AMT, SUM(CR_DAE_AMT) AS CR_DAE_AMT, SUM(CR_TOT_AMT) AS CR_TOT_AMT
           FROM (
                     SELECT SUM(DR_AMT) AS DR_TOT_AMT, SUM(DR_AMT) AS DR_DAE_AMT, 0 AS DR_OUT_AMT, ACC_CD, ACC_NM, 0 AS CR_IN_AMT, SUM(CR_AMT) AS CR_DAE_AMT, SUM(CR_AMT) AS CR_TOT_AMT
                       FROM GADMIN.ACCOU1
                      WHERE 1 = 1
                        AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                       AND DRCR_GB IN ('¬˜∫Ø','¥Î∫Ø')
+                       AND DRCR_GB IN ('Ï∞®Î≥Ä','ÎåÄÎ≥Ä')
                        GROUP BY ACC_CD, ACC_NM
                     UNION ALL
                     SELECT SUM(DR_AMT) AS DR_TOT_AMT, 0 AS DR_DAE_AMT, SUM(DR_AMT) AS DR_OUT_AMT, ACC_CD, ACC_NM, SUM(CR_AMT) AS CR_IN_AMT, 0 AS CR_DAE_AMT, SUM(CR_AMT) AS CR_TOT_AMT
                       FROM GADMIN.ACCOU1
                      WHERE 1 = 1
                        AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
-                       AND DRCR_GB IN ('¿‘±›','√‚±›')
+                       AND DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                    GROUP BY ACC_CD, ACC_NM
                 ) A
           WHERE 1 = 1
         ;--
 
-		--∞≥ºˆ √£±‚
+		--Í∞úÏàò Ï∞æÍ∏∞
 		SELECT GISU INTO V_GISU
 		  FROM GADMIN.BSACC9
 		 WHERE START <= IN_FROMDATE
@@ -212,59 +212,59 @@ P1: BEGIN
 
         SET V_MONTH = SUBSTRING(IN_FROMDATE,6,2);		   --
 
-		--¿¸ø˘¿Ãø˘ ±›æ◊ √£±‚
+		--Ï†ÑÏõîÏù¥Ïõî Í∏àÏï° Ï∞æÍ∏∞
 
-		--¿¸ø˘¿‹∞Ì(«ˆ±›) ±›æ◊ ∞ËªÍ V_AFTER_DAY_DR_AMT
+		--Ï†ÑÏõîÏûîÍ≥†(ÌòÑÍ∏à) Í∏àÏï° Í≥ÑÏÇ∞ V_AFTER_DAY_DR_AMT
 		SELECT DR_00, CR_00 INTO V_DR_00, V_CR_00
 		  FROM GADMIN.HAPJAN
 		 WHERE YEAR = V_GISU
 		   AND ACC_CD = '1110101';--;--
 
-		SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --«ÿ¥Á≥‚µµ ¿¸±‚¿Ãø˘ ±›æ◊(«ˆ±›)
+		SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --Ìï¥ÎãπÎÖÑÎèÑ Ï†ÑÍ∏∞Ïù¥Ïõî Í∏àÏï°(ÌòÑÍ∏à)
 
         IF SUBSTRING(IN_FROMDATE,6,2) = '01' THEN
-            --01ø˘¿Ã∏È ¿¸±‚ ¿Ãø˘±›æ◊
+            --01ÏõîÏù¥Î©¥ Ï†ÑÍ∏∞ Ïù¥ÏõîÍ∏àÏï°
         ELSE
-            -- ¡∂»∏±‚∞£¿« TODATE ¿¸≥Ø ±∏«œ±‚
+            -- Ï°∞ÌöåÍ∏∞Í∞ÑÏùò TODATE Ï†ÑÎÇ† Íµ¨ÌïòÍ∏∞
             SELECT SUBSTRING(TO_DATE(IN_FROMDATE,'YYYY-MM-DD') - 1,1,10) INTO V_LASTDAY
               FROM SYSIBM.SYSDUMMY1;--
 
-            -- 01-01∫Œ≈Õ ¡∂»∏Ω√¿€ ¿¸¿œ±Ó¡ˆ «ˆ±›¿‘√‚≥≥±› ∞ËªÍ  (¿¸±‚¿Ãø˘ ±›æ◊ + ¿‘±› - √‚±›) : «’¿‹±›æ◊ ªÁøÎ æ»«‘ - ¿¸«• ºˆ¡§Ω√ ¥©∂Ù øÏ∑¡ ¿÷¿Ω
+            -- 01-01Î∂ÄÌÑ∞ Ï°∞ÌöåÏãúÏûë Ï†ÑÏùºÍπåÏßÄ ÌòÑÍ∏àÏûÖÏ∂úÎÇ©Í∏à Í≥ÑÏÇ∞  (Ï†ÑÍ∏∞Ïù¥Ïõî Í∏àÏï° + ÏûÖÍ∏à - Ï∂úÍ∏à) : Ìï©ÏûîÍ∏àÏï° ÏÇ¨Ïö© ÏïàÌï® - Ï†ÑÌëú ÏàòÏ†ïÏãú ÎàÑÎùΩ Ïö∞Î†§ ÏûàÏùå
             SELECT COALESCE(SUM(CR_AMT) - SUM(DR_AMT),0) + V_AFTER_DAY_DR_AMT INTO V_AFTER_DAY_DR_AMT
               FROM GADMIN.ACCOU1 A
              WHERE DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND V_LASTDAY
-                AND A.DRCR_GB IN ('¿‘±›','√‚±›');--
+                AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à');--
         END IF;--
 
-		--±›ø˘¿‹∞Ì(«ˆ±›) ±›æ◊ ∞ËªÍ V_BEFOR_AMT
+		--Í∏àÏõîÏûîÍ≥†(ÌòÑÍ∏à) Í∏àÏï° Í≥ÑÏÇ∞ V_BEFOR_AMT
 		SELECT DR_OUT_AMT , CR_IN_AMT INTO V_DR_AMT, V_CR_AMT
 		  FROM SESSION.TEMP_TOT
-		 WHERE ACC_NM = '«’∞Ë';--
+		 WHERE ACC_NM = 'Ìï©Í≥Ñ';--
 
-		SET V_CR_AMT = V_CR_AMT - V_DR_AMT; -- ¿‘√‚±› «’∞Ë ¬˜æ◊ ∞ËªÍ
-		SET V_BEFOR_AMT = V_CR_AMT + V_AFTER_DAY_DR_AMT;-- ¿‘√‚±› ¬˜æ◊ + ¿¸ø˘¿Ãø˘±›æ◊
+		SET V_CR_AMT = V_CR_AMT - V_DR_AMT; -- ÏûÖÏ∂úÍ∏à Ìï©Í≥Ñ Ï∞®Ïï° Í≥ÑÏÇ∞
+		SET V_BEFOR_AMT = V_CR_AMT + V_AFTER_DAY_DR_AMT;-- ÏûÖÏ∂úÍ∏à Ï∞®Ïï° + Ï†ÑÏõîÏù¥ÏõîÍ∏àÏï°
 
-                		 --±›ø˘¿‹∞Ì/¿¸ø˘¿‹∞Ì ¿˙¿Â
+                		 --Í∏àÏõîÏûîÍ≥†/Ï†ÑÏõîÏûîÍ≥† Ï†ÄÏû•
                          /*
                         INSERT INTO SESSION.TEMP_TOT
-                        SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', '±›ø˘¿‹∞Ì/¿¸ø˘¿‹∞Ì', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
+                        SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', 'Í∏àÏõîÏûîÍ≥†/Ï†ÑÏõîÏûîÍ≥†', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
                           FROM SESSION.TEMP_TOT
-                         WHERE ACC_NM = '«’∞Ë';--
+                         WHERE ACC_NM = 'Ìï©Í≥Ñ';--
                          */
 		INSERT INTO SESSION.TEMP_TOT
-		SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', '±›ø˘¿‹∞Ì/¿¸ø˘¿‹∞Ì', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
+		SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', 'Í∏àÏõîÏûîÍ≥†/Ï†ÑÏõîÏûîÍ≥†', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
 		  FROM SYSIBM.SYSDUMMY1
 		;--
 
-		 -- «’∞Ë ∞ËªÍ
+		 -- Ìï©Í≥Ñ Í≥ÑÏÇ∞
 		INSERT INTO SESSION.TEMP_TOT
-		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_OUT_AMT), '', '¥©∞Ë', SUM(CR_IN_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
+		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_OUT_AMT), '', 'ÎàÑÍ≥Ñ', SUM(CR_IN_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
 		  FROM SESSION.TEMP_TOT
-		 WHERE ACC_NM IN ('«’∞Ë','±›ø˘¿‹∞Ì/¿¸ø˘¿‹∞Ì');--
+		 WHERE ACC_NM IN ('Ìï©Í≥Ñ','Í∏àÏõîÏûîÍ≥†/Ï†ÑÏõîÏûîÍ≥†');--
 
-		 --∞·∞˙
+		 --Í≤∞Í≥º
 		 INSERT INTO SESSION.TEMP_RESLT
-         SELECT * FROM SESSION.TEMP_TOT     --∏’¿˙ ºˆ«‡«—∞‘ æ∆∑°∑Œ ≥ª∑¡∞® , ∫Ø∞Ê«œ¡ˆ∏ª∞Õ
+         SELECT * FROM SESSION.TEMP_TOT     --Î®ºÏ†Ä ÏàòÌñâÌïúÍ≤å ÏïÑÎûòÎ°ú ÎÇ¥Î†§Í∞ê , Î≥ÄÍ≤ΩÌïòÏßÄÎßêÍ≤É
           UNION ALL
 		 SELECT * FROM SESSION.TEMP
 		 WHERE 1 = 1
@@ -281,4 +281,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

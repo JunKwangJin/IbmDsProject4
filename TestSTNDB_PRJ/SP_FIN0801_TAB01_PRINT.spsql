@@ -37,15 +37,15 @@ P1: BEGIN
 
     INSERT INTO SESSION.TEMP
     SELECT A.LEVELUP_CD, A.LEVELUP_ACC, A.ACC_CD, B.ACC_NM, SUM(YI_AMT) AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT,
-            CASE B.DRCR_GB WHEN '¬˜∫Ø' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
-                            WHEN '¿‘±›' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
-                            WHEN '√‚±›' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
-                            WHEN '¥Î∫Ø' THEN SUM(YI_AMT + CR_AMT - DR_AMT)
+            CASE B.DRCR_GB WHEN 'Ï∞®Î≥Ä' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN 'ÏûÖÍ∏à' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN 'Ï∂úÍ∏à' THEN SUM(YI_AMT + DR_AMT - CR_AMT)
+                            WHEN 'ÎåÄÎ≥Ä' THEN SUM(YI_AMT + CR_AMT - DR_AMT)
                             END AS JAN_AMT
       FROM (
-                SELECT '1110100' AS LEVELUP_CD, '«ˆ±›π◊«ˆ±›º∫¿⁄ªÍ' AS LEVELUP_ACC, '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS YI_AMT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT
+                SELECT '1110100' AS LEVELUP_CD, 'ÌòÑÍ∏àÎ∞èÌòÑÍ∏àÏÑ±ÏûêÏÇ∞' AS LEVELUP_ACC, '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS YI_AMT, SUM(CR_AMT) AS DR_AMT, SUM(DR_AMT) AS CR_AMT
                   FROM GADMIN.ACCOU1
-                 WHERE DRCR_GB IN ('¿‘±›','√‚±›')
+                 WHERE DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                 UNION ALL
                 SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, 0 AS YI_AMT, SUM(DR_AMT) AS DR_AMT, SUM(CR_AMT) AS CR_AMT
@@ -56,22 +56,22 @@ P1: BEGIN
                 UNION ALL
                 SELECT LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM, SUM(YI_AMT) AS YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
                   FROM (
-                            SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, CASE B.DRCR_GB  WHEN '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                            SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, CASE B.DRCR_GB  WHEN 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
                               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(SUBSTRING((FROM_PRE_DAY),1,4)||'-01-01')) A, GADMIN.BSACC2 B
                              WHERE A.ACC_CD = B.ACC_CD
                                AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
                             UNION ALL
-                            SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, CASE B.DRCR_GB  WHEN '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                            SELECT B.LEVELUP_CD, B.LEVELUP_ACC, A.ACC_CD, A.ACC_NM, CASE B.DRCR_GB  WHEN 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
                               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                              WHERE A.ACC_CD = B.ACC_CD
                                AND DATE BETWEEN SUBSTRING((FROM_PRE_DAY),1,4)||'-01-01' AND FROM_PRE_DAY
                                AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
                             UNION ALL
-                            SELECT '1110100', '«ˆ±›π◊«ˆ±›º∫¿⁄ªÍ', '1110101', '«ˆ          ±›', COALESCE(SUM(CR_AMT) - SUM(DR_AMT),0) AS YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
+                            SELECT '1110100', 'ÌòÑÍ∏àÎ∞èÌòÑÍ∏àÏÑ±ÏûêÏÇ∞', '1110101', 'ÌòÑ          Í∏à', COALESCE(SUM(CR_AMT) - SUM(DR_AMT),0) AS YI_AMT , 0 AS DR_AMT, 0 AS CR_AMT
                               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                              WHERE A.ACC_CD = B.ACC_CD
                                AND DATE BETWEEN SUBSTRING((FROM_PRE_DAY),1,4)||'-01-01' AND FROM_PRE_DAY
-                               AND A.DRCR_GB IN ('√‚±›','¿‘±›')
+                               AND A.DRCR_GB IN ('Ï∂úÍ∏à','ÏûÖÍ∏à')
                                AND NOT (A.DR_AMT = 0 AND A.CR_AMT = 0)
                          )
                 GROUP BY LEVELUP_CD, LEVELUP_ACC, ACC_CD, ACC_NM
@@ -103,4 +103,4 @@ P2: BEGIN
   */
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

@@ -14,8 +14,8 @@ MAIN: BEGIN
         SELECT *
           FROM (
                     SELECT A.SANGHO_CD, A.SANGHO
-                          , COALESCE(CASE CASH_GB WHEN '«ˆ±›' THEN SUM(A.SUPPLY_PRICE) END, 0) AS CASH_AMT
-                          , COALESCE(CASE CASH_GB WHEN 'ø‹ªÛ' THEN SUM(A.SUPPLY_PRICE) END,0) AS CREDIT_AMT
+                          , COALESCE(CASE CASH_GB WHEN 'ÌòÑÍ∏à' THEN SUM(A.SUPPLY_PRICE) END, 0) AS CASH_AMT
+                          , COALESCE(CASE CASH_GB WHEN 'Ïô∏ÏÉÅ' THEN SUM(A.SUPPLY_PRICE) END,0) AS CREDIT_AMT
                           , COALESCE(SUM(A.SUPPLY_PRICE),0) AS TOT_AMT
                           , '' AS BIGO
                       FROM JAGUMA1 A
@@ -30,4 +30,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

@@ -27,7 +27,7 @@ MAIN: BEGIN
 	        ( SELECT DATE, ACC_NO, COALESCE(SUM(DR_AMT),0) - COALESCE(SUM(CR_AMT),0) AS GAP_AMT
 	            FROM GADMIN.ACCOU1
 	           WHERE 1 = 1
-	             AND DRCR_GB IN ('Â÷º¯','´ëº¯')
+	             AND DRCR_GB IN ('ì°¨ë³€','ëŒ€ë³€')
 	          GROUP BY DATE, ACC_NO
 	         ) B  ON (A.DATE = B.DATE AND A.ACC_NO = B.ACC_NO)
 	WHERE 1 = 1
@@ -48,7 +48,7 @@ MAIN: BEGIN
 	        ( SELECT DATE, ACC_NO, COALESCE(SUM(DR_AMT),0) - COALESCE(SUM(CR_AMT),0) AS GAP_AMT
 	            FROM GADMIN.ACCOU1
 	           WHERE 1 = 1
-	             AND DRCR_GB IN ('Â÷º¯','´ëº¯')
+	             AND DRCR_GB IN ('ì°¨ë³€','ëŒ€ë³€')
 	          GROUP BY DATE, ACC_NO
 	         ) B  ON (A.DATE = B.DATE AND A.ACC_NO = B.ACC_NO)
 	WHERE 1 = 1
@@ -72,4 +72,4 @@ MAIN: BEGIN
         END IF;        --
 
    END P1;--
-END MAIN 
+END MAIN

@@ -20,11 +20,11 @@ MAIN: BEGIN
           FROM (
                     SELECT SUBSTRING(A.DATE,1,7) AS MON
                           , 0 AS SEOUL_1
-                          , COALESCE(CASE WHEN B.CLASS != 'Ÿ�̾�' THEN SUM(A.PRICE) END,0) AS COMPANY_1
-                          , COALESCE(CASE WHEN B.CLASS != 'Ÿ�̾�' THEN 0 - SUM(A.PRICE) END,0)  AS PYUNCHA_1
+                          , COALESCE(CASE WHEN B.CLASS != '타이어' THEN SUM(A.PRICE) END,0) AS COMPANY_1
+                          , COALESCE(CASE WHEN B.CLASS != '타이어' THEN 0 - SUM(A.PRICE) END,0)  AS PYUNCHA_1
                           , 0 AS SEOUL_2
-                          , COALESCE(CASE WHEN B.CLASS = 'Ÿ�̾�' THEN SUM(A.PRICE) END,0) AS COMPANY_2
-                          , COALESCE(CASE WHEN B.CLASS = 'Ÿ�̾�' THEN 0 - SUM(A.PRICE) END,0)  AS PYUNCHA_2
+                          , COALESCE(CASE WHEN B.CLASS = '타이어' THEN SUM(A.PRICE) END,0) AS COMPANY_2
+                          , COALESCE(CASE WHEN B.CLASS = '타이어' THEN 0 - SUM(A.PRICE) END,0)  AS PYUNCHA_2
                           , 0 AS SEOUL_3
                           , COALESCE(SUM(A.PRICE),0) AS COMPANY_3
                           , COALESCE(0 - SUM(A.PRICE),0) AS PYUNCHA_3
@@ -40,4 +40,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

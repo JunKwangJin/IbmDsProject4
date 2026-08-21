@@ -1,10 +1,10 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_BBSMSG_GETBYID"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_BBSMSG_GETBYID
-»ý¼ºÀÏÀÚ	: 2024. 3.20
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : °Ô½ÃÆÇ ³»¿ë
-¿¹Á¦
+íŒŒì¼ëª…	: GADMIN.SF_MBC_BBSMSG_GETBYID
+ìƒì„±ì¼ìž	: 2024. 3.20
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ê²Œì‹œíŒ ë‚´ìš©
+ì˜ˆì œ
 SELECT * FROM GADMIN.SF_MBC_BBSMSG_GETBYID(BBSID)
 *******************************************************************************/
 (
@@ -26,10 +26,10 @@ RETURNS
     , C_USER            VARCHAR(25)
     , C_DATE            TIMESTAMP(6)
     )
-    
-    
-    
-    
+
+
+
+
 LANGUAGE SQL
 
 BEGIN ATOMIC
@@ -49,7 +49,7 @@ BEGIN ATOMIC
         , CLIENT_HOSTNAME
         , C_USER
         , C_DATE
-     FROM GADMIN.MBC_BBS 
+     FROM GADMIN.MBC_BBS
     WHERE BBSID  LIKE V_BBSID
     ;--
 END

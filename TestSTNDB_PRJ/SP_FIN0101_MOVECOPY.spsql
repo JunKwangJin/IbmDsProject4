@@ -14,7 +14,7 @@ MAIN: BEGIN
     DECLARE SQLSTATE CHAR(5) DEFAULT '00000';--
     DECLARE V_ACC_NO BIGINT DEFAULT '000';--
     P1: BEGIN
-        IF IN_JOB = '0' THEN  --¿¸«•¿Ãµø
+        IF IN_JOB = '0' THEN  --Ï†ÑÌëúÏù¥Îèô
 
             UPDATE GADMIN.ACCOU1
                 SET DATE = IN_DATE
@@ -23,7 +23,7 @@ MAIN: BEGIN
                    , M_DATE = NOW
             WHERE ROW_ID = IN_ROW_ID;--
 
-        ELSEIF IN_JOB = '1' THEN  --¿¸«•∫πªÁ
+        ELSEIF IN_JOB = '1' THEN  --Ï†ÑÌëúÎ≥µÏÇ¨
 
             SET V_ACC_NO = GADMIN.SF_FIN_ACC_ROW_ID();--
 
@@ -35,4 +35,4 @@ MAIN: BEGIN
 
         END IF;--
    END P1;--
-END MAIN 
+END MAIN

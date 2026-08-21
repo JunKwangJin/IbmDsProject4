@@ -1,22 +1,22 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_USER_TOKEN"
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SF_MBC_USER_TOKEN
-»ý¼ºÀÏÀÚ	: 2022.6.13
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : USER TOKEN
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
+íŒŒì¼ëª…	: GADMIN.SF_MBC_USER_TOKEN
+ìƒì„±ì¼ìž	: 2022.6.13
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : USER TOKEN
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
 
-¿¹Á¦
-SELECT * FROM GADMIN.SF_MBC_USER_TOKEN(»ç¿ëÀÚID, ÈÞ´ëÆù¹øÈ£)
+ì˜ˆì œ
+SELECT * FROM GADMIN.SF_MBC_USER_TOKEN(ì‚¬ìš©ìžID, íœ´ëŒ€í°ë²ˆí˜¸)
 *******************************************************************************/
 (
-    IN IN_USER_NO    VARCHAR(10)  -- »ç¿ëÀÚID
-  , IN IN_CELLPHONE  VARCHAR(11)  -- ÈÞ´ëÆù¹øÈ£
+    IN IN_USER_NO    VARCHAR(10)  -- ì‚¬ìš©ìžID
+  , IN IN_CELLPHONE  VARCHAR(11)  -- íœ´ëŒ€í°ë²ˆí˜¸
 )
 
 
@@ -32,8 +32,8 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_USER_NO    VARCHAR(10);-- »ç¿ëÀÚID
-   DECLARE V_CELLPHONE  VARCHAR(11);-- ÈÞ´ëÆù¹øÈ£
+   DECLARE V_USER_NO    VARCHAR(10);-- ì‚¬ìš©ìžID
+   DECLARE V_CELLPHONE  VARCHAR(11);-- íœ´ëŒ€í°ë²ˆí˜¸
 
 
    SET V_USER_NO      = COALESCE(IN_USER_NO,'');--

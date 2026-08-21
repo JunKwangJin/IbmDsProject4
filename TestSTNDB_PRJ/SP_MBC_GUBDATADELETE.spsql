@@ -10,11 +10,11 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_GUBDATADELETE"
 
 MAIN: BEGIN ATOMIC
 
---  TEMP TABLE º¯¼ö
+--  TEMP TABLE ë³€ìˆ˜
     DECLARE V_TEMP_DAT      VARCHAR(5000)  DEFAULT '';--
 
 
--- ÀÏ¹Ýº¯¼ö
+-- ì¼ë°˜ë³€ìˆ˜
 --    DECLARE I           INTEGER;--
 
 
@@ -25,44 +25,44 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_CNT           INTEGER       DEFAULT 0;--
     DECLARE V_KEY_MSG       VARCHAR(100)  DEFAULT '';--
-    
+
     DECLARE V_GUB_YYMM      VARCHAR(6);--
     DECLARE V_JIKJONG       VARCHAR(25);--
     DECLARE V_GUB_GB        VARCHAR(20);--
-   
 
-    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLEÀÌ ¾øÀ»‹š
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLEì´ ì—†ì„ë–„
 
---  º¯¼ö Å¬¸®¾î
-    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG »ç¿ë¾ÈÇÏ°í Å×½ºÆ®
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+
+--  ë³€ìˆ˜ í´ë¦¬ì–´
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ì‚¬ìš©ì•ˆí•˜ê³  í…ŒìŠ¤íŠ¸
 --    SET V_SAVE = 0;--
 --    P1: BEGIN
-    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG »ç¿ë¾ÈÇÏ°í Å×½ºÆ®
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ì‚¬ìš©ì•ˆí•˜ê³  í…ŒìŠ¤íŠ¸
 
---  ÀúÀåÇÒ µ¥ÀÌÅÍ¿Í°°Àº ±Þ¿© µ¥ÀÌÅÍ¸¦ ÀúÀåÇÏ±âÀü·¹ »èÁ¦ÇÑ´Ù.
+--  ì €ìž¥í•  ë°ì´í„°ì™€ê°™ì€ ê¸‰ì—¬ ë°ì´í„°ë¥¼ ì €ìž¥í•˜ê¸°ì „ë ˆ ì‚­ì œí•œë‹¤.
 
     SET V_TEMP_DAT = IN_TEMP_DAT;--
 
---  µ¥ÀÌÅÍ¸¦ ÀúÀåÇÑ´Ù.
+--  ë°ì´í„°ë¥¼ ì €ìž¥í•œë‹¤.
 
     SET V_SQLSTATE = '00000';--
 
-    SET V_GUB_YYMM  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1);-- ±Ý¿©³â¿ø
-    SET V_JIKJONG   = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1);-- Á÷Á¾
-    SET V_GUB_GB    = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1);-- ±Þ¿©±¸ºÐ
+    SET V_GUB_YYMM  = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 2)+1, INSTR(V_TEMP_DAT, '\', 1, 3) - INSTR(V_TEMP_DAT, '\', 1, 2)-1);-- ê¸ˆì—¬ë…„ì›
+    SET V_JIKJONG   = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 1)+1, INSTR(V_TEMP_DAT, '\', 1, 2) - INSTR(V_TEMP_DAT, '\', 1, 1)-1);-- ì§ì¢…
+    SET V_GUB_GB    = SUBSTR(V_TEMP_DAT, INSTR(V_TEMP_DAT, '\', 1, 3)+1, INSTR(V_TEMP_DAT, '\', 1, 4) - INSTR(V_TEMP_DAT, '\', 1, 3)-1);-- ê¸‰ì—¬êµ¬ë¶„
 
        SELECT COUNT(DISTINCT INSA_NO)  INTO V_CNT FROM GADMIN.MBC_GUBDATA
         WHERE GUB_YYMM  = V_GUB_YYMM
@@ -75,13 +75,13 @@ MAIN: BEGIN ATOMIC
           AND JIKJONG   = V_JIKJONG
           AND GUB_GB    = V_GUB_GB
        ;--
-       SET (OUT_CNT, OUT_MSG) = (VARCHAR_FORMAT(V_CNT,'000'), OUT_MSG||CHR(13)||V_GUB_YYMM||'/'||V_JIKJONG||'/'||V_GUB_GB||' ±âÁ¸ ±Þ¿© µ¥ÀÌÅÍ°¡ »èÁ¦ µÇ¾ú½À´Ï´Ù.');--
+       SET (OUT_CNT, OUT_MSG) = (VARCHAR_FORMAT(V_CNT,'000'), OUT_MSG||CHR(13)||V_GUB_YYMM||'/'||V_JIKJONG||'/'||V_GUB_GB||' ê¸°ì¡´ ê¸‰ì—¬ ë°ì´í„°ê°€ ì‚­ì œ ë˜ì—ˆìŠµë‹ˆë‹¤.');--
 
     ELSE
-       SET (OUT_CNT, OUT_MSG) = (VARCHAR_FORMAT(V_CNT,'000'), OUT_MSG||CHR(13)||V_GUB_YYMM||'/'||V_JIKJONG||'/'||V_GUB_GB||' ±âÁ¸ »èÁ¦ÇÒ ±Þ¿©µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù.');--
-       
+       SET (OUT_CNT, OUT_MSG) = (VARCHAR_FORMAT(V_CNT,'000'), OUT_MSG||CHR(13)||V_GUB_YYMM||'/'||V_JIKJONG||'/'||V_GUB_GB||' ê¸°ì¡´ ì‚­ì œí•  ê¸‰ì—¬ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤.');--
+
     END IF; --
 
 	RETURN V_CNT;
 
-END MAIN 
+END MAIN

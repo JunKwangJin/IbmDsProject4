@@ -47,6 +47,6 @@ F1: BEGIN ATOMIC
                                                    ELSE NULL END         AS CR_AMT
           FROM GADMIN.TRADEKYE
          WHERE 1 = 1
-           AND YEAR = ( SELECT GISU FROM GADMIN.BSACC9 WHERE START <= IN_FROMDATE AND TERMINATION >= IN_FROMDATE )  -- ¿¸±‚±‚¡ÿ Ω√¿€¿œ¿ª ±‚¡ÿ
+           AND YEAR = ( SELECT GISU FROM GADMIN.BSACC9 WHERE START <= IN_FROMDATE AND TERMINATION >= IN_FROMDATE )  -- Ï†ÑÍ∏∞Í∏∞Ï§Ä ÏãúÏûëÏùºÏùÑ Í∏∞Ï§Ä
         ORDER BY ACC_CD, ACC_NM, MANAGE_1, ITEM_1, MANAGE_2, ITEM_2, DRCR_GB ;--
 END

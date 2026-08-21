@@ -28,37 +28,37 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0101_U01"
    , OUT OUT_MSG             VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SP_DRV0101_U01
-»ý¼ºÀÏÀÚ	: 2021.04.19
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	: ¹èÂ÷½Ã°£Ç¥ ÀúÀå
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë
-    INPUT IN_CK             1.  CRUDÃ¼Å©
-          IN_ROUTE_CD       2. ³ë¼±
-          IN_SUNBUN         3. ¼ø¹ø
-          IN_OLD_ROUTE_CD   4. OLD ³ë¼±
-          IN_OLD_SUNBUN     5. OLD ¼ø¹ø
-          IN_CAR_CD         6. Â÷·®¹øÈ£ÄÚµå
-          IN_HOLY_CD        7. ÈÞ¹«¿äÀÏ
-          IN_SHIFT_CD       8. SHIFT¿äÀÏ
-          IN_YEBI_YN        9. ¿¹ºñ±¸ºÐ
-          IN_SABUN_A       10. »ç¹ø A
-          IN_NM_A          11. ¼º¸í A
-          IN_ONE_TIME_CD_A 12. 1È¸ ¿äÀÏ
-          IN_SABUN_B       13. »ç¹ø B
-          IN_NM_B          14. ¼º¸í B
-          IN_ONE_TIME_CD_B 15. 1È¸
-          IN_SABUN_C       16. »ç¹ø B.
-          IN_NM_C          17. ¼º¸í B
-          IN_SABUN_D       18. »ç¹ø B
-          IN_NM_D          19. ¼º¸í B
-          IN_YEBI_HOLY_CD  20. ¿¹ºñÈÞ¹«
-          IN_YEBI_SHIFT_CD 21. ¿¹ºñSHIFT
-          IN_ROTATE        22. ±â»çº¯È¯
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+íŒŒì¼ëª…	: GADMIN.SP_DRV0101_U01
+ìƒì„±ì¼ìž	: 2021.04.19
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	: ë°°ì°¨ì‹œê°„í‘œ ì €ìž¥
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©
+    INPUT IN_CK             1.  CRUDì²´í¬
+          IN_ROUTE_CD       2. ë…¸ì„ 
+          IN_SUNBUN         3. ìˆœë²ˆ
+          IN_OLD_ROUTE_CD   4. OLD ë…¸ì„ 
+          IN_OLD_SUNBUN     5. OLD ìˆœë²ˆ
+          IN_CAR_CD         6. ì°¨ëŸ‰ë²ˆí˜¸ì½”ë“œ
+          IN_HOLY_CD        7. íœ´ë¬´ìš”ì¼
+          IN_SHIFT_CD       8. SHIFTìš”ì¼
+          IN_YEBI_YN        9. ì˜ˆë¹„êµ¬ë¶„
+          IN_SABUN_A       10. ì‚¬ë²ˆ A
+          IN_NM_A          11. ì„±ëª… A
+          IN_ONE_TIME_CD_A 12. 1íšŒ ìš”ì¼
+          IN_SABUN_B       13. ì‚¬ë²ˆ B
+          IN_NM_B          14. ì„±ëª… B
+          IN_ONE_TIME_CD_B 15. 1íšŒ
+          IN_SABUN_C       16. ì‚¬ë²ˆ B.
+          IN_NM_C          17. ì„±ëª… B
+          IN_SABUN_D       18. ì‚¬ë²ˆ B
+          IN_NM_D          19. ì„±ëª… B
+          IN_YEBI_HOLY_CD  20. ì˜ˆë¹„íœ´ë¬´
+          IN_YEBI_SHIFT_CD 21. ì˜ˆë¹„SHIFT
+          IN_ROTATE        22. ê¸°ì‚¬ë³€í™˜
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 
   DYNAMIC RESULT SETS 1
@@ -77,40 +77,40 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
 
-    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEì´ ì—†ì„ë–„
 
 
     DECLARE UNDO HANDLER FOR NOT FOUND
-          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||'][V_SAVE='||V_SAVE||']'|| CHR(13) || 'WRR01: '||V_KEY_MSG||'µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..' ;--
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||'][V_SAVE='||V_SAVE||']'|| CHR(13) || 'WRR01: '||V_KEY_MSG||'ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..' ;--
     DECLARE UNDO HANDLER FOR SQLWARNING
-          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: '||V_KEY_MSG||'º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'
-                                                                            ELSE              'WRR99: '||V_KEY_MSG||'½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' END;--
+          SET OUT_MSG = '[SQLSTATE:'||SQLSTATE||']'||CHR(13)||CASE SQLSTATE WHEN '01004' THEN 'WRR02: '||V_KEY_MSG||'ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'
+                                                                            ELSE              'WRR99: '||V_KEY_MSG||'ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' END;--
     DECLARE UNDO HANDLER FOR SQLEXCEPTION
-          SET OUT_MSG = OUT_MSG ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: '||V_KEY_MSG||'Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'
-                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: '||V_KEY_MSG||'NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'
-                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||'][V_SAVE='||V_SAVE||']'|| CHR(13) || 'ERR03: '||V_KEY_MSG||'ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'
-                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: '||V_KEY_MSG||'ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'
-                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: '||V_KEY_MSG||'½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'
+          SET OUT_MSG = OUT_MSG ||CASE SQLSTATE WHEN '42704' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR01: '||V_KEY_MSG||'ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'
+                                                WHEN '23502' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR02: '||V_KEY_MSG||'NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'
+                                                WHEN '23505' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||'][V_SAVE='||V_SAVE||']'|| CHR(13) || 'ERR03: '||V_KEY_MSG||'ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'
+                                                WHEN '22001' THEN '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR04: '||V_KEY_MSG||'ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'
+                                                ELSE              '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']' || CHR(13) || 'ERR99: '||V_KEY_MSG||'ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'
                                    END;--
-    -- º¯¼ö Å¬¸®¾î
+    -- ë³€ìˆ˜ í´ë¦¬ì–´
     SET (OUT_CNT, OUT_MSG) =('0','');--
     SET V_SAVE = 0;--
 --    P1: BEGIN
     SET (OUT_CNT, OUT_MSG) =('0','');--
 
- -- CRUD°¡ ¹ß»ýÇÏ´Â KEY
-    SELECT '[³ë¼± ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][¼ø¹ø : '||IN_SUNBUN||'] ' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
+ -- CRUDê°€ ë°œìƒí•˜ëŠ” KEY
+    SELECT '[ë…¸ì„  ; '||GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'')||'][ìˆœë²ˆ : '||IN_SUNBUN||'] ' INTO V_KEY_MSG FROM SYSIBM.SYSDUMMY1;--
 	 --DATA	insert
 
- -- ¿ÀÀü¿ÀÈÄ ½É¾ß ±¸ºÐ°ª ³Ö±â
+ -- ì˜¤ì „ì˜¤í›„ ì‹¬ì•¼ êµ¬ë¶„ê°’ ë„£ê¸°
     SELECT MAX(CD) INTO V_AMPM_GB_AC
-      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'L','','','','','','')); --¿ÀÀü/¿ÀÈÄ±¸ºÐ : ¿ÀÀü
+      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'L','','','','','','')); --ì˜¤ì „/ì˜¤í›„êµ¬ë¶„ : ì˜¤ì „
     SELECT MAX(CD) INTO V_AMPM_GB_BD
-      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'R','','','','','','')); --¿ÀÀü/¿ÀÈÄ±¸ºÐ : ¿ÀÈÄ
+      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_CD('DRV06',IN_ROUTE_CD,'CD3'),'R','','','','','','')); --ì˜¤ì „/ì˜¤í›„êµ¬ë¶„ : ì˜¤í›„
 
 
 
@@ -125,7 +125,7 @@ MAIN: BEGIN ATOMIC
           AND SUNBUN     = IN_OLD_SUNBUN
         ;--
     END IF;--
-         -- Ãß°¡ ÀÔ·ÂµÈ µ¥ÀÌÅÍ ¾úÀ¸¸é INSERT
+         -- ì¶”ê°€ ìž…ë ¥ëœ ë°ì´í„° ì—ˆìœ¼ë©´ INSERT
    IF  V_CNT > 0 THEN
        UPDATE BSUNHA1_M
           SET  ROUTE_CD      = IN_ROUTE_CD
@@ -177,9 +177,9 @@ MAIN: BEGIN ATOMIC
        SET V_SAVE  = 1000000;--
    END IF;--
 
-   -- µ¥ÀÌÅÍ Å×ÀÌºí ÀúÀå
-   -- °íÁ¤±â»ç µ¥ÀÌÅÍ
-   -- FIX_GB ='1' °íÁ¤   AMPM_GB(¿ÀÀü¿ÀÈÄ±¸ºÐ) = '10' ¿ÀÀü  ÀúÀå
+   -- ë°ì´í„° í…Œì´ë¸” ì €ìž¥
+   -- ê³ ì •ê¸°ì‚¬ ë°ì´í„°
+   -- FIX_GB ='1' ê³ ì •   AMPM_GB(ì˜¤ì „ì˜¤í›„êµ¬ë¶„) = '10' ì˜¤ì „  ì €ìž¥
    IF IN_CK = 'I' THEN
       SET V_CNT = 0;--
     ELSE
@@ -188,11 +188,11 @@ MAIN: BEGIN ATOMIC
          FROM GADMIN.BSUNHA1_D
         WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
           AND SUNBUN     = IN_OLD_SUNBUN
-          AND FIX_GB     = '1'                 -- °íÁ¤±¸ºÐ °íÁ¤
-          AND AMPM_GB    = V_AMPM_GB_AC        --  ¿ÀÀü
+          AND FIX_GB     = '1'                 -- ê³ ì •êµ¬ë¶„ ê³ ì •
+          AND AMPM_GB    = V_AMPM_GB_AC        --  ì˜¤ì „
         ;--
    END IF;--
-         -- Ãß°¡ ÀÔ·ÂµÈ µ¥ÀÌÅÍ ¾úÀ¸¸é INSERT
+         -- ì¶”ê°€ ìž…ë ¥ëœ ë°ì´í„° ì—ˆìœ¼ë©´ INSERT
    IF  V_CNT > 0 THEN
        UPDATE BSUNHA1_D
           SET ROUTE_CD      = IN_ROUTE_CD
@@ -222,8 +222,8 @@ MAIN: BEGIN ATOMIC
        VALUES
               ( IN_ROUTE_CD
              , IN_SUNBUN
-             , '1'    -- °íÁ¤±¸ºÐ :°íÁ¤
-             , V_AMPM_GB_AC --¿ÀÀü/¿ÀÈÄ±¸ºÐ : ¿ÀÀü
+             , '1'    -- ê³ ì •êµ¬ë¶„ :ê³ ì •
+             , V_AMPM_GB_AC --ì˜¤ì „/ì˜¤í›„êµ¬ë¶„ : ì˜¤ì „
              , IN_ONE_TIME_CD_A
              , IN_SABUN_A
              , CURRENT TIMESTAMP
@@ -233,7 +233,7 @@ MAIN: BEGIN ATOMIC
        SET V_SAVE  = V_SAVE +  100000;--
    END IF;--
 
-   -- FIX_GB ='1' °íÁ¤   AMPM_GB(¿ÀÀü¿ÀÈÄ±¸ºÐ) = '20' ¿ÀÈÄ  ÀúÀå
+   -- FIX_GB ='1' ê³ ì •   AMPM_GB(ì˜¤ì „ì˜¤í›„êµ¬ë¶„) = '20' ì˜¤í›„  ì €ìž¥
    IF IN_CK = 'I' THEN
       SET V_CNT = 0;--
     ELSE
@@ -242,11 +242,11 @@ MAIN: BEGIN ATOMIC
          FROM GADMIN.BSUNHA1_D
         WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
           AND SUNBUN     = IN_OLD_SUNBUN
-          AND FIX_GB     = '1'                 -- °íÁ¤±¸ºÐ °íÁ¤
-          AND AMPM_GB    = V_AMPM_GB_BD        --  ¿ÀÈÄ
+          AND FIX_GB     = '1'                 -- ê³ ì •êµ¬ë¶„ ê³ ì •
+          AND AMPM_GB    = V_AMPM_GB_BD        --  ì˜¤í›„
         ;--
    END IF;--
-         -- Ãß°¡ ÀÔ·ÂµÈ µ¥ÀÌÅÍ ¾úÀ¸¸é INSERT
+         -- ì¶”ê°€ ìž…ë ¥ëœ ë°ì´í„° ì—ˆìœ¼ë©´ INSERT
    IF  V_CNT > 0 THEN
        UPDATE BSUNHA1_D
           SET ROUTE_CD      = IN_ROUTE_CD
@@ -276,8 +276,8 @@ MAIN: BEGIN ATOMIC
        VALUES
               ( IN_ROUTE_CD
              , IN_SUNBUN
-             , '1'    -- °íÁ¤±¸ºÐ ; °íÁ¤
-             , V_AMPM_GB_BD --¿ÀÀü/¿ÀÈÄ±¸ºÐ : ¿ÀÈÄ
+             , '1'    -- ê³ ì •êµ¬ë¶„ ; ê³ ì •
+             , V_AMPM_GB_BD --ì˜¤ì „/ì˜¤í›„êµ¬ë¶„ : ì˜¤í›„
              , IN_ONE_TIME_CD_B
              , IN_SABUN_B
              , CURRENT TIMESTAMP
@@ -288,8 +288,8 @@ MAIN: BEGIN ATOMIC
    END IF;--
 
 ---------------------------------------------------------------
-   -- À¯µ¿±â»ç µ¥ÀÌÅÍ
-   -- FIX_GB ='0' À¯µ¿   AMPM_GB(¿ÀÀü¿ÀÈÄ±¸ºÐ) = '10' ¿ÀÀü  ÀúÀå
+   -- ìœ ë™ê¸°ì‚¬ ë°ì´í„°
+   -- FIX_GB ='0' ìœ ë™   AMPM_GB(ì˜¤ì „ì˜¤í›„êµ¬ë¶„) = '10' ì˜¤ì „  ì €ìž¥
    IF IN_CK = 'I' THEN
       SET V_CNT = 0;--
     ELSE
@@ -298,11 +298,11 @@ MAIN: BEGIN ATOMIC
          FROM GADMIN.BSUNHA1_D
         WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
           AND SUNBUN     = IN_OLD_SUNBUN
-          AND FIX_GB     = '2'                 -- °íÁ¤±¸ºÐ °íÁ¤
-          AND AMPM_GB    = V_AMPM_GB_AC        --  ¿ÀÀü
+          AND FIX_GB     = '2'                 -- ê³ ì •êµ¬ë¶„ ê³ ì •
+          AND AMPM_GB    = V_AMPM_GB_AC        --  ì˜¤ì „
         ;--
    END IF;--
-         -- Ãß°¡ ÀÔ·ÂµÈ µ¥ÀÌÅÍ ¾úÀ¸¸é INSERT
+         -- ì¶”ê°€ ìž…ë ¥ëœ ë°ì´í„° ì—ˆìœ¼ë©´ INSERT
    IF  V_CNT > 0 THEN
        UPDATE BSUNHA1_D
           SET ROUTE_CD      = IN_ROUTE_CD
@@ -330,8 +330,8 @@ MAIN: BEGIN ATOMIC
        VALUES
               ( IN_ROUTE_CD
              , IN_SUNBUN
-             , '2'    -- °íÁ¤±¸ºÐ :À¯µ¿
-             , V_AMPM_GB_AC --¿ÀÀü/¿ÀÈÄ±¸ºÐ : ¿ÀÀü
+             , '2'    -- ê³ ì •êµ¬ë¶„ :ìœ ë™
+             , V_AMPM_GB_AC --ì˜¤ì „/ì˜¤í›„êµ¬ë¶„ : ì˜¤ì „
              , IN_SABUN_C
              , CURRENT TIMESTAMP
              , IN_USER_ID
@@ -340,7 +340,7 @@ MAIN: BEGIN ATOMIC
        SET V_SAVE  = V_SAVE +  1000;--
    END IF;--
 
-   -- FIX_GB ='2' À¯µ¿   AMPM_GB(¿ÀÀü¿ÀÈÄ±¸ºÐ) = '20' ¿ÀÈÄ  ÀúÀå
+   -- FIX_GB ='2' ìœ ë™   AMPM_GB(ì˜¤ì „ì˜¤í›„êµ¬ë¶„) = '20' ì˜¤í›„  ì €ìž¥
    IF IN_CK = 'I' THEN
       SET V_CNT = 0;--
     ELSE
@@ -349,11 +349,11 @@ MAIN: BEGIN ATOMIC
          FROM GADMIN.BSUNHA1_D
         WHERE ROUTE_CD   = IN_OLD_ROUTE_CD
           AND SUNBUN     = IN_OLD_SUNBUN
-          AND FIX_GB     = '2'                 -- °íÁ¤±¸ºÐ °íÁ¤
-          AND AMPM_GB    = V_AMPM_GB_BD        --  ¿ÀÈÄ
+          AND FIX_GB     = '2'                 -- ê³ ì •êµ¬ë¶„ ê³ ì •
+          AND AMPM_GB    = V_AMPM_GB_BD        --  ì˜¤í›„
         ;--
    END IF;--
-         -- Ãß°¡ ÀÔ·ÂµÈ µ¥ÀÌÅÍ ¾úÀ¸¸é INSERT
+         -- ì¶”ê°€ ìž…ë ¥ëœ ë°ì´í„° ì—ˆìœ¼ë©´ INSERT
    IF  V_CNT > 0 THEN
        UPDATE BSUNHA1_D
           SET ROUTE_CD      = IN_ROUTE_CD
@@ -381,8 +381,8 @@ MAIN: BEGIN ATOMIC
        VALUES
               ( IN_ROUTE_CD
              , IN_SUNBUN
-             , '2'    -- °íÁ¤±¸ºÐ ; À¯µ¿
-             , V_AMPM_GB_BD --¿ÀÀü/¿ÀÈÄ±¸ºÐ : ¿ÀÈÄ
+             , '2'    -- ê³ ì •êµ¬ë¶„ ; ìœ ë™
+             , V_AMPM_GB_BD --ì˜¤ì „/ì˜¤í›„êµ¬ë¶„ : ì˜¤í›„
              , IN_SABUN_D
              , CURRENT TIMESTAMP
              , IN_USER_ID
@@ -392,6 +392,6 @@ MAIN: BEGIN ATOMIC
    END IF;--
 
 
-   SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'ÀúÀåµÇ¾ú½À´Ï´Ù.['||V_SAVE||']');--
+   SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'ì €ìž¥ë˜ì—ˆìŠµë‹ˆë‹¤.['||V_SAVE||']');--
 
-END MAIN 
+END MAIN

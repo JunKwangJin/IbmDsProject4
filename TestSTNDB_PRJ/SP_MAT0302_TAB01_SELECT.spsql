@@ -72,12 +72,12 @@ MAIN: BEGIN
                                                 SELECT CLASS, SUM(IN_AMT) AS IN_AMT, SUM(IN_TOT) AS IN_TOT
                                                    FROM (
                                                             SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT, 0 AS IN_TOT
-                                                              FROM  UNHANG07 A -- ÁÖÀ¯ ³»¿ª
+                                                              FROM  UNHANG07 A -- ì£¼ìœ  ë‚´ì—­
                                                              WHERE 1 = 1
                                                                AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                             UNION ALL
                                                             SELECT 'C.N.G' AS CLASS, 0 AS IN_AMT, SUM(A.PRICE) AS IN_TOT
-                                                              FROM  UNHANG07 A -- ÁÖÀ¯ ³»¿ª
+                                                              FROM  UNHANG07 A -- ì£¼ìœ  ë‚´ì—­
                                                              WHERE 1 = 1
                                                                AND A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
                                                           )
@@ -105,12 +105,12 @@ MAIN: BEGIN
                                                 SELECT CLASS, SUM(IN_AMT) AS IN_AMT, SUM(IN_TOT) AS IN_TOT
                                                    FROM (
                                                             SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT, 0 AS IN_TOT
-                                                              FROM  UNHANG07 A -- ÁÖÀ¯ ³»¿ª
+                                                              FROM  UNHANG07 A -- ì£¼ìœ  ë‚´ì—­
                                                              WHERE 1 = 1
                                                                AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                             UNION ALL
                                                             SELECT 'C.N.G' AS CLASS, 0 AS IN_AMT, SUM(A.PRICE) AS IN_TOT
-                                                              FROM  UNHANG07 A -- ÁÖÀ¯ ³»¿ª
+                                                              FROM  UNHANG07 A -- ì£¼ìœ  ë‚´ì—­
                                                              WHERE 1 = 1
                                                                AND A.DATE BETWEEN SUBSTRING(IN_FROMDATE,1,4)||'-01-01' AND IN_TODATE
                                                           )
@@ -124,4 +124,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

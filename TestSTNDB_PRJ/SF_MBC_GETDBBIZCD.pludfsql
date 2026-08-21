@@ -1,13 +1,13 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_GETDBBIZCD"
 --/*******************************************************************************
---ÆÄÀÏ¸í	: GADMIN.SF_MBC_GETDBBIZCD
---»ý¼ºÀÏÀÚ	: 2022.03.20
---»ý¼ºÀÚ	: Àü±¤Áø
---³»¿ë	    : ¾÷Ã¼º° DBÁ¤º¸ÄÚµå¸¦ °¡Á®¿À´Â ÇÔ¼ö
---¼öÁ¤ÀÏÀÚ	:
---¼öÁ¤ÀÚ	:
---¼öÁ¤³»¿ë    :
---¿¹Á¦
+--íŒŒì¼ëª…	: GADMIN.SF_MBC_GETDBBIZCD
+--ìƒì„±ì¼ìž	: 2022.03.20
+--ìƒì„±ìž	: ì „ê´‘ì§„
+--ë‚´ìš©	    : ì—…ì²´ë³„ DBì •ë³´ì½”ë“œë¥¼ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜
+--ìˆ˜ì •ì¼ìž	:
+--ìˆ˜ì •ìž	:
+--ìˆ˜ì •ë‚´ìš©    :
+--ì˜ˆì œ
 --SELECT * FROM GADMIN.SF_MBC_GETDBBIZCD(TimeID, PGM_ID, LOG_SEQ, DATA)
 --SELECT DISTINCT CLIENT_WRKSTNNAME FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2)) WHERE CLIENT_WRKSTNNAME IN ('192.168.219.161','172.26.16.1')
 --*******************************************************************************/

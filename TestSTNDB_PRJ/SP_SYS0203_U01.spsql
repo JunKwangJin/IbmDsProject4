@@ -25,7 +25,7 @@ MAIN: BEGIN
 
          DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                 P2: BEGIN
-                      SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.' ; --
+                      SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
                       SET OUT_CNT = '0'; --
                       RETURN; --
                 END P2;--
@@ -51,4 +51,4 @@ MAIN: BEGIN
 		  AND MENU_ID 		= IN_MENU_ID;--
 
 
-END MAIN 
+END MAIN

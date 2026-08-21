@@ -1,33 +1,33 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_BBSUSRINSERT"
 --/*******************************************************************************
---ÆÄÀÏ¸í	: GADMIN.SP_MBC_BBSUPDATE
---»ý¼ºÀÏÀÚ	: 2021.12.19
---»ý¼ºÀÚ	: Àü±¤Áø
---³»¿ë    	: ¸ð¹ÙÀÏ¿ë BBS UPDATE
---¼öÁ¤ÀÏÀÚ	: 2022.02.13
---¼öÁ¤ÀÚ	: Àü±¤Áø
---¼öÁ¤ÀÏÀÚ	: 2022.03.16
---¼öÁ¤ÀÚ	: Àü±¤Áø
---¼öÁ¤³»¿ë    : »ç¹øÀ¸·Î µî·ÏÇÒ¼ö ÀÖµµ·Ï º¯°æ
---        : »ç¹øÀ» Primary Key·Î ÁöÁ¤
---        : table¿¡ APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME Á¤º¸¸¦ ÀúÀåÇÔ
---¼öÁ¤ÀÏÀÚ	: 2022.05.06
---¼öÁ¤ÀÚ	: Àü±¤Áø
---¼öÁ¤³»¿ë    : DB Á¤º¸ Table(MBCDB.GADMIN.DBUSERS)ÀÇ ÄÚµå Á¤º¸¸¦ GADMIN.EBUS_COMMON_CÀÇ UP_CD = 'COM98' AND CD='10' ÀÇ ÄÃ·³ BIGO¿¡¼­ °¡Á®¿È
---        : »ç¹øÀ» Primary Key·Î ÁöÁ¤
---        : table¿¡ APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME Á¤º¸¸¦ ÀúÀåÇÔ
+--íŒŒì¼ëª…	: GADMIN.SP_MBC_BBSUPDATE
+--ìƒì„±ì¼ìž	: 2021.12.19
+--ìƒì„±ìž	: ì „ê´‘ì§„
+--ë‚´ìš©    	: ëª¨ë°”ì¼ìš© BBS UPDATE
+--ìˆ˜ì •ì¼ìž	: 2022.02.13
+--ìˆ˜ì •ìž	: ì „ê´‘ì§„
+--ìˆ˜ì •ì¼ìž	: 2022.03.16
+--ìˆ˜ì •ìž	: ì „ê´‘ì§„
+--ìˆ˜ì •ë‚´ìš©    : ì‚¬ë²ˆìœ¼ë¡œ ë“±ë¡í• ìˆ˜ ìžˆë„ë¡ ë³€ê²½
+--        : ì‚¬ë²ˆì„ Primary Keyë¡œ ì§€ì •
+--        : tableì— APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME ì •ë³´ë¥¼ ì €ìž¥í•¨
+--ìˆ˜ì •ì¼ìž	: 2022.05.06
+--ìˆ˜ì •ìž	: ì „ê´‘ì§„
+--ìˆ˜ì •ë‚´ìš©    : DB ì •ë³´ Table(MBCDB.GADMIN.DBUSERS)ì˜ ì½”ë“œ ì •ë³´ë¥¼ GADMIN.EBUS_COMMON_Cì˜ UP_CD = 'COM98' AND CD='10' ì˜ ì»¬ëŸ¼ BIGOì—ì„œ ê°€ì ¸ì˜´
+--        : ì‚¬ë²ˆì„ Primary Keyë¡œ ì§€ì •
+--        : tableì— APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME ì •ë³´ë¥¼ ì €ìž¥í•¨
 --Compile : 2022.5.6
---¼öÁ¤ÀÏÀÚ	: 2024.03.18
---¼öÁ¤ÀÚ	: Àü±¤Áø
---¼öÁ¤³»¿ë    : DB Á¤º¸ Table(MBCDB.GADMIN.DBUSERS)ÀÇ ÄÚµå Á¤º¸¸¦ GADMIN.EBUS_COMMON_CÀÇ UP_CD = 'COM98' AND CD='10' ÀÇ ÄÃ·³ BIGO¿¡¼­ °¡Á®¿È
---        : »ç¹øÀ» Primary Key·Î ÁöÁ¤
---        : table¿¡ APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME Á¤º¸¸¦ ÀúÀåÇÔ
+--ìˆ˜ì •ì¼ìž	: 2024.03.18
+--ìˆ˜ì •ìž	: ì „ê´‘ì§„
+--ìˆ˜ì •ë‚´ìš©    : DB ì •ë³´ Table(MBCDB.GADMIN.DBUSERS)ì˜ ì½”ë“œ ì •ë³´ë¥¼ GADMIN.EBUS_COMMON_Cì˜ UP_CD = 'COM98' AND CD='10' ì˜ ì»¬ëŸ¼ BIGOì—ì„œ ê°€ì ¸ì˜´
+--        : ì‚¬ë²ˆì„ Primary Keyë¡œ ì§€ì •
+--        : tableì— APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAME ì •ë³´ë¥¼ ì €ìž¥í•¨
 --Compile : 2022.5.6
 --    INPUT IN IN_BBSID       1. BBSID KEY
---          IN IN_CELLPHONE   2. ÈÞ´ëÆù ¹øÈ£
---          IN IN_INSA_NO     3. »ç¹ø
---OUTPUT  : OUT_CNT	          A.Ã³¸®COUNT
---        : OUT_MSG           B.Ã³¸®°á°ú¸Þ½ÃÁö
+--          IN IN_CELLPHONE   2. íœ´ëŒ€í° ë²ˆí˜¸
+--          IN IN_INSA_NO     3. ì‚¬ë²ˆ
+--OUTPUT  : OUT_CNT	          A.ì²˜ë¦¬COUNT
+--        : OUT_MSG           B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 --*******************************************************************************/
 (
    IN IN_BBSID             VARCHAR(14),
@@ -58,36 +58,36 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE CHAR(5) DEFAULT '00000';--
 
-    DECLARE LEN_UNDER     CONDITION FOR SQLSTATE '01004';-- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER      CONDITION FOR SQLSTATE '22001';-- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL      CONDITION FOR SQLSTATE '23502';-- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO       CONDITION FOR SQLSTATE '23505';-- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE      CONDITION FOR SQLSTATE '42704';-- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER     CONDITION FOR SQLSTATE '01004';-- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER      CONDITION FOR SQLSTATE '22001';-- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL      CONDITION FOR SQLSTATE '23502';-- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO       CONDITION FOR SQLSTATE '23505';-- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE      CONDITION FOR SQLSTATE '42704';-- TABLEì´ ì—†ì„ë–„
 
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, '');--''WRR01: '||COALESCE(V_KEY_MSG,'')||'ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'                    ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.'          ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_MSG) = (SQLSTATE, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'      ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
 
---  º¯¼ö Å¬¸®¾î
+--  ë³€ìˆ˜ í´ë¦¬ì–´
     SET (OUT_CNT, OUT_MSG) =('0','');--
 --    SET V_SAVE = 0;--
 --    P1: BEGIN
     SET (OUT_CNT, OUT_MSG) =('0','');--
-    
--- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAMEÀ» °¡Á®¿Â´Ù
+
+-- APPLICATION_ID, APPLICATION_NAME, CLIENT_HOSTNAMEì„ ê°€ì ¸ì˜¨ë‹¤
     SET V_APPLICATION_ID = SYSPROC.MON_GET_APPLICATION_ID();--
     SET (V_APPLICATION_NAME, V_CLIENT_HOSTNAME)
             = (SELECT APPLICATION_NAME, CLIENT_HOSTNAME
                  FROM TABLE(MON_GET_CONNECTION(CAST(NULL AS BIGINT),-2))
                 WHERE APPLICATION_ID = V_APPLICATION_ID);--
-    
--- DATA »ðÀÔ
+
+-- DATA ì‚½ìž…
     SET V_KEY_MSG = IN_BBSID;
 INSERT INTO GADMIN.MBC_BBSUSERS(
             BBSID
@@ -109,6 +109,6 @@ INSERT INTO GADMIN.MBC_BBSUSERS(
           , CURRENT TIMESTAMP
           )
           ;--
-SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'¼ö½ÅÀÚ Ãß°¡µÇ¾ú½À´Ï´Ù.');--
+SET (OUT_CNT, OUT_MSG) = ('1', OUT_MSG||CHR(13)||'ìˆ˜ì‹ ìž ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.');--
 RETURN 1;
-END MAIN 
+END MAIN

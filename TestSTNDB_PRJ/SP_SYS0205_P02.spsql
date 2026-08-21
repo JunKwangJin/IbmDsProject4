@@ -21,7 +21,7 @@ MAIN: BEGIN
 
         DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                E1: BEGIN
-                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: ½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.' ; --
+                     SET OUT_MSG = SQLCODE || CHR(13) || 'ERR02: ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
                      SET OUT_CNT = '-1'; --
                      RETURN; --
                END E1;--
@@ -42,7 +42,7 @@ MAIN: BEGIN
         IF V_CNT > 0 THEN
 
             SET OUT_CNT = '0';--
-            SET OUT_MSG = '±ÇÇÑ±×·ìº° »ç¿ëÀÚ°¡ Áßº¹µÇ¾ú½À´Ï´Ù' || CHR(13) || '»ç¹ø : ' || IN_USER_ID ;--
+            SET OUT_MSG = 'ê¶Œí•œê·¸ë£¹ë³„ ì‚¬ìš©ìžê°€ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤' || CHR(13) || 'ì‚¬ë²ˆ : ' || IN_USER_ID ;--
 
             ROLLBACK;--
             RETURN;--
@@ -54,7 +54,7 @@ MAIN: BEGIN
         P2: BEGIN
                  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                         E2: BEGIN
-                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: ÀÚ·á ÀúÀå ½Ã ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.' ; --
+                             SET OUT_MSG = SQLCODE || CHR(13) || 'ERR01: ìžë£Œ ì €ìž¥ ì‹œ ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.' ; --
                              SET OUT_CNT = '-1'; --
                              ROLLBACK ; --
                              RETURN ;--
@@ -81,8 +81,8 @@ MAIN: BEGIN
 
         END P2 ;--
 
-        SET OUT_MSG = 'ÀúÀåµÇ¾ú½À´Ï´Ù.' ; --
+        SET OUT_MSG = 'ì €ìž¥ë˜ì—ˆìŠµë‹ˆë‹¤.' ; --
         SET OUT_CNT = '1';            --
 
 
-END MAIN 
+END MAIN

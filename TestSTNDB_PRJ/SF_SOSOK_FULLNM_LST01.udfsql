@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_SOSOK_FULLNM_LST01"
 (
-        IN IN_SOSOK_CD      VARCHAR(10)             --╪р╪сдз╣Е
+        IN IN_SOSOK_CD      VARCHAR(10)             --Л├▄Л├█Л╫■К⌠°
 )
 
 RETURNS

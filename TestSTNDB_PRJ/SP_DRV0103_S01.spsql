@@ -6,19 +6,19 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_DRV0103_S01"
     OUT OUT_MSG VARCHAR(10000)
 )
 /*******************************************************************************
-ÆÄÀÏ¸í	: GADMIN.SP_DRV0103_S01
-»ý¼ºÀÏÀÚ	: 2021.04.09
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ¿îÇà°èÅë Á¶È¸ ÀÔ´Ï´Ù.
-USAGE   : GADMIN.SP_DRV0103_S01(USER ID, Æí¼º±¸ºÐ)
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë	:
-INPUT	: IN_USER_ID        1.»ç¿ëÀÚ ID
-	    : IN_PYEON_GB	    2.ÄÚµå¸í
+íŒŒì¼ëª…	: GADMIN.SP_DRV0103_S01
+ìƒì„±ì¼ìž	: 2021.04.09
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ìš´í–‰ê³„í†µ ì¡°íšŒ ìž…ë‹ˆë‹¤.
+USAGE   : GADMIN.SP_DRV0103_S01(USER ID, íŽ¸ì„±êµ¬ë¶„)
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©	:
+INPUT	: IN_USER_ID        1.ì‚¬ìš©ìž ID
+	    : IN_PYEON_GB	    2.ì½”ë“œëª…
 
-OUTPUT	: OUT_CNT	    	A.Ã³¸®COUNT
-	    : OUT_MSG	        B.Ã³¸®°á°ú¸Þ½ÃÁö
+OUTPUT	: OUT_CNT	    	A.ì²˜ë¦¬COUNT
+	    : OUT_MSG	        B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 *******************************************************************************/
 
   DYNAMIC RESULT SETS 1
@@ -37,7 +37,7 @@ MAIN: BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET V_SQLSTATE = SQLSTATE; --SET V_RETURN_VALUE = SQLCODE; --'DATA NOT FOUND'; --
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET V_SQLSTATE = SQLSTATE; --
 --                    OUT_RESULT_CD  := '1';--
---                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.±¸¸Å»ó¼¼³»¿ª Áö±ÞÀÏÀÚ ¾÷µ¥ÀÌÆ® °úÁ¤ Áß ¿À·ù°¡ ¹ß»ýÇß½À´Ï´Ù. ' ; --
+--                    OUT_RESULT_MSG := SQLERRM || CHR(13) || 'ERR01: ' || ' 2.êµ¬ë§¤ìƒì„¸ë‚´ì—­ ì§€ê¸‰ì¼ìž ì—…ë°ì´íŠ¸ ê³¼ì • ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. ' ; --
 --                    ROLLBACK;--
 --                    RETURN;--
 
@@ -119,4 +119,4 @@ MAIN: BEGIN
 
         OPEN CURSOR_DRV;--
    END P1;--
-END MAIN 
+END MAIN

@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."SP_ACC_MANAGE_NM_2_BSTRADE_SELECT"
 (
     IN IN_NM VARCHAR(45),
-    IN IN_M_CD VARCHAR(9)  -- SP_MANAGE_NM_2_SELECTÀÇ ÆÄ¶ó¸ÞÅÍ °¹¼ö¸¦ ÀÏÄ¡ ÇÏ±â À§ÇØ ¸¸µë...
+    IN IN_M_CD VARCHAR(9)  -- SP_MANAGE_NM_2_SELECTì˜ íŒŒë¼ë©”í„° ê°¯ìˆ˜ë¥¼ ì¼ì¹˜ í•˜ê¸° ìœ„í•´ ë§Œë“¬...
 )
   DYNAMIC RESULT SETS 1
   LANGUAGE SQL
@@ -16,10 +16,10 @@ MAIN: BEGIN
            FROM  GADMIN.BSTRADE
           WHERE 1 = 1
             AND USE != 'N'
-            AND GUBUN IN ('','¸ÅÀÔ','¸ÅÃâ')
+            AND GUBUN IN ('','ë§¤ìž…','ë§¤ì¶œ')
             AND ( SANGHO_CD LIKE '%'||IN_NM||'%'
              OR SANGHO LIKE '%'||IN_NM||'%' )
-         ORDER BY regexp_replace(SANGHO,'\(.\)|\(..\)|[[:punct:]]|[0-9]|¥°|¥±|¥²|¥³|¥´|¥µ|¥¶|¥·|¥¸|¥¹| ');-- (ÁÖ)¿Í °°Àº ¸Ó¸®¸» •û°í ¸íÄªÀ¸·Î¸¸ Á¤·Ä(21.9.2/Àü±¤Áø)
+         ORDER BY regexp_replace(SANGHO,'\(.\)|\(..\)|[[:punct:]]|[0-9]|â… |â…¡|â…¢|â…£|â…¤|â…¥|â…¦|â…§|â…¨|â…©| ');-- (ì£¼)ì™€ ê°™ì€ ë¨¸ë¦¬ë§ ëº´ê³  ëª…ì¹­ìœ¼ë¡œë§Œ ì •ë ¬(21.9.2/ì „ê´‘ì§„)
 	    OPEN CURSOR_MNG;--
     END P1;--
-END MAIN 
+END MAIN

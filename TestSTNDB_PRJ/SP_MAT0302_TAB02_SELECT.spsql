@@ -26,7 +26,7 @@ MAIN: BEGIN
                                 UNION ALL
                                 SELECT 'C.N.G'
                                   FROM SYSIBM.SYSDUMMY1 ) A
-                            LEFT OUTER JOIN ( --¿Ãø˘±›æ◊
+                            LEFT OUTER JOIN ( --Ïù¥ÏõîÍ∏àÏï°
                                                 SELECT A.CLASS, SUM(AMT) AS EWOL_AMT
                                                   FROM GADMIN.BSJAJA A
                                                         LEFT OUTER JOIN
@@ -51,7 +51,7 @@ MAIN: BEGIN
                                                         ) B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  GROUP BY A.CLASS
                                                ) B ON (A.CLASS = B.CLASS)
-                            LEFT OUTER JOIN ( --¿‘∞Ì±›æ◊
+                            LEFT OUTER JOIN ( --ÏûÖÍ≥†Í∏àÏï°
                                                 SELECT CLASS, IN_AMT
                                                   FROM (
                                                             SELECT B.CLASS, SUM(A.SUPPLY_PRICE) AS IN_AMT
@@ -65,13 +65,13 @@ MAIN: BEGIN
                                                             SELECT CLASS, SUM(IN_AMT) AS IN_AMT
                                                                FROM (
                                                                         SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
-                                                                          FROM  GADMIN.UNHANG07 A -- ¡÷¿Ø ≥ªø™
+                                                                          FROM  GADMIN.UNHANG07 A -- Ï£ºÏú† ÎÇ¥Ïó≠
                                                                          WHERE 1 = 1
                                                                            AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                                       )
                                                              GROUP BY CLASS
                                                          )) C ON (A.CLASS = C.CLASS)
-                            LEFT OUTER JOIN ( --≥Îº±√—æ◊
+                            LEFT OUTER JOIN ( --ÎÖ∏ÏÑ†Ï¥ùÏï°
                                                 SELECT B.CLASS, SUM(PRICE) AS R_AMT
                                                    FROM JACHUL1 A
                                                          LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -80,7 +80,7 @@ MAIN: BEGIN
                                                     AND EVENT_GB != 'Y'
                                                 GROUP BY B.CLASS
                                               ) D ON (A.CLASS = D.CLASS)
-                            LEFT OUTER JOIN ( --ªÁ∞Ì√—æ◊
+                            LEFT OUTER JOIN ( --ÏÇ¨Í≥†Ï¥ùÏï°
                                                 SELECT B.CLASS, SUM(PRICE) AS SA_AMT
                                                   FROM JACHUL1 A
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -88,7 +88,7 @@ MAIN: BEGIN
                                                    AND EVENT_GB = 'Y'
                                                 GROUP BY B.CLASS
                                               ) E ON (A.CLASS = E.CLASS)
-                            LEFT OUTER JOIN ( --±‚≈∏±›æ◊
+                            LEFT OUTER JOIN ( --Í∏∞ÌÉÄÍ∏àÏï°
                                                  SELECT B.CLASS, SUM(PRICE) AS ETC_AMT
                                                   FROM JACHUL6 A
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -96,7 +96,7 @@ MAIN: BEGIN
                                                    AND EVENT_GB = 'Y'
                                                 GROUP BY B.CLASS
                                               ) F ON (A.CLASS = F.CLASS)
-                            LEFT OUTER JOIN ( --√‚∞Ì±›æ◊
+                            LEFT OUTER JOIN ( --Ï∂úÍ≥†Í∏àÏï°
                                                 SELECT CLASS, OUT_AMT
                                                   FROM (
                                                             SELECT B.CLASS, SUM(A.PRICE) AS OUT_AMT
@@ -109,7 +109,7 @@ MAIN: BEGIN
                                                             SELECT CLASS, SUM(IN_AMT) AS OUT_AMT
                                                                FROM (
                                                                         SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
-                                                                          FROM  GADMIN.UNHANG07 A -- ¡÷¿Ø ≥ªø™
+                                                                          FROM  GADMIN.UNHANG07 A -- Ï£ºÏú† ÎÇ¥Ïó≠
                                                                          WHERE 1 = 1
                                                                            AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                                       )
@@ -117,8 +117,8 @@ MAIN: BEGIN
                                                          )
                                               ) G ON (A.CLASS = G.CLASS)
                     UNION ALL
-                    --«’∞Ë¥¬ ¿ß¿« ƒı∏Æ∏¶ ∫Ÿø© «’∞Ë∏∏ √‚∑¬
-                    SELECT '«’∞Ë' AS CLASS, COALESCE(SUM(EWOL_AMT),0) AS EWOL_AMT, COALESCE(SUM(IN_AMT),0) AS IN_AMT, COALESCE(SUM(R_AMT),0) AS R_TOT, 0 AS R2_AMT
+                    --Ìï©Í≥ÑÎäî ÏúÑÏùò ÏøºÎ¶¨Î•º Î∂ôÏó¨ Ìï©Í≥ÑÎßå Ï∂úÎ†•
+                    SELECT 'Ìï©Í≥Ñ' AS CLASS, COALESCE(SUM(EWOL_AMT),0) AS EWOL_AMT, COALESCE(SUM(IN_AMT),0) AS IN_AMT, COALESCE(SUM(R_AMT),0) AS R_TOT, 0 AS R2_AMT
                         , COALESCE(SUM(SA_AMT),0) AS SA_AMT, 0 AS SA2_AMT, COALESCE(SUM(ETC_AMT),0) AS ETC_AMT, COALESCE(SUM(OUT_AMT),0) AS OUT_AMT
                           ,  COALESCE(SUM(JAE_AMT),0)AS JAE_AMT
                       FROM
@@ -133,7 +133,7 @@ MAIN: BEGIN
                                 UNION ALL
                                 SELECT 'C.N.G'
                                   FROM SYSIBM.SYSDUMMY1 ) A
-                            LEFT OUTER JOIN ( --¿Ãø˘±›æ◊
+                            LEFT OUTER JOIN ( --Ïù¥ÏõîÍ∏àÏï°
                                                 SELECT A.CLASS, SUM(AMT) AS EWOL_AMT
                                                   FROM GADMIN.BSJAJA A
                                                         LEFT OUTER JOIN
@@ -158,7 +158,7 @@ MAIN: BEGIN
                                                         ) B ON (A.PRODUC_NO = B.PRODUC_NO)
                                                  GROUP BY A.CLASS
                                                ) B ON (A.CLASS = B.CLASS)
-                            LEFT OUTER JOIN ( --¿‘∞Ì±›æ◊
+                            LEFT OUTER JOIN ( --ÏûÖÍ≥†Í∏àÏï°
                                                 SELECT CLASS, IN_AMT
                                                   FROM (
                                                             SELECT B.CLASS, SUM(A.SUPPLY_PRICE) AS IN_AMT
@@ -172,14 +172,14 @@ MAIN: BEGIN
                                                             SELECT CLASS, SUM(IN_AMT) AS IN_AMT
                                                                FROM (
                                                                         SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
-                                                                          FROM  GADMIN.UNHANG07 A -- ¡÷¿Ø ≥ªø™
+                                                                          FROM  GADMIN.UNHANG07 A -- Ï£ºÏú† ÎÇ¥Ïó≠
                                                                          WHERE 1 = 1
                                                                            AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                                       )
                                                              GROUP BY CLASS
                                                          )
                                                ) C ON (A.CLASS = C.CLASS)
-                            LEFT OUTER JOIN ( --≥Îº±√—æ◊
+                            LEFT OUTER JOIN ( --ÎÖ∏ÏÑ†Ï¥ùÏï°
                                                 SELECT B.CLASS, SUM(PRICE) AS R_AMT
                                                    FROM GADMIN.JACHUL1 A
                                                          LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -188,7 +188,7 @@ MAIN: BEGIN
                                                     AND EVENT_GB != 'Y'
                                                 GROUP BY B.CLASS
                                               ) D ON (A.CLASS = D.CLASS)
-                            LEFT OUTER JOIN ( --ªÁ∞Ì√—æ◊
+                            LEFT OUTER JOIN ( --ÏÇ¨Í≥†Ï¥ùÏï°
                                                 SELECT B.CLASS, SUM(PRICE) AS SA_AMT
                                                   FROM GADMIN.JACHUL1 A
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -196,7 +196,7 @@ MAIN: BEGIN
                                                    AND EVENT_GB = 'Y'
                                                 GROUP BY B.CLASS
                                               ) E ON (A.CLASS = E.CLASS)
-                            LEFT OUTER JOIN ( --±‚≈∏±›æ◊
+                            LEFT OUTER JOIN ( --Í∏∞ÌÉÄÍ∏àÏï°
                                                  SELECT B.CLASS, SUM(PRICE) AS ETC_AMT
                                                   FROM JACHUL6 A
                                                         LEFT OUTER JOIN GADMIN.BSJAJA B ON (A.PRODUC_NO = B.PRODUC_NO)
@@ -204,7 +204,7 @@ MAIN: BEGIN
                                                    AND EVENT_GB = 'Y'
                                                 GROUP BY B.CLASS
                                               ) F ON (A.CLASS = F.CLASS)
-                            LEFT OUTER JOIN ( --√‚∞Ì±›æ◊
+                            LEFT OUTER JOIN ( --Ï∂úÍ≥†Í∏àÏï°
                                                 SELECT CLASS, OUT_AMT
                                                   FROM (
                                                             SELECT B.CLASS, SUM(A.PRICE) AS OUT_AMT
@@ -217,7 +217,7 @@ MAIN: BEGIN
                                                             SELECT CLASS, SUM(IN_AMT) AS OUT_AMT
                                                                FROM (
                                                                         SELECT 'C.N.G' AS CLASS, SUM(A.PRICE) AS IN_AMT
-                                                                          FROM  UNHANG07 A -- ¡÷¿Ø ≥ªø™
+                                                                          FROM  UNHANG07 A -- Ï£ºÏú† ÎÇ¥Ïó≠
                                                                          WHERE 1 = 1
                                                                            AND A.DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                                                       )
@@ -232,4 +232,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

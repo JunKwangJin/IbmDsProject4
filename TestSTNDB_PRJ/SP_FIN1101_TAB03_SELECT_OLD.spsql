@@ -24,21 +24,21 @@ P1: BEGIN
     INSERT INTO SESSION.TEMP
     SELECT A.ACC_CD, '  '||A.ACC_NM AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
-            --¥Á±‚
+            --ÎãπÍ∏∞
             SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = '¿⁄ªÍ'
+               AND B.ACC_GB = 'ÏûêÏÇ∞'
                AND A.ACC_CD LIKE '1%'
                AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
              GROUP BY A.ACC_CD, A.ACC_NM
              UNION ALL
-             SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+             SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
               WHERE 1 = 1
                 AND A.ACC_CD = B.ACC_CD
-                AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                 AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
               GROUP BY A.ACC_CD, A.ACC_NM
               UNION ALL
@@ -46,7 +46,7 @@ P1: BEGIN
               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = '¿⁄ªÍ'
+               AND B.ACC_GB = 'ÏûêÏÇ∞'
                AND A.ACC_CD LIKE '1%'
              GROUP BY A.ACC_CD, A.ACC_NM
              UNION ALL
@@ -54,21 +54,21 @@ P1: BEGIN
               FROM GADMIN.EBUS_FIN_INCOME A
              WHERE A.ACC_CD = '7300909'
              UNION ALL
-             --¿¸±‚
+             --Ï†ÑÍ∏∞
             SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.DR_AMT - A.CR_AMT) AS BE_AMT, 0 AS BE_TOT
               FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = '¿⁄ªÍ'
+               AND B.ACC_GB = 'ÏûêÏÇ∞'
                AND A.ACC_CD LIKE '1%'
                AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
              GROUP BY A.ACC_CD, A.ACC_NM
              UNION ALL
-             SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
+             SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
               WHERE 1 = 1
                 AND A.ACC_CD = B.ACC_CD
-                AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
               GROUP BY A.ACC_CD, A.ACC_NM
               UNION ALL
@@ -76,7 +76,7 @@ P1: BEGIN
               FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
              WHERE 1 = 1
                AND A.ACC_CD = B.ACC_CD
-               AND B.ACC_GB = '¿⁄ªÍ'
+               AND B.ACC_GB = 'ÏûêÏÇ∞'
                AND A.ACC_CD LIKE '1%'
              GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
@@ -84,24 +84,24 @@ P1: BEGIN
           AND NOT (CU_AMT = 0 AND CU_TOT = 0 AND BE_AMT = 0 AND BE_TOT = 0)
     GROUP BY A.ACC_CD, A.ACC_NM;--
 
---¿⁄ªÍ   8,022,813,907
+--ÏûêÏÇ∞   8,022,813,907
     INSERT INTO SESSION.TEMP
-    SELECT  '1000000' AS ACC_CD, '(¿⁄        ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1000000' AS ACC_CD, '(Ïûê        ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '1%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -109,25 +109,25 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '1%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '1%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -135,31 +135,31 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '1%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
- --(¿Ø µø  ¿⁄ ªÍ)  1100000  1,653,196,746
+ --(Ïú† Îèô  Ïûê ÏÇ∞)  1100000  1,653,196,746
     INSERT INTO SESSION.TEMP
-    SELECT  '1100000' AS ACC_CD, '(¿Ø µø  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1100000' AS ACC_CD, '(Ïú† Îèô  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -167,25 +167,25 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -193,31 +193,31 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11%'
                  GROUP BY A.ACC_CD, A.ACC_NM         ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
 
- --(¥Á ¡¬  ¿⁄ ªÍ)  1100000  1,200,164,450
+ --(Îãπ Ï¢å  Ïûê ÏÇ∞)  1100000  1,200,164,450
     INSERT INTO SESSION.TEMP
-    SELECT  '1110000' AS ACC_CD, '(¥Á ¡¬  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1110000' AS ACC_CD, '(Îãπ Ï¢å  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '111%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -225,25 +225,25 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '111%'
                  GROUP BY A.ACC_CD, A.ACC_NM
-            --¿¸±‚
+            --Ï†ÑÍ∏∞
             UNION ALL
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '111%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -251,30 +251,30 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '111%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
---  «ˆ±›π◊«ˆ±›µÓ∞°π∞  1100100  234,388,369
+--  ÌòÑÍ∏àÎ∞èÌòÑÍ∏àÎì±Í∞ÄÎ¨º  1100100  234,388,369
     INSERT INTO SESSION.TEMP
-    SELECT  '1110100' AS ACC_CD, '  «ˆ±›π◊«ˆ±›µÓ∞°π∞' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1110100' AS ACC_CD, '  ÌòÑÍ∏àÎ∞èÌòÑÍ∏àÎì±Í∞ÄÎ¨º' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11101%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -282,25 +282,25 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11101%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              UNION ALL
-             --¿¸±‚
+             --Ï†ÑÍ∏∞
              SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11101%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                 SELECT '1110101' AS ACC_CD, '«ˆ          ±›' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
+                 SELECT '1110101' AS ACC_CD, 'ÌòÑ          Í∏à' AS ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                    FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                   WHERE 1 = 1
                     AND A.ACC_CD = B.ACC_CD
-                    AND A.DRCR_GB IN ('¿‘±›','√‚±›')
+                    AND A.DRCR_GB IN ('ÏûÖÍ∏à','Ï∂úÍ∏à')
                     AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                   GROUP BY A.ACC_CD, A.ACC_NM
                   UNION ALL
@@ -308,22 +308,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11101%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
---  ∏≈  √‚  √§  ±«  1110400
+--  Îß§  Ï∂ú  Ï±Ñ  Í∂å  1110400
     INSERT INTO SESSION.TEMP
-    SELECT '1110400' AS ACC_CD, ' '||'∏≈  √‚  √§  ±«' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '1110400' AS ACC_CD, ' '||'Îß§  Ï∂ú  Ï±Ñ  Í∂å' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '1110400%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -332,16 +332,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '1110400%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '1110400%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -350,22 +350,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '1110400%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
---  ¿”ø¯¡ææ˜ø¯¥‹±‚¥Îø©±›  1110800  271,527
+--  ÏûÑÏõêÏ¢ÖÏóÖÏõêÎã®Í∏∞ÎåÄÏó¨Í∏à  1110800  271,527
     INSERT INTO SESSION.TEMP
-    SELECT  '1110800' AS ACC_CD, ' '||'¿”ø¯¡ææ˜ø¯¥‹±‚¥Îø©±›' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1110800' AS ACC_CD, ' '||'ÏûÑÏõêÏ¢ÖÏóÖÏõêÎã®Í∏∞ÎåÄÏó¨Í∏à' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, SUM(A.DR_AMT - A.CR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11108%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -374,16 +374,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11108%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.DR_AMT - A.CR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11108%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -392,21 +392,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11108%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
---  (¿Á ∞Ì  ¿⁄ ªÍ)  1120000  453,032,296
+--  (Ïû¨ Í≥†  Ïûê ÏÇ∞)  1120000  453,032,296
     INSERT INTO SESSION.TEMP
-    SELECT  '1120000' AS ACC_CD, '(¿Á ∞Ì  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1120000' AS ACC_CD, '(Ïû¨ Í≥†  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '112%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -415,16 +415,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '112%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '112%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -433,21 +433,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '112%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
---  ¿˙    ¿Â    «∞  1120100
+--  Ï†Ä    Ïû•    Ìíà  1120100
     INSERT INTO SESSION.TEMP
-    SELECT  '1120100' AS ACC_CD, '  '||'¿˙    ¿Â    «∞' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1120100' AS ACC_CD, '  '||'Ï†Ä    Ïû•    Ìíà' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11201%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -456,16 +456,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11201%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11201%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -474,22 +474,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '11201%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
---  (∞Ì ¡§  ¿⁄ ªÍ)  1200000  6,369,617,161
+--  (Í≥† Ï†ï  Ïûê ÏÇ∞)  1200000  6,369,617,161
     INSERT INTO SESSION.TEMP
-    SELECT  '1200000' AS ACC_CD, '(∞Ì ¡§  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1200000' AS ACC_CD, '(Í≥† Ï†ï  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '12%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -498,16 +498,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '12%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '12%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -516,22 +516,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '12%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
---  (≈ı ¿⁄  ¿⁄ ªÍ)  1210000  84,453,000
+--  (Ìà¨ Ïûê  Ïûê ÏÇ∞)  1210000  84,453,000
     INSERT INTO SESSION.TEMP
-    SELECT  '1210000' AS ACC_CD, '(≈ı ¿⁄  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1210000' AS ACC_CD, '(Ìà¨ Ïûê  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
@@ -539,17 +539,17 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT,  SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
@@ -557,22 +557,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '121%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
---    ¿Â±‚ ±›¿∂ ªÛ«∞  1210100  84,453,000
+--    Ïû•Í∏∞ Í∏àÏúµ ÏÉÅÌíà  1210100  84,453,000
     INSERT INTO SESSION.TEMP
-    SELECT  '1210100' AS ACC_CD, '  '||'¿Â±‚ ±›¿∂ ªÛ«∞' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1210100' AS ACC_CD, '  '||'Ïû•Í∏∞ Í∏àÏúµ ÏÉÅÌíà' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
@@ -580,17 +580,17 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT,  SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
@@ -598,22 +598,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
-                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDøÕ CHULRYEOK_CD∞° ¥ﬁ∂Û ACC_CD∏¶ ªÁøÎ∏¯«‘(¡˝∞Ëµµ ∆≤∏≤)
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
+                   AND B.CHULRYEOK_CD LIKE '12101%'  --ACC_CDÏôÄ CHULRYEOK_CDÍ∞Ä Îã¨Îùº ACC_CDÎ•º ÏÇ¨Ïö©Î™ªÌï®(ÏßëÍ≥ÑÎèÑ ÌãÄÎ¶º)
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
---(¿Ø «¸  ¿⁄ ªÍ)  1200000  5,735,164,161
+--(Ïú† Ìòï  Ïûê ÏÇ∞)  1200000  5,735,164,161
     INSERT INTO SESSION.TEMP
-    SELECT  '1220000' AS ACC_CD, '(π´ «¸  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1220000' AS ACC_CD, '(Î¨¥ Ìòï  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '122%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -622,16 +622,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '122%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '122%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -640,57 +640,57 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND A.ACC_CD LIKE '122%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
---   ∞®∞°ªÛ∞¢√Ê¥Á±›(∞«π∞)  1220300
+--   Í∞êÍ∞ÄÏÉÅÍ∞ÅÏ∂©ÎãπÍ∏à(Í±¥Î¨º)  1220300
     UPDATE SESSION.TEMP
         SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220200','1220300') ),
              BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220200','1220300') )
       WHERE ACC_CD = '1220300';--
 
--- ∞®∞°ªÛ∞¢√Ê¥Á±›(±∏√‡)  1220500
+-- Í∞êÍ∞ÄÏÉÅÍ∞ÅÏ∂©ÎãπÍ∏à(Íµ¨Ï∂ï)  1220500
     UPDATE SESSION.TEMP
         SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220400','1220500') ),
              BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220400','1220500') )
       WHERE ACC_CD = '1220500';--
 
--- ∞®∞°ªÛ∞¢√Ê¥Á±›(±‚∞¯)  1220700
+-- Í∞êÍ∞ÄÏÉÅÍ∞ÅÏ∂©ÎãπÍ∏à(Í∏∞Í≥µ)  1220700
     UPDATE SESSION.TEMP
         SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220600','1220700') ),
              BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220600','1220700') )
       WHERE ACC_CD = '1220700';--
 
--- ∞®∞°ªÛ∞¢√Ê¥Á±›(∫Ò«∞)  1220900
+-- Í∞êÍ∞ÄÏÉÅÍ∞ÅÏ∂©ÎãπÍ∏à(ÎπÑÌíà)  1220900
     UPDATE SESSION.TEMP
         SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220800','1220900') ),
              BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1220800','1220900') )
       WHERE ACC_CD = '1220900';--
 
--- ∞®∞°ªÛ∞¢√Ê¥Á±›(¿⁄∞°)  1221100
+-- Í∞êÍ∞ÄÏÉÅÍ∞ÅÏ∂©ÎãπÍ∏à(ÏûêÍ∞Ä)  1221100
     UPDATE SESSION.TEMP
         SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221000','1221100') ),
              BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221000','1221100') )
       WHERE ACC_CD = '1221100';--
 
--- ∞®∞°ªÛ∞¢√Ê¥Á±›(øµæ˜)  1221300
+-- Í∞êÍ∞ÄÏÉÅÍ∞ÅÏ∂©ÎãπÍ∏à(ÏòÅÏóÖ)  1221300
     UPDATE SESSION.TEMP
         SET CU_TOT = (SELECT SUM(CU_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221200','1221300') ),
              BE_TOT = (SELECT SUM(BE_AMT) FROM SESSION.TEMP WHERE ACC_CD IN ('1221200','1221300') )
       WHERE ACC_CD = '1221300';                               --
 
---(π´ «¸  ¿⁄ ªÍ)  1200000  550,000,000
+--(Î¨¥ Ìòï  Ïûê ÏÇ∞)  1200000  550,000,000
     INSERT INTO SESSION.TEMP
-    SELECT  '1230000' AS ACC_CD, '(π´ «¸  ¿⁄ ªÍ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT  '1230000' AS ACC_CD, '(Î¨¥ Ìòï  Ïûê ÏÇ∞)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.DR_AMT - A.CR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '123%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -699,16 +699,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '123%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.DR_AMT - A.CR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '123%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -717,16 +717,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄ªÍ'
+                   AND B.ACC_GB = 'ÏûêÏÇ∞'
                    AND B.CHULRYEOK_CD LIKE '123%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
---((¿⁄ ªÍ √— ∞Ë))   8,022,813,907
+--((Ïûê ÏÇ∞ Ï¥ù Í≥Ñ))   8,022,813,907
     INSERT INTO SESSION.TEMP
-    SELECT  '1999999' AS ACC_CD, '((¿⁄ ªÍ √— ∞Ë))' AS ACC_NM, SUM(CU_TOT) AS CU_AMT, SUM(CU_AMT) AS CU_TOT, SUM(BE_TOT) AS BE_AMT, SUM(BE_AMT) AS BE_TOT
+    SELECT  '1999999' AS ACC_CD, '((Ïûê ÏÇ∞ Ï¥ù Í≥Ñ))' AS ACC_NM, SUM(CU_TOT) AS CU_AMT, SUM(CU_AMT) AS CU_TOT, SUM(BE_TOT) AS BE_AMT, SUM(BE_AMT) AS BE_TOT
       FROM SESSION.TEMP
      WHERE ACC_CD = '1000000';--
 
@@ -738,7 +738,7 @@ P1: BEGIN
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -747,16 +747,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -765,7 +765,7 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
@@ -773,15 +773,15 @@ P1: BEGIN
      GROUP BY A.ACC_CD, A.ACC_NM, B.CHULRYEOK_CD
      ORDER BY B.CHULRYEOK_CD;--
 
-    --¿Øµø∫Œ√§
+    --Ïú†ÎèôÎ∂ÄÏ±Ñ
     INSERT INTO SESSION.TEMP
-    SELECT '2100000' AS ACC_CD, '(¿Ø µø  ∫Œ √§)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '2100000' AS ACC_CD, '(Ïú† Îèô  Î∂Ä Ï±Ñ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -790,16 +790,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -808,21 +808,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
-    --  πÃ  ¡ˆ  ±ﬁ  ±›
+    --  ÎØ∏  ÏßÄ  Í∏â  Í∏à
     INSERT INTO SESSION.TEMP
-    SELECT '2100400' AS ACC_CD, 'πÃ  ¡ˆ  ±ﬁ  ±›' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '2100400' AS ACC_CD, 'ÎØ∏  ÏßÄ  Í∏â  Í∏à' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21004%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -831,16 +831,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21004%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21004%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -849,21 +849,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '21004%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
-    --∞Ì¡§∫Œ√§
+    --Í≥†Ï†ïÎ∂ÄÏ±Ñ
     INSERT INTO SESSION.TEMP
-    SELECT '2200000' AS ACC_CD, '(∞Ì ¡§  ∫Œ √§)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '2200000' AS ACC_CD, '(Í≥† Ï†ï  Î∂Ä Ï±Ñ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '22%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -872,16 +872,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '22%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '22%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -890,21 +890,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '22%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
-    --(∫Œ √§  √— ∞Ë)
+    --(Î∂Ä Ï±Ñ  Ï¥ù Í≥Ñ)
     INSERT INTO SESSION.TEMP
-    SELECT '2999900' AS ACC_CD, '(∫Œ √§  √— ∞Ë)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '2999900' AS ACC_CD, '(Î∂Ä Ï±Ñ  Ï¥ù Í≥Ñ)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -913,16 +913,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -931,7 +931,7 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '∫Œ√§'
+                   AND B.ACC_GB = 'Î∂ÄÏ±Ñ'
                    AND A.ACC_CD LIKE '2%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
@@ -945,7 +945,7 @@ P1: BEGIN
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -954,16 +954,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -972,7 +972,7 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
@@ -980,15 +980,15 @@ P1: BEGIN
        GROUP BY A.ACC_CD, A.ACC_NM, B.CHULRYEOK_CD
        ORDER BY B.CHULRYEOK_CD;--
 
-    --(¿⁄   ∫ª   ±›)
+    --(Ïûê   Î≥∏   Í∏à)
     INSERT INTO SESSION.TEMP
-    SELECT '3100000' AS ACC_CD, '(¿⁄   ∫ª   ±›)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3100000' AS ACC_CD, '(Ïûê   Î≥∏   Í∏à)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '31%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -997,16 +997,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '31%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '31%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -1015,22 +1015,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '31%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
 
-    --(¿⁄ ∫ª ¿◊ø©±›)
+    --(Ïûê Î≥∏ ÏûâÏó¨Í∏à)
     INSERT INTO SESSION.TEMP
-    SELECT '3200000' AS ACC_CD, '(¿⁄ ∫ª ¿◊ø©±›)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3200000' AS ACC_CD, '(Ïûê Î≥∏ ÏûâÏó¨Í∏à)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '32%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -1039,16 +1039,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '32%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '32%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -1057,27 +1057,27 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '32%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
-     --(¿Ã ¿Õ ¿◊ø©±›)
+     --(Ïù¥ Ïùµ ÏûâÏó¨Í∏à)
     INSERT INTO SESSION.TEMP
-    SELECT '3300000' AS ACC_CD, '(¿Ã ¿Õ ¿◊ø©±›)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3300000' AS ACC_CD, '(Ïù¥ Ïùµ ÏûâÏó¨Í∏à)' AS ACC_NM, SUM(CU_AMT) AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, SUM(A.CR_AMT - A.DR_AMT) AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33%'
                    AND A.ACC_CD != '3300909'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, A.CU_TOT  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --¥Á±‚º¯¿Ã¿Õ ∆˜«‘ Ω√≈¥
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, A.CU_TOT  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --ÎãπÍ∏∞ÏàúÏù¥Ïùµ Ìè¨Ìï® ÏãúÌÇ¥
                   FROM GADMIN.EBUS_FIN_INCOME A
                  WHERE A.ACC_CD = '7300909'
                   UNION ALL
@@ -1085,23 +1085,23 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33%'
                    AND A.ACC_CD != '3300909'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, SUM(A.CR_AMT - A.DR_AMT) AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33%'
                    AND A.ACC_CD != '3300909'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, A.BE_TOT AS BE_TOT   --¥Á±‚º¯¿Ã¿Õ ∆˜«‘ Ω√≈¥
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, A.BE_TOT AS BE_TOT   --ÎãπÍ∏∞ÏàúÏù¥Ïùµ Ìè¨Ìï® ÏãúÌÇ¥
                   FROM GADMIN.EBUS_FIN_INCOME A
                  WHERE A.ACC_CD = '7300909'
                   UNION ALL
@@ -1109,22 +1109,22 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33%'
                    AND A.ACC_CD != '3300909'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
-     --  ¿¸±‚ø¿∑˘ºˆ¡§º’¿Õ
+     --  Ï†ÑÍ∏∞Ïò§Î•òÏàòÏ†ïÏÜêÏùµ
     INSERT INTO SESSION.TEMP
-    SELECT '3300200' AS ACC_CD, '¿¸±‚ø¿∑˘ºˆ¡§º’¿Õ' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3300200' AS ACC_CD, 'Ï†ÑÍ∏∞Ïò§Î•òÏàòÏ†ïÏÜêÏùµ' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33002%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -1133,16 +1133,16 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33002%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33002%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
@@ -1151,26 +1151,26 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33002%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
-     --  ¥Á±‚∏ªπÃ√≥∫–¿Ã¿Õ¿◊ø©±›
+     --  ÎãπÍ∏∞ÎßêÎØ∏Ï≤òÎ∂ÑÏù¥ÏùµÏûâÏó¨Í∏à
     INSERT INTO SESSION.TEMP
-    SELECT '3300900' AS ACC_CD, '¥Á±‚∏ªπÃ√≥∫–¿Ã¿Õ¿◊ø©±›' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3300900' AS ACC_CD, 'ÎãπÍ∏∞ÎßêÎØ∏Ï≤òÎ∂ÑÏù¥ÏùµÏûâÏó¨Í∏à' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33009%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                SELECT '3300909' AS ACC_CD, A.ACC_NM, A.CU_TOT AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --¥Á±‚º¯¿Ã¿Õ ∆˜«‘ Ω√≈¥
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, A.CU_TOT AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --ÎãπÍ∏∞ÏàúÏù¥Ïùµ Ìè¨Ìï® ÏãúÌÇ¥
                   FROM GADMIN.EBUS_FIN_INCOME A
                  WHERE A.ACC_CD = '7300909'
                   UNION ALL
@@ -1178,21 +1178,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33009%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33009%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , A.BE_TOT AS BE_AMT, 0 AS BE_TOT   --¥Á±‚º¯¿Ã¿Õ ∆˜«‘ Ω√≈¥
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , A.BE_TOT AS BE_AMT, 0 AS BE_TOT   --ÎãπÍ∏∞ÏàúÏù¥Ïùµ Ìè¨Ìï® ÏãúÌÇ¥
                   FROM GADMIN.EBUS_FIN_INCOME A
                  WHERE A.ACC_CD = '7300909'
                   UNION ALL
@@ -1200,25 +1200,25 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '33009%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
     INSERT INTO SESSION.TEMP
-    SELECT '3999900' AS ACC_CD, '(¿⁄ ∫ª √— ∞Ë)' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3999900' AS ACC_CD, '(Ïûê Î≥∏ Ï¥ù Í≥Ñ)' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
                 SELECT A.ACC_CD, A.ACC_NM, SUM(A.CR_AMT - A.DR_AMT) AS CU_AMT, 0 AS CU_TOT, 0 AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                    AND DATE BETWEEN IN_FROMDATE AND IN_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                SELECT '3300909' AS ACC_CD, A.ACC_NM, A.CU_TOT AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --¥Á±‚º¯¿Ã¿Õ
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, A.CU_TOT AS CU_AMT, 0  AS CU_TOT , 0 AS BE_AMT, 0 AS BE_TOT   --ÎãπÍ∏∞ÏàúÏù¥Ïùµ
                   FROM GADMIN.EBUS_FIN_INCOME A
                  WHERE A.ACC_CD = '7300909'
                   UNION ALL
@@ -1226,21 +1226,21 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                  GROUP BY A.ACC_CD, A.ACC_NM
                 UNION ALL
-                --¿¸±‚
+                --Ï†ÑÍ∏∞
                 SELECT A.ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0 AS CU_TOT, SUM(A.CR_AMT - A.DR_AMT) AS BE_AMT, 0 AS BE_TOT
                   FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                    AND DATE BETWEEN IN_PRE_FROMDATE AND IN_PRE_TODATE
                  GROUP BY A.ACC_CD, A.ACC_NM
                  UNION ALL
-                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , A.BE_TOT AS BE_AMT, 0 AS BE_TOT   --¥Á±‚º¯¿Ã¿Õ
+                SELECT '3300909' AS ACC_CD, A.ACC_NM, 0 AS CU_AMT, 0  AS CU_TOT , A.BE_TOT AS BE_AMT, 0 AS BE_TOT   --ÎãπÍ∏∞ÏàúÏù¥Ïùµ
                   FROM GADMIN.EBUS_FIN_INCOME A
                  WHERE A.ACC_CD = '7300909'
                   UNION ALL
@@ -1248,18 +1248,18 @@ P1: BEGIN
                   FROM TABLE(GADMIN.SF_FIN_PRE_CARR_SELECT(IN_PRE_FROMDATE)) A, GADMIN.BSACC2 B
                  WHERE 1 = 1
                    AND A.ACC_CD = B.ACC_CD
-                   AND B.ACC_GB = '¿⁄∫ª'
+                   AND B.ACC_GB = 'ÏûêÎ≥∏'
                    AND A.ACC_CD LIKE '3%'
                  GROUP BY A.ACC_CD, A.ACC_NM
              ) A, GADMIN.BSACC2 B
         WHERE A.ACC_CD = B.ACC_CD;--
 
     INSERT INTO SESSION.TEMP
-    SELECT '3999999' AS ACC_CD, '(∫Œ√§¿⁄∫ª√—∞Ë)' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
+    SELECT '3999999' AS ACC_CD, '(Î∂ÄÏ±ÑÏûêÎ≥∏Ï¥ùÍ≥Ñ)' AS ACC_NM, SUM(CU_AMT)  AS CU_AMT, SUM(CU_TOT) AS CU_TOT, SUM(BE_AMT) AS BE_AMT, SUM(BE_TOT) AS BE_TOT
       FROM (
-                SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT FROM SESSION.TEMP WHERE ACC_CD = '2999900' --√—∫Œ√§
+                SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT FROM SESSION.TEMP WHERE ACC_CD = '2999900' --Ï¥ùÎ∂ÄÏ±Ñ
                 UNION ALL
-                SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT FROM SESSION.TEMP WHERE ACC_CD = '3999900' --√—¿⁄∫ª
+                SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT FROM SESSION.TEMP WHERE ACC_CD = '3999900' --Ï¥ùÏûêÎ≥∏
             ) ;       --
 END P1;--
 
@@ -1285,4 +1285,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

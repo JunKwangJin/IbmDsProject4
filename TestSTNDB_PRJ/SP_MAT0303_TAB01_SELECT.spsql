@@ -23,34 +23,34 @@ MAIN: BEGIN
            FROM (
                 SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_QTY) AS EWOL_QTY, SUM(EWOL_AMT) AS EWOL_AMT, SUM(IN_QTY) AS IN_QTY, SUM(IN_AMT) AS IN_AMT, SUM(OUT_QTY) AS OUT_QTY, SUM(OUT_AMT) AS OUT_AMT
                   FROM (
-                        -- ¿¸±‚¿Ãø˘
+                        -- Ï†ÑÍ∏∞Ïù¥Ïõî
                         SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_QTY) AS EWOL_QTY, SUM(EWOL_AMT) AS EWOL_AMT, 0 AS IN_QTY, 0 AS IN_AMT, 0 AS OUT_QTY, 0 AS OUT_AMT
                           FROM (
                                     SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_01) AS EWOL_QTY, SUM(UNIT_PRICE_01) AS EWOL_AMT
-                                      FROM GADMIN.JAGUJAGO -- ¿Á∞Ì ¿Ãø˘
+                                      FROM GADMIN.JAGUJAGO -- Ïû¨Í≥† Ïù¥Ïõî
                                      WHERE YEAR = SUBSTRING(IN_FROMDATE,1,4)
                                      GROUP BY PRODUC_NO, PRODUC_NM
                                     UNION ALL
-                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
                                       FROM GADMIN.JAGUMA1
                                      WHERE DATE BETWEEN V_EWOL_FROMDATE AND V_EWOL_TODATE
                                      GROUP BY PRODUC_NO, PRODUC_NM
                                     UNION ALL
-                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) * -1 AS QTY, SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) * -1 AS QTY, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
                                       FROM GADMIN.JACHUL1
                                      WHERE DATE BETWEEN V_EWOL_FROMDATE AND V_EWOL_TODATE
                                      GROUP BY PRODUC_NO, PRODUC_NM
                                 )
                         GROUP BY PRODUC_NO, PRODUC_NM
                         UNION ALL
-                        --¿‘∞Ì
-                        SELECT PRODUC_NO, PRODUC_NM, 0 AS EWOL_QTY, 0 AS EWOL_AMT, SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS IN_QTY, SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS IN_AMT, 0 AS OUT_QTY, 0 AS OUT_AMT
+                        --ÏûÖÍ≥†
+                        SELECT PRODUC_NO, PRODUC_NM, 0 AS EWOL_QTY, 0 AS EWOL_AMT, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS IN_QTY, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS IN_AMT, 0 AS OUT_QTY, 0 AS OUT_AMT
                           FROM GADMIN.JAGUMA1
                          WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                          GROUP BY PRODUC_NO, PRODUC_NM
                         UNION ALL
-                        --√‚∞Ì
-                        SELECT PRODUC_NO, PRODUC_NM, 0 AS EWOL_QTY, 0 AS EWOL_AMT, 0 AS IN_QTY, 0 AS IN_AMT, SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) AS OUT_QTY, SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END )  AS OUT_AMT
+                        --Ï∂úÍ≥†
+                        SELECT PRODUC_NO, PRODUC_NM, 0 AS EWOL_QTY, 0 AS EWOL_AMT, 0 AS IN_QTY, 0 AS IN_AMT, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) AS OUT_QTY, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END )  AS OUT_AMT
                           FROM GADMIN.JACHUL1
                          WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                          GROUP BY PRODUC_NO, PRODUC_NM
@@ -64,4 +64,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

@@ -17,9 +17,9 @@ MAIN: BEGIN
                  SELECT *
                    FROM (
                             SELECT SANGHO_CD, SANGHO, SUM(QTY) AS QTY
-                                           , COALESCE(SUM(CASE CASH_GB WHEN 'ø‹ªÛ'  THEN SUPPLY_PRICE END),0) AS PAYABLE
-                                           , COALESCE(SUM(CASE CASH_GB WHEN '«ˆ±›' THEN SUPPLY_PRICE END ),0)AS CASH
-                                           , COALESCE(SUM(CASE CASH_GB WHEN 'ƒ´µÂ' THEN SUPPLY_PRICE END ),0) AS CARD
+                                           , COALESCE(SUM(CASE CASH_GB WHEN 'Ïô∏ÏÉÅ'  THEN SUPPLY_PRICE END),0) AS PAYABLE
+                                           , COALESCE(SUM(CASE CASH_GB WHEN 'ÌòÑÍ∏à' THEN SUPPLY_PRICE END ),0)AS CASH
+                                           , COALESCE(SUM(CASE CASH_GB WHEN 'Ïπ¥Îìú' THEN SUPPLY_PRICE END ),0) AS CARD
                                            , COALESCE(SUM(SUPPLY_PRICE),0) AS TOT
                               FROM GADMIN.JAGUMA1
                              WHERE 1 = 1
@@ -33,4 +33,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

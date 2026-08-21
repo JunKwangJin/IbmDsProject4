@@ -9,18 +9,18 @@ BEGIN
     DECLARE v_end_pos INTEGER;
     DECLARE v_key_pattern VARCHAR(200);
     DECLARE v_result VARCHAR(500);
-    
+
     SET v_key_pattern = '"' || p_key || '":';
     SET v_start_pos = LOCATE(v_key_pattern, p_json);
-    
+
     IF v_start_pos > 0 THEN
         SET v_start_pos = v_start_pos + LENGTH(v_key_pattern);
-        -- °ø¹é Á¦°Å
+        -- ê³µë°± ì œê±°
         WHILE v_start_pos <= LENGTH(p_json) AND SUBSTR(p_json, v_start_pos, 1) = ' ' DO
             SET v_start_pos = v_start_pos + 1;
         END WHILE;
-        
-        -- ¹®ÀÚ¿­ °ªÀÎ °æ¿ì (µû¿ÈÇ¥·Î ½ÃÀÛ)
+
+        -- ë¬¸ìžì—´ ê°’ì¸ ê²½ìš° (ë”°ì˜´í‘œë¡œ ì‹œìž‘)
         IF v_start_pos <= LENGTH(p_json) AND SUBSTR(p_json, v_start_pos, 1) = '"' THEN
             SET v_start_pos = v_start_pos + 1;
             SET v_end_pos = LOCATE('"', p_json, v_start_pos);
@@ -29,6 +29,6 @@ BEGIN
             END IF;
         END IF;
     END IF;
-    
+
     RETURN v_result;
 END

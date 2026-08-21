@@ -59,79 +59,79 @@ MAIN: BEGIN
 		 WHERE START <= IN_DATE
 		   AND TERMINATION >= IN_DATE;--
 
-		--°èÁ¤°ú¸ñº° ÀÏ°èÇ¥³»¿ª
+		--ê³„ì •ê³¼ëª©ë³„ ì¼ê³„í‘œë‚´ì—­
 		INSERT INTO SESSION.TEMP
 		SELECT sum(dr_total_amt) AS dr_total_amt, sum(d_dr_amt) AS d_dr_amt, sum(d_amt) AS d_amt, ACC_CD, ACC_NM, sum(c_amt) AS c_amt, sum(d_cr_amt) AS d_cr_amt, sum(cr_total_amt ) AS cr_total_amt
 		  FROM (
 		select sum(dr_amt) as dr_total_amt, sum(DR_AMT) as d_dr_amt, 0 as d_amt, ACC_cd, ACC_NM, 0 as c_amt, sum(CR_AMT) as d_cr_amt, sum(cr_amt) as cr_total_amt
 		  from GADMIN.ACCOU1
 		where DATE = IN_DATE
-		  and DRCR_GB IN ('Â÷º¯','´ëº¯')
+		  and DRCR_GB IN ('ì°¨ë³€','ëŒ€ë³€')
 		group by ACC_cd, ACC_NM
 		union all
 		select sum(dr_amt) as dr_total_amt, 0 as d_dr_amt, SUM(DR_AMT) as d_amt, ACC_cd, ACC_NM,  SUM(cr_amt) as c_amt, 0 as d_cr_amt, sum(cr_amt) as cr_total_amt
 		  from GADMIN.ACCOU1
 		where DATE = IN_DATE
-		  and DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý')
+		  and DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ')
 		group by ACC_cd, ACC_NM ) A
 		GROUP BY ACC_CD, ACC_NM
 		;--
 
 		INSERT INTO SESSION.TEMP
-		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_AMT), '', '±ÝÀÏ¼Ò°è',SUM(CR_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
+		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_AMT), '', 'ê¸ˆì¼ì†Œê³„',SUM(CR_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
 		  FROM SESSION.TEMP;--
 
-		--°³¼ö Ã£±â
+		--ê°œìˆ˜ ì°¾ê¸°
 		SELECT GISU INTO V_GISU
 		  FROM GADMIN.BSACC9
 		 WHERE START <= IN_DATE
 		   AND TERMINATION >= IN_DATE;--
 
-		--Àü¿ùÀÜ°í(Çö±Ý) ±Ý¾× °è»ê V_AFTER_DAY_DR_AMT
+		--ì „ì›”ìž”ê³ (í˜„ê¸ˆ) ê¸ˆì•¡ ê³„ì‚° V_AFTER_DAY_DR_AMT
 		SELECT DR_00, CR_00 INTO V_DR_00, V_CR_00
 		  FROM GADMIN.HAPJAN
 		 WHERE YEAR = V_GISU
 		   AND ACC_CD = '1110101';--;--
 
-		SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --ÇØ´ç³âµµ Àü±âÀÌ¿ù ±Ý¾×(Çö±Ý)
+		SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --í•´ë‹¹ë…„ë„ ì „ê¸°ì´ì›” ê¸ˆì•¡(í˜„ê¸ˆ)
 
         IF SUBSTRING(IN_DATE,6,5) = '01-01' THEN
-            --01-01 ÀÌ¸é Àü±â ÀÌ¿ù±Ý¾×
+            --01-01 ì´ë©´ ì „ê¸° ì´ì›”ê¸ˆì•¡
         ELSE
-            -- Á¶È¸±â°£ÀÇ TODATE Àü³¯ ±¸ÇÏ±â
+            -- ì¡°íšŒê¸°ê°„ì˜ TODATE ì „ë‚  êµ¬í•˜ê¸°
             SELECT SUBSTRING(TO_DATE(IN_DATE,'YYYY-MM-DD') - 1,1,10) INTO V_LASTDAY
               FROM SYSIBM.SYSDUMMY1;--
 
-            -- 01-01ºÎÅÍ Á¶È¸½ÃÀÛ ÀüÀÏ±îÁö Çö±ÝÀÔÃâ³³±Ý °è»ê  (Àü±âÀÌ¿ù ±Ý¾× + ÀÔ±Ý - Ãâ±Ý) : ÇÕÀÜ±Ý¾× »ç¿ë ¾ÈÇÔ - ÀüÇ¥ ¼öÁ¤½Ã ´©¶ô ¿ì·Á ÀÖÀ½
+            -- 01-01ë¶€í„° ì¡°íšŒì‹œìž‘ ì „ì¼ê¹Œì§€ í˜„ê¸ˆìž…ì¶œë‚©ê¸ˆ ê³„ì‚°  (ì „ê¸°ì´ì›” ê¸ˆì•¡ + ìž…ê¸ˆ - ì¶œê¸ˆ) : í•©ìž”ê¸ˆì•¡ ì‚¬ìš© ì•ˆí•¨ - ì „í‘œ ìˆ˜ì •ì‹œ ëˆ„ë½ ìš°ë ¤ ìžˆìŒ
             SELECT COALESCE(SUM(CR_AMT) - SUM(DR_AMT),0) + V_AFTER_DAY_DR_AMT INTO V_AFTER_DAY_DR_AMT
               FROM GADMIN.ACCOU1 A
              WHERE DATE BETWEEN SUBSTRING(IN_DATE,1,4)||'-01-01' AND V_LASTDAY
-                AND A.DRCR_GB IN ('ÀÔ±Ý','Ãâ±Ý');--
+                AND A.DRCR_GB IN ('ìž…ê¸ˆ','ì¶œê¸ˆ');--
         END IF;--
 
-		--SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --ÇØ´ç³âµµ Àü±âÀÌ¿ù ±Ý¾×(Çö±Ý)
+		--SET V_AFTER_DAY_DR_AMT = V_DR_00 - V_CR_00; --í•´ë‹¹ë…„ë„ ì „ê¸°ì´ì›” ê¸ˆì•¡(í˜„ê¸ˆ)
 
-		--±Ý¿ùÀÜ°í(Çö±Ý) ±Ý¾× °è»ê V_BEFOR_AMT
-		SELECT DR_AMT , CR_AMT INTO V_DR_AMT, V_CR_AMT    --±Ý¿ù Çö±Ý ³»¿ª
+		--ê¸ˆì›”ìž”ê³ (í˜„ê¸ˆ) ê¸ˆì•¡ ê³„ì‚° V_BEFOR_AMT
+		SELECT DR_AMT , CR_AMT INTO V_DR_AMT, V_CR_AMT    --ê¸ˆì›” í˜„ê¸ˆ ë‚´ì—­
 		  FROM SESSION.TEMP
-		 WHERE ACC_NM = '±ÝÀÏ¼Ò°è';--
+		 WHERE ACC_NM = 'ê¸ˆì¼ì†Œê³„';--
 
-		SET V_CR_AMT = V_CR_AMT - V_DR_AMT; -- ÀÔÃâ±Ý ÇÕ°è Â÷¾× °è»ê
-		SET V_BEFOR_AMT = V_CR_AMT + V_AFTER_DAY_DR_AMT;-- ÀÔÃâ±Ý Â÷¾× + Àü¿ùÀÌ¿ù±Ý¾×
+		SET V_CR_AMT = V_CR_AMT - V_DR_AMT; -- ìž…ì¶œê¸ˆ í•©ê³„ ì°¨ì•¡ ê³„ì‚°
+		SET V_BEFOR_AMT = V_CR_AMT + V_AFTER_DAY_DR_AMT;-- ìž…ì¶œê¸ˆ ì°¨ì•¡ + ì „ì›”ì´ì›”ê¸ˆì•¡
 
-		 --±Ý¿ùÀÜ°í/Àü¿ùÀÜ°í ÀúÀå
+		 --ê¸ˆì›”ìž”ê³ /ì „ì›”ìž”ê³  ì €ìž¥
 		INSERT INTO SESSION.TEMP
-		SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', '±ÝÀÏÀÜ°í/ÀüÀÏÀÜ°í', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
+		SELECT V_BEFOR_AMT, 0, V_BEFOR_AMT , '', 'ê¸ˆì¼ìž”ê³ /ì „ì¼ìž”ê³ ', V_AFTER_DAY_DR_AMT, 0, V_AFTER_DAY_DR_AMT
 		  FROM SESSION.TEMP
-		 WHERE ACC_NM = '±ÝÀÏ¼Ò°è'
+		 WHERE ACC_NM = 'ê¸ˆì¼ì†Œê³„'
 		 ;--
 
 
-		 -- ÇÕ°è °è»ê
+		 -- í•©ê³„ ê³„ì‚°
 		INSERT INTO SESSION.TEMP
-		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_AMT), '', 'ÇÕ°è', SUM(CR_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
+		SELECT SUM(DR_TOT_AMT), SUM(DR_DAE_AMT), SUM(DR_AMT), '', 'í•©ê³„', SUM(CR_AMT), SUM(CR_DAE_AMT), SUM(CR_TOT_AMT)
 		  FROM SESSION.TEMP
-		 WHERE ACC_NM IN ('±ÝÀÏ¼Ò°è','±ÝÀÏÀÜ°í/ÀüÀÏÀÜ°í');--
+		 WHERE ACC_NM IN ('ê¸ˆì¼ì†Œê³„','ê¸ˆì¼ìž”ê³ /ì „ì¼ìž”ê³ ');--
 
     END P1;--
 
@@ -143,4 +143,4 @@ MAIN: BEGIN
 
 		OPEN CURSOR_TEMP;--
    END P2;--
-END MAIN 
+END MAIN

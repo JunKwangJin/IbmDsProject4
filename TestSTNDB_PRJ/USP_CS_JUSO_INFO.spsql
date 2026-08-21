@@ -1,23 +1,23 @@
 CREATE OR REPLACE PROCEDURE "GADMIN"."USP_CS_JUSO_INFO"  (
     IN p_keyword VARCHAR(255),
-    IN p_page_size INT DEFAULT 10,  -- ÇÑ ÆäÀÌÁö¿¡ °¡Á®¿Ã ÁÖ¼Ò °³¼ö (±âº» 10°³, ÃÖ´ë 1000)
-    IN p_current_page INT DEFAULT 1, -- °¡Á®¿Ã ÆäÀÌÁö ¹øÈ£ (±âº» 1ÆäÀÌÁö)
-    OUT o_error_code VARCHAR(10),   -- ¿¡·¯ ÄÚµå OUT ÆÄ¶ó¹ÌÅÍ
-    OUT o_error_msg VARCHAR(500)    -- ¿¡·¯ ¸Þ½ÃÁö OUT ÆÄ¶ó¹ÌÅÍ
+    IN p_page_size INT DEFAULT 10,  -- í•œ íŽ˜ì´ì§€ì— ê°€ì ¸ì˜¬ ì£¼ì†Œ ê°œìˆ˜ (ê¸°ë³¸ 10ê°œ, ìµœëŒ€ 1000)
+    IN p_current_page INT DEFAULT 1, -- ê°€ì ¸ì˜¬ íŽ˜ì´ì§€ ë²ˆí˜¸ (ê¸°ë³¸ 1íŽ˜ì´ì§€)
+    OUT o_error_code VARCHAR(10),   -- ì—ëŸ¬ ì½”ë“œ OUT íŒŒë¼ë¯¸í„°
+    OUT o_error_msg VARCHAR(500)    -- ì—ëŸ¬ ë©”ì‹œì§€ OUT íŒŒë¼ë¯¸í„°
 )
 LANGUAGE SQL
 DYNAMIC RESULT SETS 1
 --READS SQL DATA
 --NO EXTERNAL ACTION
 P1: BEGIN
-    -- ¿©±â¿¡ ³ÊÀÇ juso.go.kr API ÀÎÁõÅ°¸¦ ³Ö¾îÁà!
+    -- ì—¬ê¸°ì— ë„ˆì˜ juso.go.kr API ì¸ì¦í‚¤ë¥¼ ë„£ì–´ì¤˜!
     DECLARE v_api_key VARCHAR(50) DEFAULT 'U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDM=';
     DECLARE v_encoded_keyword VARCHAR(512);
     DECLARE v_api_url VARCHAR(1000);
-    DECLARE v_http_response CLOB; -- HTTP ÀÀ´äÀº CLOBÀ¸·Î ¹Þ¾Æ¼­ XMLPARSER·Î XML·Î º¯È¯
-    DECLARE v_xml_response XML;   -- CLOBÀ» XML·Î ÆÄ½ÌÇÑ °á°ú
-    -- DECLARE v_error_code VARCHAR(10); -- OUT ÆÄ¶ó¹ÌÅÍ·Î ´ëÃ¼
-    -- DECLARE v_error_msg VARCHAR(500); -- OUT ÆÄ¶ó¹ÌÅÍ·Î ´ëÃ¼
+    DECLARE v_http_response CLOB; -- HTTP ì‘ë‹µì€ CLOBìœ¼ë¡œ ë°›ì•„ì„œ XMLPARSERë¡œ XMLë¡œ ë³€í™˜
+    DECLARE v_xml_response XML;   -- CLOBì„ XMLë¡œ íŒŒì‹±í•œ ê²°ê³¼
+    -- DECLARE v_error_code VARCHAR(10); -- OUT íŒŒë¼ë¯¸í„°ë¡œ ëŒ€ì²´
+    -- DECLARE v_error_msg VARCHAR(500); -- OUT íŒŒë¼ë¯¸í„°ë¡œ ëŒ€ì²´
     DECLARE v_total_count INT;
     DECLARE v_page_size_internal INT;
     DECLARE v_page_count INT;
@@ -33,68 +33,68 @@ DECLARE cursor1 CURSOR WITH RETURN for
             zipNo VARCHAR(10) PATH 'zipNo'
     ) AS T;
 
-    -- ÃÊ±â ¿¡·¯ »óÅÂ¸¦ ¼º°øÀ¸·Î ¼³Á¤
+    -- ì´ˆê¸° ì—ëŸ¬ ìƒíƒœë¥¼ ì„±ê³µìœ¼ë¡œ ì„¤ì •
     SET o_error_code = '0';
-    SET o_error_msg = '¼º°ø';
+    SET o_error_msg = 'ì„±ê³µ';
 
     SET v_page_size_internal = p_page_size;
     SET v_current_page_internal = p_current_page;
 
-    -- p_page_size°¡ À¯È¿ÇÑ ¹üÀ§(1~100)¸¦ ¹þ¾î³ª¸é Á¶Á¤ (juso.go.krÀº ÃÖ´ë 100)
+    -- p_page_sizeê°€ ìœ íš¨í•œ ë²”ìœ„(1~100)ë¥¼ ë²—ì–´ë‚˜ë©´ ì¡°ì • (juso.go.krì€ ìµœëŒ€ 100)
     SET v_page_size_internal = CASE
                                   WHEN v_page_size_internal < 1 THEN 1
-                                  WHEN v_page_size_internal > 100 THEN 100 -- API ÃÖ´ë countPerPage 100
+                                  WHEN v_page_size_internal > 100 THEN 100 -- API ìµœëŒ€ countPerPage 100
                                   ELSE v_page_size_internal
                               END;
 
-    -- p_current_page°¡ 1º¸´Ù ÀÛÀ¸¸é 1·Î Á¶Á¤
+    -- p_current_pageê°€ 1ë³´ë‹¤ ìž‘ìœ¼ë©´ 1ë¡œ ì¡°ì •
     SET v_current_page_internal = CASE
                                     WHEN v_current_page_internal < 1 THEN 1
                                     ELSE v_current_page_internal
                                   END;
 
-    -- 1. °Ë»ö Å°¿öµå¸¦ URL ÀÎÄÚµù
+    -- 1. ê²€ìƒ‰ í‚¤ì›Œë“œë¥¼ URL ì¸ì½”ë”©
     SET v_encoded_keyword = DB2XML.URLENCODE(p_keyword, 'UTF-8');
 
-    -- 2. juso.go.kr API URL ±¸¼º (ÆäÀÌÁö³×ÀÌ¼Ç Ãß°¡)
+    -- 2. juso.go.kr API URL êµ¬ì„± (íŽ˜ì´ì§€ë„¤ì´ì…˜ ì¶”ê°€)
     SET v_api_url = CAST('https://business.juso.go.kr/addrlink/addrLinkApi.do' ||
                     '?confmKey=' || v_api_key ||
                     '&currentPage=' || DB2XML.URLENCODE(CHAR(v_current_page_internal), '') ||
                     '&countPerPage=' || DB2XML.URLENCODE(CHAR(v_page_size_internal), '') ||
                     '&keyword=' || v_encoded_keyword ||
-                    '&resultType=xml' AS VARCHAR(1000)); -- ÃæºÐÈ÷ ±æ°Ô ¼³Á¤
+                    '&resultType=xml' AS VARCHAR(1000)); -- ì¶©ë¶„ížˆ ê¸¸ê²Œ ì„¤ì •
 
-    -- 3. HTTP GET ¿äÃ» º¸³»±â (ÀÀ´äÀº CLOBÀ¸·Î ¹ÞÀ½)
+    -- 3. HTTP GET ìš”ì²­ ë³´ë‚´ê¸° (ì‘ë‹µì€ CLOBìœ¼ë¡œ ë°›ìŒ)
     SET v_http_response = DB2XML.HTTPGETCLOB(v_api_url, XMLPARSE(DOCUMENT '<httpHeader/>'));
 
-    -- 4. CLOB ÀÀ´äÀ» XML·Î ÆÄ½Ì
+    -- 4. CLOB ì‘ë‹µì„ XMLë¡œ íŒŒì‹±
     IF CAST(v_http_response AS VARCHAR(10000)) IS NOT NULL AND LENGTH(TRIM(CAST(v_http_response AS VARCHAR(10000)))) > 0 THEN
         SET v_xml_response = XMLPARSE(DOCUMENT v_http_response);
     ELSE
-        -- ÀÀ´äÀÌ NULLÀÌ°Å³ª ºñ¾îÀÖ´Â °æ¿ì ¿¡·¯ Ã³¸®
+        -- ì‘ë‹µì´ NULLì´ê±°ë‚˜ ë¹„ì–´ìžˆëŠ” ê²½ìš° ì—ëŸ¬ ì²˜ë¦¬
         SET o_error_code = 'DB_ERR01';
-        SET o_error_msg = 'API ÀÀ´äÀÌ ºñ¾îÀÖ°Å³ª ³×Æ®¿öÅ© ¹®Á¦·Î ÀÀ´äÀ» ¹ÞÁö ¸øÇß½À´Ï´Ù.';
-        -- ¿¡·¯ ¹ß»ý ½Ã ÇÁ·Î½ÃÀú Á¾·á (´õ ÀÌ»ó ÁøÇàÇÒ ÇÊ¿ä ¾øÀ½)
+        SET o_error_msg = 'API ì‘ë‹µì´ ë¹„ì–´ìžˆê±°ë‚˜ ë„¤íŠ¸ì›Œí¬ ë¬¸ì œë¡œ ì‘ë‹µì„ ë°›ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.';
+        -- ì—ëŸ¬ ë°œìƒ ì‹œ í”„ë¡œì‹œì € ì¢…ë£Œ (ë” ì´ìƒ ì§„í–‰í•  í•„ìš” ì—†ìŒ)
         RETURN;
     END IF;
 
-    -- 5. XML ÀÀ´ä¿¡¼­ °øÅë Á¤º¸(errorCode, totalCount) ÃßÃâ
+    -- 5. XML ì‘ë‹µì—ì„œ ê³µí†µ ì •ë³´(errorCode, totalCount) ì¶”ì¶œ
     SET o_error_code = XMLCAST(XMLQUERY('$X/results/common/errorCode/text()' PASSING v_xml_response AS "X") AS VARCHAR(10));
     SET o_error_msg = XMLCAST(XMLQUERY('$X/results/common/errorMessage/text()' PASSING v_xml_response AS "X") AS VARCHAR(500));
     SET v_total_count = XMLCAST(XMLQUERY('$X/results/common/totalCount/text()' PASSING v_xml_response AS "X") AS INTEGER);
 
-    -- API ¿¡·¯ ÄÚµå°¡ '0'ÀÌ ¾Æ´Ï¸é ¿¡·¯ ¸Þ½ÃÁö ¼³Á¤
+    -- API ì—ëŸ¬ ì½”ë“œê°€ '0'ì´ ì•„ë‹ˆë©´ ì—ëŸ¬ ë©”ì‹œì§€ ì„¤ì •
     IF o_error_code <> '0' THEN
         SET o_error_msg = CASE
-                            WHEN o_error_code = '-999' THEN '¿ìÆí¹øÈ£°¡ Á¤»óÁ¶È¸ µÇÁö ¾Ê½À´Ï´Ù.(°ü¸®ÀÚ¿¡°Ô ¹®ÀÇ ÇÏ¼¼¿ä)'
-                            WHEN o_error_code = 'E0006' THEN 'ÁÖ¼Ò¸¦ »ó¼¼È÷ ÀÔ·ÂÇØ ÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.' -- Specific juso.go.kr error [¡¼2¡½](about:blank)
-                            ELSE REPLACE(o_error_msg,'°Ë»ö¾î','ÁÖ¼Ò') -- ÀÏ¹ÝÀûÀÎ ¸Þ½ÃÁö º¯°æ
+                            WHEN o_error_code = '-999' THEN 'ìš°íŽ¸ë²ˆí˜¸ê°€ ì •ìƒì¡°íšŒ ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.(ê´€ë¦¬ìžì—ê²Œ ë¬¸ì˜ í•˜ì„¸ìš”)'
+                            WHEN o_error_code = 'E0006' THEN 'ì£¼ì†Œë¥¼ ìƒì„¸ížˆ ìž…ë ¥í•´ ì£¼ì‹œê¸° ë°”ëžë‹ˆë‹¤.' -- Specific juso.go.kr error [ã€2ã€‘](about:blank)
+                            ELSE REPLACE(o_error_msg,'ê²€ìƒ‰ì–´','ì£¼ì†Œ') -- ì¼ë°˜ì ì¸ ë©”ì‹œì§€ ë³€ê²½
                           END;
-        -- ¿¡·¯ ¹ß»ý ½Ã ÇÁ·Î½ÃÀú Á¾·á (SELECT ¹® ½ÇÇà ¾È ÇÔ)
+        -- ì—ëŸ¬ ë°œìƒ ì‹œ í”„ë¡œì‹œì € ì¢…ë£Œ (SELECT ë¬¸ ì‹¤í–‰ ì•ˆ í•¨)
         RETURN;
     END IF;
 
-    -- ¼º°øÀûÀ¸·Î ÁÖ¼Ò Á¤º¸¸¦ ¹Þ¾Æ¿ÔÀ» ¶§¸¸ SELECT ¹® ½ÇÇà
-    -- ÇÁ·Î½ÃÀú´Â RESULT SETÀ» Á÷Á¢ RETURNÇÏÁö ¾Ê°í SELECT ¹®À» ÅëÇØ ³»º¸³¿
+    -- ì„±ê³µì ìœ¼ë¡œ ì£¼ì†Œ ì •ë³´ë¥¼ ë°›ì•„ì™”ì„ ë•Œë§Œ SELECT ë¬¸ ì‹¤í–‰
+    -- í”„ë¡œì‹œì €ëŠ” RESULT SETì„ ì§ì ‘ RETURNí•˜ì§€ ì•Šê³  SELECT ë¬¸ì„ í†µí•´ ë‚´ë³´ëƒ„
 	OPEN cursor1;
 END P1

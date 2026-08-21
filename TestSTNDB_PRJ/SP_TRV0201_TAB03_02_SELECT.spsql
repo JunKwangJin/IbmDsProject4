@@ -11,15 +11,15 @@ MAIN: BEGIN
 
     P1: BEGIN
 		DECLARE CURSOR_TRV CURSOR WITH RETURN FOR
-        --ø˘∫∞ ªÁªÛ¿⁄∫∞
+        --ÏõîÎ≥Ñ ÏÇ¨ÏÉÅÏûêÎ≥Ñ
         SELECT GUBUN, CNT, MON01, MON02, MON03, MON04, MON05, MON06, MON07, MON08, MON09, MON10, MON11, MON12
            FROM (
 
-                    --ªÁ∏¡
+                    --ÏÇ¨Îßù
                     SELECT 2 AS SEQ, GUBUN, SUM(CNT) AS CNT, SUM(MON01) AS MON01,SUM(MON02) AS MON02,SUM(MON03) AS MON03,SUM(MON04) AS MON04,SUM(MON05) AS MON05
                            ,SUM(MON06) AS MON06,SUM(MON07) AS MON07,SUM(MON08) AS MON08,SUM(MON09) AS MON09,SUM(MON10) AS MON10,SUM(MON11) AS MON11,SUM(MON12) AS MON12
                        FROM (
-                                SELECT 'ªÁ∏¡' AS GUBUN
+                                SELECT 'ÏÇ¨Îßù' AS GUBUN
                                       , (SUM(DEAD)) AS CNT
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '01' THEN (SUM(DEAD)) END,0) AS MON01
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '02' THEN (SUM(DEAD)) END,0) AS MON02
@@ -42,11 +42,11 @@ MAIN: BEGIN
                                )
                     GROUP BY GUBUN
                     UNION ALL
-                    --¡ﬂªÛ
+                    --Ï§ëÏÉÅ
                     SELECT 3 AS SEQ, GUBUN, SUM(CNT) AS CNT, SUM(MON01) AS MON01,SUM(MON02) AS MON02,SUM(MON03) AS MON03,SUM(MON04) AS MON04,SUM(MON05) AS MON05
                            ,SUM(MON06) AS MON06,SUM(MON07) AS MON07,SUM(MON08) AS MON08,SUM(MON09) AS MON09,SUM(MON10) AS MON10,SUM(MON11) AS MON11,SUM(MON12) AS MON12
                        FROM (
-                                SELECT '¡ﬂªÛ' AS GUBUN
+                                SELECT 'Ï§ëÏÉÅ' AS GUBUN
                                       , (SUM(HIGH_HURT)) AS CNT
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '01' THEN (SUM(HIGH_HURT)) END,0) AS MON01
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '02' THEN (SUM(HIGH_HURT)) END,0) AS MON02
@@ -69,11 +69,11 @@ MAIN: BEGIN
                                )
                     GROUP BY GUBUN
                     UNION ALL
-                    --¡ﬂªÛ
+                    --Ï§ëÏÉÅ
                     SELECT 4 AS SEQ, GUBUN, SUM(CNT) AS CNT, SUM(MON01) AS MON01,SUM(MON02) AS MON02,SUM(MON03) AS MON03,SUM(MON04) AS MON04,SUM(MON05) AS MON05
                            ,SUM(MON06) AS MON06,SUM(MON07) AS MON07,SUM(MON08) AS MON08,SUM(MON09) AS MON09,SUM(MON10) AS MON10,SUM(MON11) AS MON11,SUM(MON12) AS MON12
                        FROM (
-                                SELECT '∞ÊªÛ' AS GUBUN
+                                SELECT 'Í≤ΩÏÉÅ' AS GUBUN
                                       , (SUM(LOW_HURT)) AS CNT
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '01' THEN (SUM(LOW_HURT)) END,0) AS MON01
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '02' THEN (SUM(LOW_HURT)) END,0) AS MON02
@@ -96,11 +96,11 @@ MAIN: BEGIN
                                )
                     GROUP BY GUBUN
                     UNION ALL
-                    --±‚≈∏
+                    --Í∏∞ÌÉÄ
                     SELECT 5 AS SEQ, GUBUN, SUM(CNT) AS CNT, SUM(MON01) AS MON01,SUM(MON02) AS MON02,SUM(MON03) AS MON03,SUM(MON04) AS MON04,SUM(MON05) AS MON05
                            ,SUM(MON06) AS MON06,SUM(MON07) AS MON07,SUM(MON08) AS MON08,SUM(MON09) AS MON09,SUM(MON10) AS MON10,SUM(MON11) AS MON11,SUM(MON12) AS MON12
                        FROM (
-                                SELECT '±‚≈∏' AS GUBUN
+                                SELECT 'Í∏∞ÌÉÄ' AS GUBUN
                                       , (SUM(OTHER)) AS CNT
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '01' THEN (SUM(OTHER)) END,0) AS MON01
                                       , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '02' THEN (SUM(OTHER)) END,0) AS MON02
@@ -129,4 +129,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_TRV;--
     END P1;--
 
-END MAIN 
+END MAIN

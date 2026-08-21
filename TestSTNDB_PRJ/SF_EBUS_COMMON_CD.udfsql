@@ -1,11 +1,11 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_EBUS_COMMON_CD"    (IN_UP_CD VARCHAR(20),
 IN_CD VARCHAR(20), IN_RETURN VARCHAR(20))
 -----------------------------------------------
---- (°øÅëÄÚµå) ÄÚµå¿¡ µû¸¥ Ãâ·Â ÇÔ¼ö
+--- (ê³µí†µì½”ë“œ) ì½”ë“œì— ë”°ë¥¸ ì¶œë ¥ í•¨ìˆ˜
 --- SF_EBUS_COMMON_CD(IN_UP_CD, IN_CD, IN_RETURN)
---- SF_EBUS_COMMON_CD(»óÀ§ÄÚµå,ÄÚµå, Ãâ·ÂÇÒ °ª)
---- SF_EBUS_COMMON_CD('INS17','10','CD1') : IN_RETURNÀÌ 'CD1'ÀÇ °ªÀ» Ãâ·Â
---- SF_EBUS_COMMON_CD('INS17','10','') : IN_RETURN°ªÀÌ ¾øÀ¸¸é CD_NMÀ» Ãâ·Â
+--- SF_EBUS_COMMON_CD(ìƒìœ„ì½”ë“œ,ì½”ë“œ, ì¶œë ¥í•  ê°’)
+--- SF_EBUS_COMMON_CD('INS17','10','CD1') : IN_RETURNì´ 'CD1'ì˜ ê°’ì„ ì¶œë ¥
+--- SF_EBUS_COMMON_CD('INS17','10','') : IN_RETURNê°’ì´ ì—†ìœ¼ë©´ CD_NMì„ ì¶œë ¥
 -----------------------------------------------
 
 RETURNS VARCHAR(1000)

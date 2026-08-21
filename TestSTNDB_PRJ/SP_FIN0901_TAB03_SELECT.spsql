@@ -30,8 +30,8 @@ P1: BEGIN
                   FROM (
                             SELECT A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, SUM(A.DR_AMT) AS DR_AMT, SUM(A.CR_AMT) AS CR_AMT, 0 AS BE_DR_AMT, 0 AS BE_CR_AMT
                               FROM (
-                                        SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE B.DRCR_GB WHEN 'Â÷º¯' THEN A.DR_AMT ELSE A.CR_AMT END AS DR_AMT
-                                                , CASE B.DRCR_GB WHEN 'Â÷º¯' THEN A.CR_AMT ELSE A.DR_AMT END AS CR_AMT
+                                        SELECT A.DATE, A.ACC_CD, A.ACC_NM, A.MANAGE_CD_1, A.MANAGE_ITEM_1, A.MANAGE_CD_2, A.MANAGE_ITEM_2, CASE B.DRCR_GB WHEN 'ì°¨ë³€' THEN A.DR_AMT ELSE A.CR_AMT END AS DR_AMT
+                                                , CASE B.DRCR_GB WHEN 'ì°¨ë³€' THEN A.CR_AMT ELSE A.DR_AMT END AS CR_AMT
                                            FROM GADMIN.ACCOU1 A, GADMIN.BSACC2 B
                                           WHERE A.ACC_CD = B.ACC_CD
                                     ) A
@@ -42,8 +42,8 @@ P1: BEGIN
                             UNION ALL
                             SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, 0 AS DR_AMT, 0 AS CR_AMT, SUM(B.DR_AMT) AS BE_DR_AMT, SUM(B.CR_AMT) AS BE_CR_AMT
                               FROM (
-                                        SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, CASE C.DRCR_GB WHEN 'Â÷º¯' THEN B.DR_AMT ELSE B.CR_AMT END AS DR_AMT
-                                                , CASE C.DRCR_GB WHEN 'Â÷º¯' THEN B.CR_AMT ELSE B.DR_AMT END AS CR_AMT
+                                        SELECT B.ACC_CD, B.ACC_NM, B.MANAGE_1, B.ITEM_1, B.MANAGE_2, B.ITEM_2, CASE C.DRCR_GB WHEN 'ì°¨ë³€' THEN B.DR_AMT ELSE B.CR_AMT END AS DR_AMT
+                                                , CASE C.DRCR_GB WHEN 'ì°¨ë³€' THEN B.CR_AMT ELSE B.DR_AMT END AS CR_AMT
                                            FROM TABLE(GADMIN.SF_FIN_PRE_MANAGE_SELECT(IN_FROMDATE)) B, GADMIN.BSACC2 C
                                           WHERE B.ACC_CD = C.ACC_CD
                                     ) B
@@ -56,7 +56,7 @@ P1: BEGIN
     ORDER BY ACC_CD, MANAGE_CD_1;    --
 
     INSERT INTO SESSION.TEMP
-    SELECT ACC_CD, ACC_NM, '' AS MANAGE_1, ' ¼Ò  °è ' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, SUM(JAN_AMT) AS JAN_AMT, SUM(PRE_AMT) AS PRE_AMT
+    SELECT ACC_CD, ACC_NM, '' AS MANAGE_1, ' ì†Œ  ê³„ ' AS ITEM_1, '' AS MANAGE_2, '' AS ITEM_2, SUM(JAN_AMT) AS JAN_AMT, SUM(PRE_AMT) AS PRE_AMT
       FROM SESSION.TEMP
     GROUP BY ACC_CD, ACC_NM;--
 
@@ -71,4 +71,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

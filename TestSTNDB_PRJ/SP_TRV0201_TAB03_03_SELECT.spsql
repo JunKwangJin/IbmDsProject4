@@ -11,7 +11,7 @@ MAIN: BEGIN
 
     P1: BEGIN
 		DECLARE CURSOR_TRV CURSOR WITH RETURN FOR
-        --¿ùº°»ç°íµî±Þº°
+        --ì›”ë³„ì‚¬ê³ ë“±ê¸‰ë³„
         SELECT EVENT_GRADE
               , COUNT(*) AS CNT
               , COALESCE(CASE SUBSTRING(EVENT_DATE, 6, 2) WHEN '01' THEN COUNT(*) END,0) AS MON01
@@ -38,4 +38,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_TRV;--
     END P1;--
 
-END MAIN 
+END MAIN

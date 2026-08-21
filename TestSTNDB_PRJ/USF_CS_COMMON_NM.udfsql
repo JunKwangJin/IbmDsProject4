@@ -8,9 +8,9 @@ CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_COMMON_NM"
 RETURNS VARCHAR(1000)
 LANGUAGE SQL
 BEGIN
-    DECLARE V_RETURN_VALUE VARCHAR(1000) DEFAULT ''; -- √ ±‚»≠
-    DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' -- NO_DATA_FOUND øπø‹ √≥∏Æ
-        SET V_RETURN_VALUE = NULL; -- NULL∑Œ º≥¡§
+    DECLARE V_RETURN_VALUE VARCHAR(1000) DEFAULT ''; -- Ï¥àÍ∏∞Ìôî
+    DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' -- NO_DATA_FOUND ÏòàÏô∏ Ï≤òÎ¶¨
+        SET V_RETURN_VALUE = NULL; -- NULLÎ°ú ÏÑ§Ï†ï
 
 
     SELECT CASE IN_RETURN
@@ -21,7 +21,7 @@ BEGIN
         WHEN 'ABBR_NM'   THEN CD_SNM
         WHEN 'ABBR_ENM'  THEN CD_ESNM
         WHEN 'CD_LEN'    THEN CD_LEN
-        WHEN 'SORT'      THEN CHAR(SORT) -- CHAR∑Œ ∫Ø»Ø
+        WHEN 'SORT'      THEN CHAR(SORT) -- CHARÎ°ú Î≥ÄÌôò
         WHEN 'SAYONG_YN' THEN SAYONG_YN
         WHEN 'BIGO'      THEN BIGO
         WHEN 'CD1'       THEN CD1
@@ -58,8 +58,8 @@ BEGIN
        WHEN  (IN_INPUT, IN_NM) = ('CD10', CD10) THEN '1'
        ELSE '0'
        END  ) = '1'
-    FETCH FIRST 1 ROW ONLY; -- ∞·∞˙∞° ø©∑Ø ∞≥¿Œ ∞ÊøÏ∏¶ ∞Ì∑¡«œø© FETCH FIRST √ﬂ∞°
+    FETCH FIRST 1 ROW ONLY; -- Í≤∞Í≥ºÍ∞Ä Ïó¨Îü¨ Í∞úÏù∏ Í≤ΩÏö∞Î•º Í≥†Î†§ÌïòÏó¨ FETCH FIRST Ï∂îÍ∞Ä
 
-    RETURN V_RETURN_VALUE; -- π›»Ø∞™
+    RETURN V_RETURN_VALUE; -- Î∞òÌôòÍ∞í
 
 END

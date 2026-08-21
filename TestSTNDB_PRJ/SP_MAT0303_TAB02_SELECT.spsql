@@ -26,41 +26,41 @@ MAIN: BEGIN
 		DECLARE CURSOR_MAT CURSOR WITH RETURN FOR
         SELECT DATE, SANGHO, CHANGGO, UNIT, IN_QTY, OUT_QTY, SUM(JAE_QTY) OVER(ORDER BY DATE, ROWNUMBER()OVER()) AS JAE_QTY, SUM(JAE_AMT)  OVER(ORDER BY DATE, ROWNUMBER()OVER()) AS JAE_AMT , UNIT_PRICE, GUBUN
           FROM (
-                      SELECT '' AS DATE, '¿¸ø˘¿Ãø˘' AS SANGHO, '' AS CHANGGO,  '' AS UNIT, 0 AS IN_QTY, 0 AS OUT_QTY, SUM(EWOL_QTY) AS JAE_QTY, 0 AS UNIT_PRICE,
+                      SELECT '' AS DATE, 'Ï†ÑÏõîÏù¥Ïõî' AS SANGHO, '' AS CHANGGO,  '' AS UNIT, 0 AS IN_QTY, 0 AS OUT_QTY, SUM(EWOL_QTY) AS JAE_QTY, 0 AS UNIT_PRICE,
                             SUM(EWOL_AMT)  AS JAE_AMT , '' AS GUBUN
                       FROM (
                                 /*
                                 SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_01) AS EWOL_QTY, SUM(UNIT_PRICE_01) AS EWOL_AMT
-                                  FROM JAGUJAGO -- ¿Á∞Ì ¿Ãø˘
+                                  FROM JAGUJAGO -- Ïû¨Í≥† Ïù¥Ïõî
                                  WHERE YEAR = SUBSTRING(IN_FROMDATE,1,4)
                                    AND PRODUC_NO = IN_PRODUC_NO
                                  GROUP BY PRODUC_NO, PRODUC_NM
                                 UNION ALL
-                                SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
+                                SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
                                   FROM JAGUMA1
                                  WHERE SUBSTRING(DATE,1,7) BETWEEN SUBSTRING(V_EWOL_MONTH,1,4)||'-01' AND SUBSTRING(V_EWOL_MONTH,1,7)
                                    AND PRODUC_NO = IN_PRODUC_NO
                                  GROUP BY PRODUC_NO, PRODUC_NM
                                 UNION ALL
-                                SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) * -1  AS QTY, SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
+                                SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) * -1  AS QTY, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
                                   FROM JACHUL1
                                  WHERE SUBSTRING(DATE,1,7) BETWEEN SUBSTRING(V_EWOL_MONTH,1,4)||'-01' AND SUBSTRING(V_EWOL_MONTH,1,7)
                                    AND PRODUC_NO = IN_PRODUC_NO
                                  GROUP BY PRODUC_NO, PRODUC_NM
                                   */
                                     SELECT PRODUC_NO, PRODUC_NM, SUM(EWOL_01) AS EWOL_QTY, SUM(UNIT_PRICE_01) AS EWOL_AMT
-                                      FROM GADMIN.JAGUJAGO -- ¿Á∞Ì ¿Ãø˘
+                                      FROM GADMIN.JAGUJAGO -- Ïû¨Í≥† Ïù¥Ïõî
                                      WHERE YEAR = SUBSTRING(IN_FROMDATE,1,4)
                                        AND PRODUC_NO = IN_PRODUC_NO
                                      GROUP BY PRODUC_NO, PRODUC_NM
                                     UNION ALL
-                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN 'π›«∞'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END) AS QTY, SUM(CASE GUBUN WHEN 'Î∞òÌíà'THEN SUPPLY_PRICE * -1 ELSE SUPPLY_PRICE END ) AS SUPPLY_PRICE
                                       FROM GADMIN.JAGUMA1
                                      WHERE DATE BETWEEN V_EWOL_FROMDATE AND V_EWOL_TODATE
                                        AND PRODUC_NO = IN_PRODUC_NO
                                      GROUP BY PRODUC_NO, PRODUC_NM
                                     UNION ALL
-                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END ) * -1 AS QTY, SUM(CASE GUBUN WHEN '√Îº“' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
+                                    SELECT PRODUC_NO, PRODUC_NM, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END ) * -1 AS QTY, SUM(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN PRICE * -1 ELSE PRICE END ) * -1 AS PRICE
                                       FROM GADMIN.JACHUL1
                                      WHERE DATE BETWEEN V_EWOL_FROMDATE AND V_EWOL_TODATE
                                        AND PRODUC_NO = IN_PRODUC_NO
@@ -69,12 +69,12 @@ MAIN: BEGIN
                     UNION ALL
                     SELECT TO_CHAR(A.DATE,'YYYY-MM-DD') AS DATE, A.SANGHO, A.CHANGGO, A.UNIT, A.IN_QTY, A.OUT_QTY, (IN_QTY - OUT_QTY) AS JAE_QTY, A.UNIT_PRICE, ((A.IN_QTY - A.OUT_QTY) * A.UNIT_PRICE)  AS JAE_AMT, A.GUBUN
                       FROM (
-                                SELECT DATE, SANGHO, PRODUC_NO, CHANGGO, UNIT, COALESCE(CASE GUBUN WHEN 'π›«∞'THEN QTY * -1 ELSE  QTY END,0) AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, '∏≈¿‘' AS GUBUN
+                                SELECT DATE, SANGHO, PRODUC_NO, CHANGGO, UNIT, COALESCE(CASE GUBUN WHEN 'Î∞òÌíà'THEN QTY * -1 ELSE  QTY END,0) AS IN_QTY, 0 AS OUT_QTY, UNIT_PRICE, 'Îß§ÏûÖ' AS GUBUN
                                   FROM GADMIN.JAGUMA1
                                  WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                    AND PRODUC_NO = IN_PRODUC_NO
                                 UNION ALL
-                                SELECT DATE, CAR_NO,  PRODUC_NO, CHANGGO, UNIT, 0 AS IN_QTY, COALESCE(CASE GUBUN WHEN '√Îº“' THEN QTY * -1 ELSE QTY END,0)  AS OUT_QTY, UNIT_PRICE, '√‚∞Ì' AS GUBUN
+                                SELECT DATE, CAR_NO,  PRODUC_NO, CHANGGO, UNIT, 0 AS IN_QTY, COALESCE(CASE GUBUN WHEN 'Ï∑®ÏÜå' THEN QTY * -1 ELSE QTY END,0)  AS OUT_QTY, UNIT_PRICE, 'Ï∂úÍ≥†' AS GUBUN
                                   FROM GADMIN.JACHUL1
                                  WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
                                    AND PRODUC_NO = IN_PRODUC_NO
@@ -87,4 +87,4 @@ MAIN: BEGIN
 	    OPEN CURSOR_MAT;--
     END P1;--
 
-END MAIN 
+END MAIN

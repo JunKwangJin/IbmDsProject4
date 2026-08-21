@@ -1,11 +1,11 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."USF_CS_JUSO_INFO"  (
     p_keyword VARCHAR(255),
-    p_page_size INT DEFAULT 10, -- ÇÑ ÆäÀÌÁö¿¡ °¡Á®¿Ã ÁÖ¼Ò °³¼ö (±âº» 10°³, ÃÖ´ë 1000)
-    p_current_page INT DEFAULT 1 -- °¡Á®¿Ã ÆäÀÌÁö ¹øÈ£ (±âº» 1ÆäÀÌÁö)
+    p_page_size INT DEFAULT 10, -- í•œ íŽ˜ì´ì§€ì— ê°€ì ¸ì˜¬ ì£¼ì†Œ ê°œìˆ˜ (ê¸°ë³¸ 10ê°œ, ìµœëŒ€ 1000)
+    p_current_page INT DEFAULT 1 -- ê°€ì ¸ì˜¬ íŽ˜ì´ì§€ ë²ˆí˜¸ (ê¸°ë³¸ 1íŽ˜ì´ì§€)
 )
 RETURNS TABLE (
-    road_addr VARCHAR(500),    -- µµ·Î¸í ÁÖ¼Ò
-    zip_no VARCHAR(10)         -- ¿ìÆí¹øÈ£
+    road_addr VARCHAR(500),    -- ë„ë¡œëª… ì£¼ì†Œ
+    zip_no VARCHAR(10)         -- ìš°íŽ¸ë²ˆí˜¸
 )
 LANGUAGE SQL
 DETERMINISTIC
@@ -13,12 +13,12 @@ READS SQL DATA
 NO EXTERNAL ACTION
 BEGIN ATOMIC
 
-    -- ¿©±â¿¡ ³ÊÀÇ juso.go.kr API ÀÎÁõÅ°¸¦ ³Ö¾îÁà!
+    -- ì—¬ê¸°ì— ë„ˆì˜ juso.go.kr API ì¸ì¦í‚¤ë¥¼ ë„£ì–´ì¤˜!
     DECLARE v_api_key VARCHAR(50) DEFAULT 'U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDM=';
     DECLARE v_encoded_keyword VARCHAR(512);
     DECLARE v_api_url VARCHAR(1000);
-    DECLARE v_http_response CLOB; -- HTTP ÀÀ´äÀº CLOBÀ¸·Î ¹Þ¾Æ¼­ XMLPARSER·Î XML·Î º¯È¯
-    DECLARE v_xml_response XML;   -- CLOBÀ» XML·Î ÆÄ½ÌÇÑ °á°ú
+    DECLARE v_http_response CLOB; -- HTTP ì‘ë‹µì€ CLOBìœ¼ë¡œ ë°›ì•„ì„œ XMLPARSERë¡œ XMLë¡œ ë³€í™˜
+    DECLARE v_xml_response XML;   -- CLOBì„ XMLë¡œ íŒŒì‹±í•œ ê²°ê³¼
     DECLARE v_error_code VARCHAR(10);
     DECLARE v_error_msg VARCHAR(500);
     DECLARE v_total_count INT;
@@ -28,65 +28,65 @@ BEGIN ATOMIC
 
     SET v_page_size = p_page_size;
     SET v_current_page = p_current_page;
-    -- p_page_size°¡ À¯È¿ÇÑ ¹üÀ§(1~1000)¸¦ ¹þ¾î³ª¸é Á¶Á¤
+    -- p_page_sizeê°€ ìœ íš¨í•œ ë²”ìœ„(1~1000)ë¥¼ ë²—ì–´ë‚˜ë©´ ì¡°ì •
     SET v_page_size = CASE
                           WHEN v_page_size < 1 THEN 1
                           WHEN v_page_size > 100 THEN 100
                           ELSE v_page_size
                       END;
---"https://business.juso.go.kr/addrlink/addrLinkApi.do?currentPage=1&countPerPage=10&keyword=´ë±¸ Áö»êµ¿&confmKey=U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDQ=&resultType=json"
-    -- p_current_page°¡ 1º¸´Ù ÀÛÀ¸¸é 1·Î Á¶Á¤
+--"https://business.juso.go.kr/addrlink/addrLinkApi.do?currentPage=1&countPerPage=10&keyword=ëŒ€êµ¬ ì§€ì‚°ë™&confmKey=U01TX0FVVEgyMDI1MDgwMjEwNDcyNzExNjAxNDQ=&resultType=json"
+    -- p_current_pageê°€ 1ë³´ë‹¤ ìž‘ìœ¼ë©´ 1ë¡œ ì¡°ì •
     SET v_current_page = CASE
                             WHEN v_current_page < 1 THEN 1
                             ELSE v_current_page
                          END;
 
-    -- 1. °Ë»ö Å°¿öµå¸¦ URL ÀÎÄÚµù
+    -- 1. ê²€ìƒ‰ í‚¤ì›Œë“œë¥¼ URL ì¸ì½”ë”©
     SET v_encoded_keyword = DB2XML.URLENCODE(p_keyword, 'UTF-8');
 
-    -- 2. juso.go.kr API URL ±¸¼º (ÆäÀÌÁö³×ÀÌ¼Ç Ãß°¡)
+    -- 2. juso.go.kr API URL êµ¬ì„± (íŽ˜ì´ì§€ë„¤ì´ì…˜ ì¶”ê°€)
     SET v_api_url = CAST('https://business.juso.go.kr/addrlink/addrLinkApi.do' ||
                     '?confmKey=' || v_api_key ||
                     '&currentPage=' || DB2XML.URLENCODE(CHAR(v_current_page), '') ||
                     '&countPerPage=' || DB2XML.URLENCODE(CHAR(v_page_size), '') ||
                     '&keyword=' || v_encoded_keyword ||
-                    '&resultType=xml' AS VARCHAR(255)); -- °á°ú Å¸ÀÔ XML·Î À¯Áö!
+                    '&resultType=xml' AS VARCHAR(255)); -- ê²°ê³¼ íƒ€ìž… XMLë¡œ ìœ ì§€!
 
-    -- 3. HTTP GET ¿äÃ» º¸³»±â (ÀÀ´äÀº CLOBÀ¸·Î ¹ÞÀ½)
+    -- 3. HTTP GET ìš”ì²­ ë³´ë‚´ê¸° (ì‘ë‹µì€ CLOBìœ¼ë¡œ ë°›ìŒ)
     SET v_http_response = DB2XML.HTTPGETCLOB(v_api_url, XMLPARSE(DOCUMENT '<httpHeader/>'));
 
-    -- 4. CLOB ÀÀ´äÀ» XML·Î ÆÄ½Ì
-    -- ¸¸¾à ÀÀ´äÀÌ ºñ¾îÀÖÀ¸¸é(NULL) XMLPARSER°¡ ¿¡·¯¸¦ ³¾ ¼ö ÀÖÀ¸¹Ç·Î Ã¼Å©
+    -- 4. CLOB ì‘ë‹µì„ XMLë¡œ íŒŒì‹±
+    -- ë§Œì•½ ì‘ë‹µì´ ë¹„ì–´ìžˆìœ¼ë©´(NULL) XMLPARSERê°€ ì—ëŸ¬ë¥¼ ë‚¼ ìˆ˜ ìžˆìœ¼ë¯€ë¡œ ì²´í¬
     IF v_http_response IS NOT NULL THEN
         SET v_xml_response = XMLPARSE(DOCUMENT v_http_response);
     ELSE
-        -- ÀÀ´äÀÌ NULLÀÎ °æ¿ì ºó XMLÀ» ÇÒ´çÇÏ°Å³ª ÀûÀýÈ÷ Ã³¸®
+        -- ì‘ë‹µì´ NULLì¸ ê²½ìš° ë¹ˆ XMLì„ í• ë‹¹í•˜ê±°ë‚˜ ì ì ˆížˆ ì²˜ë¦¬
         SET v_xml_response = XMLPARSE(DOCUMENT '<httpHeader/>');
     END IF;
 
-    -- 5. XML ÀÀ´ä¿¡¼­ °øÅë Á¤º¸(errorCode, totalCount) ÃßÃâ
-    -- XMLELEMENT¿Í XMLQUERY¸¦ »ç¿ë (°æ·Î´Â XML¸¶´Ù ´Ù¸¦ ¼ö ÀÖÀ¸´Ï Á¤È®ÇÑ °æ·Î È®ÀÎ ÇÊ¼ö)
-    -- ¿¹»ó °æ·Î: /response/common/errorCode, /response/common/totalCount
+    -- 5. XML ì‘ë‹µì—ì„œ ê³µí†µ ì •ë³´(errorCode, totalCount) ì¶”ì¶œ
+    -- XMLELEMENTì™€ XMLQUERYë¥¼ ì‚¬ìš© (ê²½ë¡œëŠ” XMLë§ˆë‹¤ ë‹¤ë¥¼ ìˆ˜ ìžˆìœ¼ë‹ˆ ì •í™•í•œ ê²½ë¡œ í™•ì¸ í•„ìˆ˜)
+    -- ì˜ˆìƒ ê²½ë¡œ: /response/common/errorCode, /response/common/totalCount
     SET v_error_code = XMLCAST(XMLQUERY('$X/response/common/errorCode/text()' PASSING v_xml_response AS "X") AS VARCHAR(5));
     SET v_error_msg = XMLCAST(XMLQUERY('$X/response/common/errorMessage/text()' PASSING v_xml_response AS "X") AS VARCHAR(500));
     SET v_total_count = XMLCAST(XMLQUERY('$X/response/common/totalCount/text()' PASSING v_xml_response AS "X") AS INTEGER);
-    SET v_page_count = v_total_count / v_page_size;--ÆäÀÌÁö¼ö °è»ê
-        -- ¼º°øÀûÀ¸·Î ÁÖ¼Ò Á¤º¸¸¦ ¹Þ¾Æ¿Ô°í °á°ú°¡ ÀÖÀ» ¶§ XMLTABLEÀ» »ç¿ë
-        -- XMLTABLEÀº XML ¹®¼­¸¦ Å×ÀÌºí ÇüÅÂ·Î ÆîÃÄÁÜ
+    SET v_page_count = v_total_count / v_page_size;--íŽ˜ì´ì§€ìˆ˜ ê³„ì‚°
+        -- ì„±ê³µì ìœ¼ë¡œ ì£¼ì†Œ ì •ë³´ë¥¼ ë°›ì•„ì™”ê³  ê²°ê³¼ê°€ ìžˆì„ ë•Œ XMLTABLEì„ ì‚¬ìš©
+        -- XMLTABLEì€ XML ë¬¸ì„œë¥¼ í…Œì´ë¸” í˜•íƒœë¡œ íŽ¼ì³ì¤Œ
 
 	IF XMLCAST(v_xml_response AS VARCHAR(5000)) IS NULL OR LENGTH(TRIM(XMLCAST(v_xml_response AS VARCHAR(5000)))) = 0 THEN
-        SET v_error_msg = 'API ÀÀ´äÀÌ ºñ¾îÀÖ½À´Ï´Ù (³×Æ®¿öÅ© ¹®Á¦ ¶Ç´Â ºó ÀÀ´ä).';
+        SET v_error_msg = 'API ì‘ë‹µì´ ë¹„ì–´ìžˆìŠµë‹ˆë‹¤ (ë„¤íŠ¸ì›Œí¬ ë¬¸ì œ ë˜ëŠ” ë¹ˆ ì‘ë‹µ).';
         SET v_error_code = 'DB_ERROR';
     END IF;
 
 	IF v_error_code <> '0' THEN
-	    SET v_error_msg = CASE 
-	                         WHEN v_error_code = '-999' THEN '¿ìÆí¹øÈ£°¡ Á¤»óÁ¶È¸ µÇÁö ¾Ê½À´Ï´Ù.(°ü¸®ÀÚ¿¡°Ô ¹®ÀÇ ÇÏ¼¼¿ä)'
-	                         ELSE REPLACE(v_error_msg,'°Ë»ö¾î','ÁÖ¼Ò')
+	    SET v_error_msg = CASE
+	                         WHEN v_error_code = '-999' THEN 'ìš°íŽ¸ë²ˆí˜¸ê°€ ì •ìƒì¡°íšŒ ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.(ê´€ë¦¬ìžì—ê²Œ ë¬¸ì˜ í•˜ì„¸ìš”)'
+	                         ELSE REPLACE(v_error_msg,'ê²€ìƒ‰ì–´','ì£¼ì†Œ')
 	                      END;
     END IF;
-    -- ¼º°øÀûÀ¸·Î ÁÖ¼Ò Á¤º¸¸¦ ¹Þ¾Æ¿Ô°í °á°ú°¡ ÀÖÀ» ¶§ XMLTABLEÀ» »ç¿ë
-    -- XMLTABLEÀº XML ¹®¼­¸¦ Å×ÀÌºí ÇüÅÂ·Î ÆîÃÄÁÜ
+    -- ì„±ê³µì ìœ¼ë¡œ ì£¼ì†Œ ì •ë³´ë¥¼ ë°›ì•„ì™”ê³  ê²°ê³¼ê°€ ìžˆì„ ë•Œ XMLTABLEì„ ì‚¬ìš©
+    -- XMLTABLEì€ XML ë¬¸ì„œë¥¼ í…Œì´ë¸” í˜•íƒœë¡œ íŽ¼ì³ì¤Œ
     RETURN SELECT v_error_msg, v_error_code FROM SYSIBM.SYSDUMMY1
            UNION ALL
     	   SELECT T.roadAddr, T.zipNo
@@ -96,9 +96,9 @@ BEGIN ATOMIC
                     zipNo VARCHAR(10) PATH 'zipNo'
                 ) AS T;
 --    ELSE
---        -- API È£Ãâ ½ÇÆÐ ¶Ç´Â °Ë»ö °á°ú°¡ ¾øÀ» ¶§ ºó Å×ÀÌºí ¹ÝÈ¯
---        -- ºó °á°ú¸¦ ¸í½ÃÀûÀ¸·Î ¹ÝÈ¯
+--        -- API í˜¸ì¶œ ì‹¤íŒ¨ ë˜ëŠ” ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ì„ ë•Œ ë¹ˆ í…Œì´ë¸” ë°˜í™˜
+--        -- ë¹ˆ ê²°ê³¼ë¥¼ ëª…ì‹œì ìœ¼ë¡œ ë°˜í™˜
 --        RETURN SELECT NULL AS road_addr, NULL AS zip_no
 --               FROM SYSIBM.SYSDUMMY1
---               WHERE 1 = 0; -- Ç×»ó FALSE Á¶°ÇÀ» ÁÖ¾î ºó Å×ÀÌºí ¹ÝÈ¯
+--               WHERE 1 = 0; -- í•­ìƒ FALSE ì¡°ê±´ì„ ì£¼ì–´ ë¹ˆ í…Œì´ë¸” ë°˜í™˜
 END

@@ -1,17 +1,17 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_MBC_SMSAUTH_LST_S01"
 /*******************************************************************************
-ÆÄÀÏ¸í	: "GADMIN"."MBC_SMSAUTH_LST_S01"
-»ý¼ºÀÏÀÚ	: 2022.5.15
-»ý¼ºÀÚ	: Àü±¤Áø
-³»¿ë	    : ¹®ÀÚÀÎÁõÀÎÁõ³»¿ª Á¶È¸
-¼öÁ¤ÀÏÀÚ	:
-¼öÁ¤ÀÚ	:
-¼öÁ¤³»¿ë    :
-¿¹Á¦
-SELECT * FROM "GADMIN"."MBC_SMSAUTH_LST_S01"(ÈÞ´ëÆù¹øÈ£)
+íŒŒì¼ëª…	: "GADMIN"."MBC_SMSAUTH_LST_S01"
+ìƒì„±ì¼ìž	: 2022.5.15
+ìƒì„±ìž	: ì „ê´‘ì§„
+ë‚´ìš©	    : ë¬¸ìžì¸ì¦ì¸ì¦ë‚´ì—­ ì¡°íšŒ
+ìˆ˜ì •ì¼ìž	:
+ìˆ˜ì •ìž	:
+ìˆ˜ì •ë‚´ìš©    :
+ì˜ˆì œ
+SELECT * FROM "GADMIN"."MBC_SMSAUTH_LST_S01"(íœ´ëŒ€í°ë²ˆí˜¸)
 *******************************************************************************/
 (
-    IN IN_CELLPHONE  VARCHAR(11)   -- ÈÞ´ëÆù¹øÈ£
+    IN IN_CELLPHONE  VARCHAR(11)   -- íœ´ëŒ€í°ë²ˆí˜¸
 )
 RETURNS
     TABLE
@@ -25,8 +25,8 @@ RETURNS
 LANGUAGE SQL
 
 BEGIN ATOMIC
-   DECLARE V_CELLPHONE   VARCHAR(11);-- ÈÞ´ëÆù¹øÈ£
-   DECLARE V_USER_ID     VARCHAR(10);-- »ç¿ëÀÚ ID
+   DECLARE V_CELLPHONE   VARCHAR(11);-- íœ´ëŒ€í°ë²ˆí˜¸
+   DECLARE V_USER_ID     VARCHAR(10);-- ì‚¬ìš©ìž ID
 
    SET V_CELLPHONE  = COALESCE(IN_CELLPHONE,'');--
 

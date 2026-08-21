@@ -43,19 +43,19 @@ MAIN: BEGIN
 
 	         ACC_SUM AS (
                        	  SELECT DATE,
-                                 SUM(CASE WHEN DRCR_GB = 'ÀÔ±Ý' THEN CR_AMT ELSE 0 END) AS SUM_IN,
-                                 SUM(CASE WHEN DRCR_GB = 'Ãâ±Ý' THEN DR_AMT ELSE 0 END) AS SUM_OUT,
-                                 SUM(CASE WHEN DRCR_GB = 'Â÷º¯' THEN DR_AMT ELSE 0 END) AS SUM_DR,
-                                 SUM(CASE WHEN DRCR_GB = '´ëº¯' THEN CR_AMT ELSE 0 END) AS SUM_CR
+                                 SUM(CASE WHEN DRCR_GB = 'ìž…ê¸ˆ' THEN CR_AMT ELSE 0 END) AS SUM_IN,
+                                 SUM(CASE WHEN DRCR_GB = 'ì¶œê¸ˆ' THEN DR_AMT ELSE 0 END) AS SUM_OUT,
+                                 SUM(CASE WHEN DRCR_GB = 'ì°¨ë³€' THEN DR_AMT ELSE 0 END) AS SUM_DR,
+                                 SUM(CASE WHEN DRCR_GB = 'ëŒ€ë³€' THEN CR_AMT ELSE 0 END) AS SUM_CR
                             FROM GADMIN.ACCOU1
                            WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE
            	               GROUP BY DATE),
 
 	         ACC_TOT AS (
-                       	  SELECT SUM(CASE WHEN DRCR_GB = 'ÀÔ±Ý' THEN CR_AMT ELSE 0 END) AS TOT_IN,
-                                 SUM(CASE WHEN DRCR_GB = 'Ãâ±Ý' THEN DR_AMT ELSE 0 END) AS TOT_OUT,
-                                 SUM(CASE WHEN DRCR_GB = 'Â÷º¯' THEN DR_AMT ELSE 0 END) AS TOT_DR,
-                                 SUM(CASE WHEN DRCR_GB = '´ëº¯' THEN CR_AMT ELSE 0 END) AS TOT_CR
+                       	  SELECT SUM(CASE WHEN DRCR_GB = 'ìž…ê¸ˆ' THEN CR_AMT ELSE 0 END) AS TOT_IN,
+                                 SUM(CASE WHEN DRCR_GB = 'ì¶œê¸ˆ' THEN DR_AMT ELSE 0 END) AS TOT_OUT,
+                                 SUM(CASE WHEN DRCR_GB = 'ì°¨ë³€' THEN DR_AMT ELSE 0 END) AS TOT_DR,
+                                 SUM(CASE WHEN DRCR_GB = 'ëŒ€ë³€' THEN CR_AMT ELSE 0 END) AS TOT_CR
                             FROM GADMIN.ACCOU1
                            WHERE DATE BETWEEN IN_FROMDATE AND IN_TODATE)
 
@@ -97,4 +97,4 @@ MAIN: BEGIN
 	OPEN CURSOR_ACC ;--
    END P1;--
 
-END MAIN 
+END MAIN

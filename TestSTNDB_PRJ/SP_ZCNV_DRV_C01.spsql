@@ -3,26 +3,26 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_ZCNV_DRV_C01"
     IN IN_TAB_NM        VARCHAR(100)
   , IN IN_CD1           VARCHAR(100)
 
-  , OUT	OUT_CNT		    INTEGER  -- √≥∏Æ«— µ•¿Ã≈Õ ∞«ºˆ
-  , OUT	OUT_TCNT	    INTEGER  -- ¿¸√º µ•¿Ã≈Õ ∞«Ω∫
-  , OUT	OUT_ECNT	    INTEGER  -- √≥∏Æ ¡ﬂ ø°∑Ø√≥∏Æ«— ∞«ºˆ
-  , OUT	OUT_MSG		    VARCHAR(10000)   -- ∏ﬁºº¡ˆ
+  , OUT	OUT_CNT		    INTEGER  -- Ï≤òÎ¶¨Ìïú Îç∞Ïù¥ÌÑ∞ Í±¥Ïàò
+  , OUT	OUT_TCNT	    INTEGER  -- Ï†ÑÏ≤¥ Îç∞Ïù¥ÌÑ∞ Í±¥Ïä§
+  , OUT	OUT_ECNT	    INTEGER  -- Ï≤òÎ¶¨ Ï§ë ÏóêÎü¨Ï≤òÎ¶¨Ìïú Í±¥Ïàò
+  , OUT	OUT_MSG		    VARCHAR(10000)   -- Î©îÏÑ∏ÏßÄ
 )
 /*******************************************************************************
-∆ƒ¿œ∏Ì	: GADMIN.SP_ZCNV_DRV_C01
-ª˝º∫¿œ¿⁄	: 2021.03.16
-ª˝º∫¿⁄	: ¿¸±§¡¯
-≥ªøÎ	: øÓ«‡≈◊¿Ã∫Ì ∫Ø»Ø
-ºˆ¡§¿œ¿⁄	:
-ºˆ¡§¿⁄	:
-ºˆ¡§≥ªøÎ
-INPUT	: IN IN_TAB_NM      1.≈◊¿Ã∫Ì∏Ì
-	    : IN IN_CD1		    2.øπ∫Ò∆ƒ∂Û∏ﬁ≈Õ
+ÌååÏùºÎ™Ö	: GADMIN.SP_ZCNV_DRV_C01
+ÏÉùÏÑ±ÏùºÏûê	: 2021.03.16
+ÏÉùÏÑ±Ïûê	: Ï†ÑÍ¥ëÏßÑ
+ÎÇ¥Ïö©	: Ïö¥ÌñâÌÖåÏù¥Î∏î Î≥ÄÌôò
+ÏàòÏ†ïÏùºÏûê	:
+ÏàòÏ†ïÏûê	:
+ÏàòÏ†ïÎÇ¥Ïö©
+INPUT	: IN IN_TAB_NM      1.ÌÖåÏù¥Î∏îÎ™Ö
+	    : IN IN_CD1		    2.ÏòàÎπÑÌååÎùºÎ©îÌÑ∞
 
-OUTPUT	: OUT_CNT	    	A.√≥∏ÆCOUNT
-     	: OUT_TCNT	    	B.ø°∑ØCOUNT
-     	: OUT_ECNT	    	B.ø°∑ØCOUNT
-	    : OUT_MSG	        B.√≥∏Æ∞·∞˙∏ﬁΩ√¡ˆ
+OUTPUT	: OUT_CNT	    	A.Ï≤òÎ¶¨COUNT
+     	: OUT_TCNT	    	B.ÏóêÎü¨COUNT
+     	: OUT_ECNT	    	B.ÏóêÎü¨COUNT
+	    : OUT_MSG	        B.Ï≤òÎ¶¨Í≤∞Í≥ºÎ©îÏãúÏßÄ
 *******************************************************************************/
 
   DYNAMIC RESULT SETS 1
@@ -38,62 +38,62 @@ MAIN: BEGIN
     DECLARE V_TCNT INTEGER DEFAULT 0;--
     DECLARE E_TCNT INTEGER DEFAULT 0;--
 
-    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- ∫Øºˆ ¿« ±Ê¿Ã∞° ≥ π´ ¿€Ω¿¥œ¥Ÿ.
-    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- ¿˙¿Â«“ πÆ¿⁄ø≠¿« ±Ê¿Ã∞° ≥ π´ ±È¥œ¥Ÿ.
-    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULL¡ˆ¡§µ» ƒ√∑≥ø° NULL¡ˆ¡§
-    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- µ•¿Ã≈Õ ¡ﬂ∫π
-    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLE¿Ã æ¯¿ªãö
+    DECLARE LEN_UNDER CONDITION FOR SQLSTATE '01004';  -- Î≥ÄÏàò Ïùò Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÏûëÏäµÎãàÎã§.
+    DECLARE LEN_OVER CONDITION FOR SQLSTATE '22001';  -- Ï†ÄÏû•Ìï† Î¨∏ÏûêÏó¥Ïùò Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÍπÅÎãàÎã§.
+    DECLARE NOT_NULL CONDITION FOR SQLSTATE '23502';  -- NOT NULLÏßÄÏ†ïÎêú Ïª¨ÎüºÏóê NULLÏßÄÏ†ï
+    DECLARE ROW_DUO CONDITION FOR SQLSTATE '23505';  -- Îç∞Ïù¥ÌÑ∞ Ï§ëÎ≥µ
+    DECLARE NO_TABLE CONDITION FOR SQLSTATE '42704';  -- TABLEÏù¥ ÏóÜÏùÑÎñÑ
 
 /*
   DECLARE CONTINUE HANDLER FOR NOT FOUND
           E1: BEGIN
                SET V_SQLSTATE = SQLSTATE;--
-               SET OUT_MSG = OUT_MSG|| V_SQLSTATE || CHR(13) || 'WRR01: µ•¿Ã≈Õ∏¶ √£¿ª(¡∂»∏«“)ºˆ æ¯Ω¿¥œ¥Ÿ..' ;--
+               SET OUT_MSG = OUT_MSG|| V_SQLSTATE || CHR(13) || 'WRR01: Îç∞Ïù¥ÌÑ∞Î•º Ï∞æÏùÑ(Ï°∞ÌöåÌï†)Ïàò ÏóÜÏäµÎãàÎã§..' ;--
                ROLLBACK ;--
                RETURN ;--
           END E1;--
   DECLARE CONTINUE HANDLER FOR SQLWARNING
         E2: BEGIN
              SET V_SQLSTATE = SQLSTATE;--
-             SET OUT_MSG = OUT_MSG||CASE V_SQLSTATE WHEN '01004' THEN V_SQLSTATE || CHR(13) || 'WRR01: ∫Øºˆ¿« ±Ê¿Ã∞° ≥ π´ ¿€Ω¿¥œ¥Ÿ..'
-                                            ELSE                V_SQLSTATE || CHR(13) || 'WRR99: Ω««‡¡ﬂ ∞Ê∞Ì ø¿∑˘∞° πﬂª˝«œø¥Ω¿¥œ¥Ÿ.' END;--
+             SET OUT_MSG = OUT_MSG||CASE V_SQLSTATE WHEN '01004' THEN V_SQLSTATE || CHR(13) || 'WRR01: Î≥ÄÏàòÏùò Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÏûëÏäµÎãàÎã§..'
+                                            ELSE                V_SQLSTATE || CHR(13) || 'WRR99: Ïã§ÌñâÏ§ë Í≤ΩÍ≥† Ïò§Î•òÍ∞Ä Î∞úÏÉùÌïòÏòÄÏäµÎãàÎã§.' END;--
              ROLLBACK ;--
              RETURN ;--
         END E2;--
   DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
         E3: BEGIN
              SET V_SQLSTATE = SQLSTATE;--
-             SET OUT_MSG = OUT_MSG|| CASE V_SQLSTATE WHEN '42704' THEN V_SQLSTATE || CHR(13) || 'ERR01: ¡∏¿Á«œ¡ˆ æ ¥¬ ≈◊¿Ã∫Ì ¿‘¥œ¥Ÿ...'
-                                            WHEN '23502' THEN V_SQLSTATE || CHR(13) || 'ERR02: NOT NULLƒ√∑≥ø° NULL¿Ã ¡ˆ¡§µ«æ˙Ω¿¥œ¥Ÿ..'
-				                            WHEN '23505' THEN v_SQLSTATE || CHR(13) || 'ERR03: ¿˙¿Â¡ﬂ ¡ﬂ∫πµ«æ˙Ω¿¥œ¥Ÿ.'
-                                            WHEN '22001' THEN V_SQLSTATE || CHR(13) || 'ERR03: ¿˙¿Âµ… πÆ¿⁄ø≠ ±Ê¿Ã∞° ≥ π´ ±È¥œ¥Ÿ..'
-                                            ELSE               V_SQLSTATE || CHR(13) || 'ERR99: Ω««‡¡ﬂ æÀºˆæ¯¥¬ ø¿∑˘∑Œ ¡æ∑·µ«æ˙Ω¿¥œ¥Ÿ.' END;--
+             SET OUT_MSG = OUT_MSG|| CASE V_SQLSTATE WHEN '42704' THEN V_SQLSTATE || CHR(13) || 'ERR01: Ï°¥Ïû¨ÌïòÏßÄ ÏïäÎäî ÌÖåÏù¥Î∏î ÏûÖÎãàÎã§...'
+                                            WHEN '23502' THEN V_SQLSTATE || CHR(13) || 'ERR02: NOT NULLÏª¨ÎüºÏóê NULLÏù¥ ÏßÄÏ†ïÎêòÏóàÏäµÎãàÎã§..'
+				                            WHEN '23505' THEN v_SQLSTATE || CHR(13) || 'ERR03: Ï†ÄÏû•Ï§ë Ï§ëÎ≥µÎêòÏóàÏäµÎãàÎã§.'
+                                            WHEN '22001' THEN V_SQLSTATE || CHR(13) || 'ERR03: Ï†ÄÏû•Îê† Î¨∏ÏûêÏó¥ Í∏∏Ïù¥Í∞Ä ÎÑàÎ¨¥ ÍπÅÎãàÎã§..'
+                                            ELSE               V_SQLSTATE || CHR(13) || 'ERR99: Ïã§ÌñâÏ§ë ÏïåÏàòÏóÜÎäî Ïò§Î•òÎ°ú Ï¢ÖÎ£åÎêòÏóàÏäµÎãàÎã§.' END;--
              ROLLBACK ;--
              RETURN ;--
         END E3;--
 */
-  CALL DBMS_OUTPUT.PUT_LINE('BSUNHA2Ω√¿€');  --
+  CALL DBMS_OUTPUT.PUT_LINE('BSUNHA2ÏãúÏûë');  --
 
   IF IN_TAB_NM = 'BSUNHA2' THEN
     PBSUNHA2: BEGIN
         DECLARE V_AM VARCHAR(2) DEFAULT '';--
         DECLARE V_PM VARCHAR(2) DEFAULT '';--
-    -- ∫Øºˆ √ ±‚»≠
+    -- Î≥ÄÏàò Ï¥àÍ∏∞Ìôî
         SET (V_CNT, V_TCNT, OUT_CNT, OUT_ECNT, OUT_MSG) = (0, 0, '0', '0', '');--
 
-         --∏Ò«•µ•¿Ã≈Õ ¡∂»∏
+         --Î™©ÌëúÎç∞Ïù¥ÌÑ∞ Ï°∞Ìöå
 		SELECT COUNT(*) INTO V_TCNT
 		 FROM GADMIN.BSUNHA2_M;--
 
         SET OUT_TCNT = VARCHAR(V_TCNT);--
 
-         --∏Ò«•µ•¿Ã≈Õ ªË¡¶
+         --Î™©ÌëúÎç∞Ïù¥ÌÑ∞ ÏÇ≠Ï†ú
         IF OUT_TCNT > 0 THEN
 
            DELETE
              FROM GADMIN.BSUNHA2_M;--
         END IF;--
-        CALL DBMS_OUTPUT.PUT_LINE('µ•¿Ã≈ÕªË¡¶');--
+        CALL DBMS_OUTPUT.PUT_LINE('Îç∞Ïù¥ÌÑ∞ÏÇ≠Ï†ú');--
 
          --DATA COUNT
 		SELECT COUNT(*) INTO V_TCNT
@@ -112,13 +112,13 @@ MAIN: BEGIN
                     SET OUT_CNT = VARCHAR(V_CNT);--
                     SET OUT_MSG = '[ROUTE]=['||BSU2.ROUTE||']  [PYEONSUNG]=['||BSU2.PYEONSUNG||']  [GUBUN]=['||BSU2.GUBUN||']  [SUNBUN]=['||BSU2.SUNBUN||']';--
 
-                    -- ø¿¿¸ø¿»ƒ Ω…æﬂ ƒ⁄µÂ ¡ˆ¡§(  -- AMPM_GB [DRV06 : ≥Îº±(CD3:¡÷æﬂ≥Îº±±∏∫–), DRV07 : ¡÷æﬂΩ…æﬂ ±∏∫–])
+                    -- Ïò§Ï†ÑÏò§ÌõÑ Ïã¨Ïïº ÏΩîÎìú ÏßÄÏ†ï(  -- AMPM_GB [DRV06 : ÎÖ∏ÏÑ†(CD3:Ï£ºÏïºÎÖ∏ÏÑ†Íµ¨Î∂Ñ), DRV07 : Ï£ºÏïºÏã¨Ïïº Íµ¨Î∂Ñ])
 --                    SELECT MAX(CD) INTO V_AM
 --                      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_NM('DRV06',ROUTE,'CD3'),'L','','','','','',''));--
 --                    SELECT MAX(CD) INTO V_PM
 --                      FROM TABLE(GADMIN.SF_COMMON_LST01('','DRV07','','',GADMIN.SF_EBUS_COMMON_NM('DRV06',ROUTE,'CD3'),'R','','','','','',''));--
 
-                 -- ø¿¿¸ πË¬˜
+                 -- Ïò§Ï†Ñ Î∞∞Ï∞®
                  IF ( BSU2.AM_START IS NULL AND BSU2.AM_INTERVAL IS NULL AND BSU2.AM_CNT IS NULL) THEN
                   ELSE
                     SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT1]';--
@@ -171,7 +171,7 @@ MAIN: BEGIN
                                  , NULL
                                  , NULL );--
                   END IF;--
-                 -- ø¿»ƒ πË¬˜
+                 -- Ïò§ÌõÑ Î∞∞Ï∞®
                  IF ( PM_START IS NULL AND PM_INTERVAL IS NULL AND PM_HOISU IS NULL) THEN
                   ELSE
                     SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT2]';--
@@ -229,22 +229,22 @@ MAIN: BEGIN
     END PBSUNHA2;--
   ELSEIF IN_TAB_NM = 'BSUNHA2B' THEN
     PBSUNHA2B: BEGIN
-    -- ∫Øºˆ √ ±‚»≠
+    -- Î≥ÄÏàò Ï¥àÍ∏∞Ìôî
         SET (V_CNT, V_TCNT, OUT_CNT, OUT_ECNT, OUT_MSG) = (0, 0, '0', '0', '');--
 
-         --∏Ò«•µ•¿Ã≈Õ ¡∂»∏
+         --Î™©ÌëúÎç∞Ïù¥ÌÑ∞ Ï°∞Ìöå
 		SELECT COUNT(*) INTO V_TCNT
 		 FROM GADMIN.BSUNHA2B_M;--
 
         SET OUT_TCNT = VARCHAR(V_TCNT);--
 
-         --∏Ò«•µ•¿Ã≈Õ ªË¡¶
+         --Î™©ÌëúÎç∞Ïù¥ÌÑ∞ ÏÇ≠Ï†ú
         IF OUT_TCNT > 0 THEN
 
            DELETE
              FROM GADMIN.BSUNHA2B_M;--
         END IF;--
-        CALL DBMS_OUTPUT.PUT_LINE('µ•¿Ã≈ÕªË¡¶');--
+        CALL DBMS_OUTPUT.PUT_LINE('Îç∞Ïù¥ÌÑ∞ÏÇ≠Ï†ú');--
 
          --DATA COUNT
 		SELECT COUNT(*) INTO V_TCNT
@@ -263,7 +263,7 @@ MAIN: BEGIN
                     SET OUT_CNT = VARCHAR(V_CNT);--
                     SET OUT_MSG = '[ROUTE]=['||BSU2B.ROUTE||']  [PYEONSUNG]=['||BSU2B.PYEONSUNG||']  [GUBUN]=['||BSU2B.GUBUN||']';--
 
-                 -- ø¿¿¸ ¡§ªÛ
+                 -- Ïò§Ï†Ñ Ï†ïÏÉÅ
                  IF ( COALESCE(BSU2B.JUNGSANG_AM,0.0)=0.0) THEN
                   ELSE
                     SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT1]';--
@@ -291,7 +291,7 @@ MAIN: BEGIN
                                  , NULL );--
                  END IF;--
 
-                 -- ø¿»ƒ ¡§ªÛ
+                 -- Ïò§ÌõÑ Ï†ïÏÉÅ
 		 IF ( COALESCE(JUNGSANG_PM,0.0)=0.0) THEN
                   ELSE
                     SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT2]';--
@@ -319,7 +319,7 @@ MAIN: BEGIN
                                  , NULL );--
                  END IF;                --
 
-                 -- ø¿¿¸ ¥‹√‡
+                 -- Ïò§Ï†Ñ Îã®Ï∂ï
                  IF ( COALESCE(JUNGSANG_AM,0.0)=0.0) THEN
                   ELSE
                     SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT3]';--
@@ -347,7 +347,7 @@ MAIN: BEGIN
                                  , NULL );--
                  END IF;                --
 
-                 -- ø¿»ƒ ¥‹√‡
+                 -- Ïò§ÌõÑ Îã®Ï∂ï
 		 IF ( COALESCE(JUNGSANG_PM,0.0)=0.0) THEN
                   ELSE
                     SET OUT_MSG = OUT_MSG||CHR(13)||'[INSERT4]';--
@@ -380,4 +380,4 @@ MAIN: BEGIN
     END PBSUNHA2B;--
   END IF;--
    SELECT COUNT(*) INTO OUT_ECNT FROM GADMIN.BSUNHA2B_M;--
-END MAIN 
+END MAIN

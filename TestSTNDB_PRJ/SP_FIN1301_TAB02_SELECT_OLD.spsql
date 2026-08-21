@@ -60,7 +60,7 @@ MAIN: BEGIN
 
 P1: BEGIN
 
-    --¿ù–˜ ÆÄ¶ó¸ïÆ® ½äÁ¤
+    --ì›”ë¼ íŒŒë¼ëªŒíŠ¸ ì°ì •
     IF SUBSTRING(IN_FROMMONTH,6,2) = '01' THEN
         SET V_01_FROMMONTH = SUBSTRING(IN_FROMMONTH,1,5)||'01';--
     ELSE
@@ -237,4 +237,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

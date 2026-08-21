@@ -8,19 +8,19 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_USERUPDATE"
  ,   OUT OUT_MSG         VARCHAR(10000)
 )
 --/*******************************************************************************
---ÆÄÀÏ¸í   : GADMIN.SP_MBC_USERUPDATE
---»ý¼ºÀÏÀÚ  : 2024. 3. 25
---»ý¼ºÀÚ   : Àü±¤Áø
---³»¿ë        : ÀÎ»çµ¥ÀÌÅÍ Update
---¼öÁ¤ÀÏÀÚ  :
---¼öÁ¤ÀÚ   : 
---¼öÁ¤³»¿ë    :
---¼öÁ¤ÀÏÀÚ  :
---¼öÁ¤ÀÚ   : 
---  
+--íŒŒì¼ëª…   : GADMIN.SP_MBC_USERUPDATE
+--ìƒì„±ì¼ìž  : 2024. 3. 25
+--ìƒì„±ìž   : ì „ê´‘ì§„
+--ë‚´ìš©        : ì¸ì‚¬ë°ì´í„° Update
+--ìˆ˜ì •ì¼ìž  :
+--ìˆ˜ì •ìž   :
+--ìˆ˜ì •ë‚´ìš©    :
+--ìˆ˜ì •ì¼ìž  :
+--ìˆ˜ì •ìž   :
+--
 --     INPUT: IN_TIMEID         1 TIME id
---    OUTPUT: OUT_CNT           A.Ã³¸®COUNT
---          : OUT_MSG           B.Ã³¸®°á°ú¸Þ½ÃÁö
+--    OUTPUT: OUT_CNT           A.ì²˜ë¦¬COUNT
+--          : OUT_MSG           B.ì²˜ë¦¬ê²°ê³¼ë©”ì‹œì§€
 --*******************************************************************************/
 
 
@@ -28,13 +28,13 @@ CREATE OR REPLACE PROCEDURE "GADMIN"."SP_MBC_USERUPDATE"
 
 MAIN: BEGIN ATOMIC
 
--- DB DATAº¯¼ö
+-- DB DATAë³€ìˆ˜
     DECLARE V_CELLPHONE    VARCHAR(11);--
     DECLARE V_INSA_NO      VARCHAR(10);--
     DECLARE V_JIKJONG      VARCHAR(25);--
     DECLARE V_INSA_NM      VARCHAR(20);--
 
---CLIENTÁ¤º¸ º¯¼ö
+--CLIENTì •ë³´ ë³€ìˆ˜
     DECLARE V_APPLICATION_ID
                             VARCHAR(50);--
     DECLARE V_APPLICATION_NAME
@@ -43,7 +43,7 @@ MAIN: BEGIN ATOMIC
                             VARCHAR(250);--
 
 
--- ÀÏ¹Ýº¯¼ö
+-- ì¼ë°˜ë³€ìˆ˜
 --    DECLARE I           INTEGER;--
     DECLARE V_CNT           INTEGER;--
     DECLARE V_USER_CHK     INT;--
@@ -54,28 +54,28 @@ MAIN: BEGIN ATOMIC
 
     DECLARE V_SQLSTATE      CHAR(5)       DEFAULT '00000';--
 
-    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- º¯¼ö ÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù.
-    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- ÀúÀåÇÒ ¹®ÀÚ¿­ÀÇ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù.
-    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULLÁöÁ¤µÈ ÄÃ·³¿¡ NULLÁöÁ¤
-    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- µ¥ÀÌÅÍ Áßº¹
-    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLEÀÌ ¾øÀ»‹š
+    DECLARE LEN_UNDER       CONDITION FOR SQLSTATE '01004';-- ë³€ìˆ˜ ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤.
+    DECLARE LEN_OVER        CONDITION FOR SQLSTATE '22001';-- ì €ìž¥í•  ë¬¸ìžì—´ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤.
+    DECLARE NOT_NULL        CONDITION FOR SQLSTATE '23502';-- NOT NULLì§€ì •ëœ ì»¬ëŸ¼ì— NULLì§€ì •
+    DECLARE ROW_DUO         CONDITION FOR SQLSTATE '23505';-- ë°ì´í„° ì¤‘ë³µ
+    DECLARE NO_TABLE        CONDITION FOR SQLSTATE '42704';-- TABLEì´ ì—†ì„ë–„
 
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'µ¥ÀÌÅÍ¸¦ Ã£À»(Á¶È¸ÇÒ)¼ö ¾ø½À´Ï´Ù..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'º¯¼öÀÇ ±æÀÌ°¡ ³Ê¹« ÀÛ½À´Ï´Ù..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'Á¸ÀçÇÏÁö ¾Ê´Â Å×ÀÌºí ÀÔ´Ï´Ù...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLÄÃ·³¿¡ NULLÀÌ ÁöÁ¤µÇ¾ú½À´Ï´Ù..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåÁß Áßº¹µÇ¾ú½À´Ï´Ù.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ÀúÀåµÉ ¹®ÀÚ¿­ ±æÀÌ°¡ ³Ê¹« ±é´Ï´Ù..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß °æ°í ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
-    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'½ÇÇàÁß ¾Ë¼ö¾ø´Â ¿À·ù·Î Á¾·áµÇ¾ú½À´Ï´Ù.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, '');--''WRR01: '||V_KEY_MSG||'ë°ì´í„°ë¥¼ ì°¾ì„(ì¡°íšŒí• )ìˆ˜ ì—†ìŠµë‹ˆë‹¤..'  || CHR(13) || [SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_UNDER     SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR02: '||COALESCE(V_KEY_MSG,'')||'ë³€ìˆ˜ì˜ ê¸¸ì´ê°€ ë„ˆë¬´ ìž‘ìŠµë‹ˆë‹¤..'              ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NO_TABLE      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR01: '||COALESCE(V_KEY_MSG,'')||'ì¡´ìž¬í•˜ì§€ ì•ŠëŠ” í…Œì´ë¸” ìž…ë‹ˆë‹¤...'             ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR NOT_NULL      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR02: '||COALESCE(V_KEY_MSG,'')||'NOT NULLì»¬ëŸ¼ì— NULLì´ ì§€ì •ë˜ì—ˆìŠµë‹ˆë‹¤..'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR ROW_DUO       SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR03: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ì¤‘ ì¤‘ë³µë˜ì—ˆìŠµë‹ˆë‹¤.'                     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR LEN_OVER      SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR04: '||COALESCE(V_KEY_MSG,'')||'ì €ìž¥ë  ë¬¸ìžì—´ ê¸¸ì´ê°€ ë„ˆë¬´ ê¹ë‹ˆë‹¤..'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLWARNING    SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'WRR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ê²½ê³  ì˜¤ë¥˜ê°€ ë°œìƒí•˜ì˜€ìŠµë‹ˆë‹¤.'         ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
+    DECLARE UNDO HANDLER FOR SQLEXCEPTION  SET (V_SQLSTATE, OUT_CNT, OUT_MSG) = (SQLSTATE, V_CNT, 'ERR99: '||COALESCE(V_KEY_MSG,'')||'ì‹¤í–‰ì¤‘ ì•Œìˆ˜ì—†ëŠ” ì˜¤ë¥˜ë¡œ ì¢…ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'     ||CHR(13) || '[SQLSTATE:'||SQLSTATE||'/'||SQLCODE||']') ;--
 
---  º¯¼ö Å¬¸®¾î
-    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG »ç¿ë¾ÈÇÏ°í Å×½ºÆ®
+--  ë³€ìˆ˜ í´ë¦¬ì–´
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ì‚¬ìš©ì•ˆí•˜ê³  í…ŒìŠ¤íŠ¸
 --    SET V_SAVE = 0;--
 --    P1: BEGIN
-    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG »ç¿ë¾ÈÇÏ°í Å×½ºÆ®
+    SET (OUT_CNT, OUT_MSG) =('0','');-- OUT_CNT, OUT_MSG ì‚¬ìš©ì•ˆí•˜ê³  í…ŒìŠ¤íŠ¸
 
---  µ¥ÀÌÅÍ¸¦ ÀúÀåÇÑ´Ù.
+--  ë°ì´í„°ë¥¼ ì €ìž¥í•œë‹¤.
 
     SET V_SQLSTATE = '00000';--
 
@@ -85,9 +85,9 @@ MAIN: BEGIN ATOMIC
     SET V_INSA_NM   = IN_INSA_NM;--
 
         SET V_USER_CHK = 0;--
-        SELECT '1' 
-             INTO 
-                V_USER_CHK 
+        SELECT '1'
+             INTO
+                V_USER_CHK
           FROM GADMIN.MBC_USERS
          WHERE INSA_NO = V_INSA_NO ;--
 
@@ -125,7 +125,7 @@ MAIN: BEGIN ATOMIC
                         , V_INSA_NO
                         , COALESCE(V_INSA_NM, '')
                         , COALESCE(V_JIKJONG, '')
-                        , '1' -- ÀçÁ÷»óÅÂ
+                        , '1' -- ìž¬ì§ìƒíƒœ
                         , V_APPLICATION_ID
                         , V_APPLICATION_NAME
                         , V_CLIENT_HOSTNAME
@@ -134,4 +134,4 @@ MAIN: BEGIN ATOMIC
                ;--
         END IF;--
 
-END MAIN 
+END MAIN

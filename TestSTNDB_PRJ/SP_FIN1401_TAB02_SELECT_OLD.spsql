@@ -24,8 +24,8 @@ MAIN: BEGIN
 
 P1: BEGIN
 
-    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_FROMMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_FROMDATE FROM SYSIBM.SYSDUMMY1;  --юЭ╠БЁ╞б╔ ╟Х╩Й (1ЁБ юлюЭ : юЭ╠Б)
-    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_TOMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_TODATE FROM SYSIBM.SYSDUMMY1;  --юЭ╠БЁ╞б╔ ╟Х╩Й (1ЁБ юлюЭ : юЭ╠Б)
+    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_FROMMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_FROMDATE FROM SYSIBM.SYSDUMMY1;  --Л═└Й╦╟К┌═Л╖° ЙЁ└Л┌╟ (1К┘└ Л²╢Л═└ : Л═└Й╦╟)
+    SELECT SUBSTRING(VARCHAR_FORMAT(TO_TIMESTAMP(IN_TOMONTH,'YYYYMM') - 1 YEAR,'YYYY-MM'),1,7) INTO V_BE_TODATE FROM SYSIBM.SYSDUMMY1;  --Л═└Й╦╟К┌═Л╖° ЙЁ└Л┌╟ (1К┘└ Л²╢Л═└ : Л═└Й╦╟)
 
     INSERT INTO SESSION.TEMP
     SELECT ACC_CD, ACC_NM, CU_AMT, CU_TOT, BE_AMT, BE_TOT
@@ -39,12 +39,12 @@ P1: BEGIN
                  GROUP BY ACC_CD, ACC_NM
             );--
 
-    -- гу╟Хд╜ю╦╥н ю╖д║ ╨╞╟Ф
+    -- М∙╘ЙЁ└Л╧╦Л°╪К║° Л°└Л╧≤ КЁ─Й╡╫
     UPDATE SESSION.TEMP
        SET CU_AMT = 0, CU_TOT = CU_AMT, BE_AMT = 0 , BE_TOT = BE_AMT
-     WHERE ACC_CD IN (  '6200000'   --(©Н╪ш©Ь╟║╧важец╨п╬Г©Ь╟║)
-                        , '6220000'  --©Н  ╪Ж  ╪Ж  ют
-                        , '6220100'  --(©Н╪ш©Ь╟║╧важец╨п╬Г©Ь╟║)
+     WHERE ACC_CD IN (  '6200000'   --(Л ╢Л├║Л⌡░Й╟─К╟▐Лё╪М┐²К╤└Л√▒Л⌡░Й╟─)
+                        , '6220000'  --Л ╢  Л┬≤  Л┬≤  Л·┘
+                        , '6220100'  --(Л ╢Л├║Л⌡░Й╟─К╟▐Лё╪М┐²К╤└Л√▒Л⌡░Й╟─)
                         , '6220600'
                         , '6230000'
                         , '6230100'
@@ -64,4 +64,4 @@ P2: BEGIN
 
     OPEN CURSOR_TEMP;--
 END P2;--
-END MAIN 
+END MAIN

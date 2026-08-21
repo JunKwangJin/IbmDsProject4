@@ -81,10 +81,10 @@ MAIN: BEGIN
 			      , DELETE_YN
 			      , HELP_YN
 			   FROM MENU_T
-              WHERE NVL(PGM_YN,'') LIKE CASE WHEN NVL(IN_PGM_YN,'') = '1' THEN '1' ELSE '%' END   -- PROGRAM ID�� �ִ°͸� �ʿ��ؼ� �߰� �� - ���翭, 21.1.12 - PGM_YN �� ���α׷� ENTRY�� ��Ÿ�� - ������
+              WHERE NVL(PGM_YN,'') LIKE CASE WHEN NVL(IN_PGM_YN,'') = '1' THEN '1' ELSE '%' END   -- PROGRAM ID가 있는것만 필요해서 추가 함 - 이재열, 21.1.12 - PGM_YN 은 프로그램 ENTRY를 나타냄 - 전광진
 			    START WITH MENU_ID = 'EBUSMENU'
 				CONNECT BY PRIOR MENU_ID = UP_MENU_ID;--
 
 	    OPEN CURSOR_USERMENU;--
    END P1;--
-END MAIN 
+END MAIN

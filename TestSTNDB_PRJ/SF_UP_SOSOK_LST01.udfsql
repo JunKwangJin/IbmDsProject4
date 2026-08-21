@@ -1,11 +1,11 @@
 CREATE OR REPLACE FUNCTION "GADMIN"."SF_UP_SOSOK_LST01"
 (
-        IN IN_SOSOK_CD      VARCHAR(10)             --ΌÒΌΣΔΪµε
-      , IN IN_SAYONG_YN     VARCHAR(10) DEFAULT '1' --»ηΏλΏ©ΊΞ(% : ΐόΓΌ, 1 : »ηΏλ, 0 : ΉΜ»ηΏλ)
-      , IN IN_TMP01_FG      VARCHAR(10) DEFAULT '0' --Ώ©ΊΠΖΔ¶σΉΜΕΝ1
-      , IN IN_TMP02_FG      VARCHAR(10) DEFAULT '0' --Ώ©ΊΠΖΔ¶σΉΜΕΝ2
-      , IN IN_TMP03_FG      VARCHAR(10) DEFAULT '0' --Ώ©ΊΠΖΔ¶σΉΜΕΝ3
-      , IN IN_TMP04_FG      VARCHAR(10) DEFAULT '0' --Ώ©ΊΠΖΔ¶σΉΜΕΝ4
+        IN IN_SOSOK_CD      VARCHAR(10)             --μ†μ†μ½”λ“
+      , IN IN_SAYONG_YN     VARCHAR(10) DEFAULT '1' --μ‚¬μ©μ—¬λ¶€(% : μ „μ²΄, 1 : μ‚¬μ©, 0 : λ―Έμ‚¬μ©)
+      , IN IN_TMP01_FG      VARCHAR(10) DEFAULT '0' --μ—¬λ¶„νλΌλ―Έν„°1
+      , IN IN_TMP02_FG      VARCHAR(10) DEFAULT '0' --μ—¬λ¶„νλΌλ―Έν„°2
+      , IN IN_TMP03_FG      VARCHAR(10) DEFAULT '0' --μ—¬λ¶„νλΌλ―Έν„°3
+      , IN IN_TMP04_FG      VARCHAR(10) DEFAULT '0' --μ—¬λ¶„νλΌλ―Έν„°4
 )
 
 RETURNS

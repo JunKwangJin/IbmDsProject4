@@ -15,32 +15,32 @@ BEGIN ATOMIC
                 FROM (
                         SELECT ACC_CD, ACC_NM, 0 AS AMT, CHAGAM_GB
                           FROM GADMIN.BSACC2
-                         WHERE ACC_GB IN ('ø¯∞°')
+                         WHERE ACC_GB IN ('ÏõêÍ∞Ä')
                         UNION ALL
-                        SELECT --2¿⁄∏Æ
-                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                        SELECT --2ÏûêÎ¶¨
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
                           FROM GADMIN.BSACC2 A
                                 LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,2) = SUBSTRING(B.ACC_CD,1,2))
-                         WHERE A.ACC_GB IN ('ø¯∞°')
+                         WHERE A.ACC_GB IN ('ÏõêÍ∞Ä')
                            AND ( SUBSTRING(A.ACC_CD,3, 5) = '00000' OR A.ACC_CD = '6200000')
                            AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                         GROUP BY A.ACC_CD, A.ACC_NM
                         UNION ALL
-                        SELECT --3¿⁄∏Æ
-                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                        SELECT --3ÏûêÎ¶¨
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
                           FROM GADMIN.BSACC2 A
                                 LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,3) = SUBSTRING(B.ACC_CD,1,3))
-                         WHERE A.ACC_GB IN ('ø¯∞°')
+                         WHERE A.ACC_GB IN ('ÏõêÍ∞Ä')
                            AND ( SUBSTRING(A.ACC_CD,4, 4) = '0000' AND (SUBSTRING(A.ACC_CD,1,3) = '622'
                            OR SUBSTRING(A.ACC_CD,1,3) = '623'  OR SUBSTRING(A.ACC_CD,1,3) = '624') )
                            AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                         GROUP BY A.ACC_CD, A.ACC_NM
                         UNION ALL
-                        SELECT --5¿⁄∏Æ
-                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                        SELECT --5ÏûêÎ¶¨
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
                           FROM GADMIN.BSACC2 A
                                 LEFT OUTER JOIN GADMIN.ACCOU1 B ON (SUBSTRING(A.ACC_CD,1,5) = SUBSTRING(B.ACC_CD,1,5))
-                         WHERE A.ACC_GB IN ('ø¯∞°')
+                         WHERE A.ACC_GB IN ('ÏõêÍ∞Ä')
                            AND ( SUBSTRING(A.ACC_CD,6,2) = '00' AND
                                 ( SUBSTRING(A.ACC_CD,1,5) = '62201'  OR SUBSTRING(A.ACC_CD,1,5) = '62206'
                                   OR SUBSTRING(A.ACC_CD,1,5) = '62301'  OR SUBSTRING(A.ACC_CD,1,5) = '62302'
@@ -48,11 +48,11 @@ BEGIN ATOMIC
                            AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                         GROUP BY A.ACC_CD, A.ACC_NM
                         UNION ALL
-                        SELECT --∞Ë¡§∞˙∏Ò
-                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = '¬˜∫Ø' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
+                        SELECT --Í≥ÑÏ†ïÍ≥ºÎ™©
+                                A.ACC_CD, A.ACC_NM, SUM(CASE WHEN A.DRCR_GB = 'Ï∞®Î≥Ä' THEN DR_AMT - CR_AMT ELSE CR_AMT - DR_AMT END)  AS AMT, '' AS CHAGAM_GB
                           FROM GADMIN.BSACC2 A
                                 LEFT OUTER JOIN GADMIN.ACCOU1 B ON (A.ACC_CD = B.ACC_CD)
-                         WHERE A.ACC_GB IN ('ø¯∞°')
+                         WHERE A.ACC_GB IN ('ÏõêÍ∞Ä')
                            AND SUBSTRING(B.DATE,1,7) BETWEEN IN_FROMMONTH AND IN_TOMONTH
                         GROUP BY A.ACC_CD, A.ACC_NM
                 	) A
