@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.udfsql": "sql",
+        "*.spsql": "sql",
+        "*.pludfsql": "sql"
+    }
+}
