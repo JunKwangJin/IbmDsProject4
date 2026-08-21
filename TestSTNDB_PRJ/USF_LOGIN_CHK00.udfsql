@@ -1,4 +1,4 @@
-CREATE FUNCTION COMMON.USF_LOGIN_CHK00
+CREATE FUNCTION GADMIN.USF_LOGIN_CHK00
 (
     IN IN_SYSGB     VARCHAR(1   ) ,
     IN IN_USER_ID   VARCHAR(10  ) ,
@@ -47,39 +47,39 @@ BEGIN ATOMIC
                 , A.JINGEUPHAKNYEON             AS JINGEUPHAKNYEON
                 , A.HOEGYE_DANWI                AS HOEGYE_DANWI
                 , SYSDATE                       AS LAST_LOGIN_DT
-                , COMMON.USF_PORTAL_ROLE_ID('1',A.USER_GUBUN,A.SINBUN_CD)  
+                , GADMIN.USF_PORTAL_ROLE_ID('1',A.USER_GUBUN,A.SINBUN_CD)  
                                                 AS PTL_ROLE_ID
                 , A.USER_REGNO1                 AS USER_REGNO1
                 , A.USER_REGNO2                 AS USER_REGNO2
         FROM    (
-                SELECT 
-                          '1'                     AS USER_GUBUN
-                        , HAKBEON                 AS USER_ID
-                        , NAME                    AS USER_NM
-                        , PASSWORD                AS USER_PW
-                        , JUMIN_NO1               AS USER_REGNO1
-                        , JUMIN_NO2               AS USER_REGNO2
-                        , SOSOK_CD                AS BUSEO_CD 
-                        , ''                      AS JIKGEUP_CD
-                        , CASE WHEN HAKJEOK_ST_CD IN ('01','02','07') THEN '1'
-                               ELSE '2'
-                          END                     AS JAEJIK_GBCD
-                        , TO_CHAR(HAKNYEON)       AS HAKNYEON
-                        , ''                      AS JINGEUPHAKNYEON
-                        , HAKJEOK_ST_CD           AS SINBUN_CD
-                        , HP_NO                   AS HP_NO
-                        , HAKGYO_EMAIL            AS EMAIL
-                        , HAKGYO_EMAIL            AS HAKGYO_EMAIL_ID
-                        , ''                      AS HOEGYE_DANWI
-                FROM    HAKSA.HS_HAKJEOKGIBON_M
-                WHERE       HAKBEON     =   IN_USER_ID
---                    변환하면서 암호솔루션 부재로 암호보분 제거                
---                        AND PASSWORD    =   XX1.ENC_VARCHAR_INS(IN_PASSWD,11,'SH3')
-                        AND PASSWORD    =   IN_PASSWD
-
---                        AND NVL(PASSWORD,'1111')    =   CASE WHEN IN_PASSWD = '1111' THEN NVL(PASSWORD,'1111') ELSE '-' END
-
-                UNION ALL
+--                SELECT 
+--                          '1'                     AS USER_GUBUN
+--                        , HAKBEON                 AS USER_ID
+--                        , NAME                    AS USER_NM
+--                        , PASSWORD                AS USER_PW
+--                        , JUMIN_NO1               AS USER_REGNO1
+--                        , JUMIN_NO2               AS USER_REGNO2
+--                        , SOSOK_CD                AS BUSEO_CD 
+--                        , ''                      AS JIKGEUP_CD
+--                        , CASE WHEN HAKJEOK_ST_CD IN ('01','02','07') THEN '1'
+--                               ELSE '2'
+--                          END                     AS JAEJIK_GBCD
+--                        , TO_CHAR(HAKNYEON)       AS HAKNYEON
+--                        , ''                      AS JINGEUPHAKNYEON
+--                        , HAKJEOK_ST_CD           AS SINBUN_CD
+--                        , HP_NO                   AS HP_NO
+--                        , HAKGYO_EMAIL            AS EMAIL
+--                        , HAKGYO_EMAIL            AS HAKGYO_EMAIL_ID
+--                        , ''                      AS HOEGYE_DANWI
+--                FROM    HAKSA.HS_HAKJEOKGIBON_M
+--                WHERE       HAKBEON     =   IN_USER_ID
+----                    변환하면서 암호솔루션 부재로 암호보분 제거                
+----                        AND PASSWORD    =   XX1.ENC_VARCHAR_INS(IN_PASSWD,11,'SH3')
+--                        AND PASSWORD    =   IN_PASSWD
+--
+----                        AND NVL(PASSWORD,'1111')    =   CASE WHEN IN_PASSWD = '1111' THEN NVL(PASSWORD,'1111') ELSE '-' END
+--
+--                UNION ALL
                 SELECT
                           '2'                     AS USER_GUBUN
                         , A.INSA_NO               AS USER_ID
@@ -87,7 +87,7 @@ BEGIN ATOMIC
                         , A.INSA_PWD              AS USER_PW
                         , A.JUMIN_NO1             AS USER_REGNO1
                         , A.JUMIN_NO2             AS USER_REGNO2
-                        , COMMON.USF_CS_SOSOKCHANGE_CD('1',A.INSA_NO,A.BUSEO_CD) AS BUSEO_CD
+                        , GADMIN.USF_CS_SOSOKCHANGE_CD('1',A.INSA_NO,A.BUSEO_CD) AS BUSEO_CD
                         , A.JIKGEUP_CD            AS JIKGEUP_CD
                         , A.JAEJIK_GBCD           AS JAEJIK_GBCD
                         , ''                      AS HAKNYEON 
@@ -127,7 +127,7 @@ BEGIN ATOMIC
                         , ''                       AS EMAIL
                         , ''                       AS HAKGYO_EMAIL_ID
                         , ''                       AS HOEGYE_DANWI
-                FROM    COMMON.CS_OEBUUSER_M
+                FROM    GADMIN.CS_OEBUUSER_M
                 WHERE       OEBU_USER_ID    =   IN_USER_ID
 --                    변환하면서 암호솔루션 부재로 암호보분 제거                
 --                        AND OEBU_USER_PW    =   XX1.ENC_VARCHAR_INS(IN_PASSWD,11,'SH3')
