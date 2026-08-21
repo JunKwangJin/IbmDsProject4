@@ -1,4 +1,27 @@
 CREATE FUNCTION GADMIN.USF_LOGIN_CHK00
+--/*******************************************************************************
+--파일명    : GADMIN.USF_LOGIN_CHK00
+--생성일자  : 2026.08.21
+--생성자    : 전광진
+--내용      : 로그인 인증 – 사용자 ID/비밀번호로 사용자 정보 조회
+-- INPUT   : IN_SYSGB    시스템 구분
+--         : IN_USER_ID  사용자 ID
+--         : IN_PASSWD   비밀번호
+-- OUTPUT  : TABLE       사용자 정보
+--         :   USER_GUBUN     사용자 구분 (2:직원, 3:외부사용자)
+--         :   USER_ID        사용자 ID
+--         :   USER_NM        사용자 이름
+--         :   PASSWORD       비밀번호
+--         :   SOSOK_CD       소속 코드
+--         :   JAEJIK_GBCD    재직 구분 코드
+--         :   JIKJONG_CD     직종 코드
+--         :   HP_NO          휴대폰 번호
+--         :   JIKWI_CD       직위 코드
+--         :   LAST_LOGIN_DT  마지막 로그인 일시
+--         :   PTL_ROLE_ID    포털 역할 ID
+--         :   USER_REGNO1    주민등록번호1
+--         :   USER_REGNO2    주민등록번호2
+--*******************************************************************************/
 (
     IN IN_SYSGB     VARCHAR(1   ) ,
     IN IN_USER_ID   VARCHAR(10  ) ,
